@@ -1,4 +1,4 @@
-package dev.robgro.timesheet.model;
+package dev.robgro.timesheet.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -20,6 +20,9 @@ public class Client {
     @Column(name = "client_name", nullable = false)
     private String clientName;
 
+    @Column(name = "hourly_rate", nullable = false)
+    private double hourlyRate;
+
     @Column(name = "house_number", nullable = false)
     private long houseNo;
 
@@ -32,15 +35,19 @@ public class Client {
     @Column(name = "post_code", nullable = false)
     private String postCode;
 
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "email", nullable = false)
     private String email;
 
     @OneToMany(mappedBy = "client")
     List<Timesheet> timesheets;
 
-    public Client(Long id, String clientName, long houseNo, String streetName, String city, String postCode, String email) {
+    @OneToMany(mappedBy = "client")
+    List<Invoice> invoices;
+
+    public Client(Long id, String clientName, double hourlyRate, long houseNo, String streetName, String city, String postCode, String email) {
         this.id = id;
         this.clientName = clientName;
+        this.hourlyRate = hourlyRate;
         this.houseNo = houseNo;
         this.streetName = streetName;
         this.city = city;
@@ -56,6 +63,7 @@ public class Client {
         return "Client{" +
                 "id=" + id +
                 ", clientName='" + clientName + '\'' +
+                ", hourlyRate=" + hourlyRate +
                 ", houseNo=" + houseNo +
                 ", streetName='" + streetName + '\'' +
                 ", city='" + city + '\'' +
@@ -66,17 +74,17 @@ public class Client {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         Client client = (Client) o;
-        return houseNo == client.houseNo && Objects.equals(id, client.id) && Objects.equals(clientName, client.clientName) && Objects.equals(streetName, client.streetName) && Objects.equals(city, client.city) && Objects.equals(postCode, client.postCode) && Objects.equals(email, client.email);
+        return Double.compare(hourlyRate, client.hourlyRate) == 0 && houseNo == client.houseNo && Objects.equals(id, client.id) && Objects.equals(clientName, client.clientName) && Objects.equals(streetName, client.streetName) && Objects.equals(city, client.city) && Objects.equals(postCode, client.postCode) && Objects.equals(email, client.email);
     }
 
     @Override
     public int hashCode() {
         int result = Objects.hashCode(id);
         result = 31 * result + Objects.hashCode(clientName);
+        result = 31 * result + Double.hashCode(hourlyRate);
         result = 31 * result + Long.hashCode(houseNo);
         result = 31 * result + Objects.hashCode(streetName);
         result = 31 * result + Objects.hashCode(city);
