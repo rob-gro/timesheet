@@ -1,0 +1,12 @@
+package dev.robgro.timesheet.model.dto;
+
+public record ClientDto(
+        Long id,
+        String clientName,
+        double hourlyHours,
+        long houseNo,
+        String streetName,
+        String city,
+        String postCode,
+        String email
+) {}
