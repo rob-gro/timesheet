@@ -3,7 +3,7 @@ package dev.robgro.timesheet.model.dto;
 public record ClientDto(
         Long id,
         String clientName,
-        double hourlyHours,
+        double hourlyRate,
         long houseNo,
         String streetName,
         String city,
