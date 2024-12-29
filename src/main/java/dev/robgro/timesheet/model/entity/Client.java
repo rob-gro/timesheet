@@ -2,6 +2,7 @@ package dev.robgro.timesheet.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
+@RequiredArgsConstructor
 @Table(name = "clients")
 public class Client {
 
@@ -43,20 +45,6 @@ public class Client {
 
     @OneToMany(mappedBy = "client")
     List<Invoice> invoices;
-
-    public Client(Long id, String clientName, double hourlyRate, long houseNo, String streetName, String city, String postCode, String email) {
-        this.id = id;
-        this.clientName = clientName;
-        this.hourlyRate = hourlyRate;
-        this.houseNo = houseNo;
-        this.streetName = streetName;
-        this.city = city;
-        this.postCode = postCode;
-        this.email = email;
-    }
-
-    public Client() {
-    }
 
     @Override
     public String toString() {

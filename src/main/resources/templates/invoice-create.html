@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="gb" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Invoice</title>
+<!--    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">-->
+    <link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="invoice-info">
+                <div>
+                    <div class="label">Date</div>
+                    <div class="data-label" th:text="${#temporals.format(invoice.issueDate, 'dd.MM.yyyy')}">IssueDate</div>
+                </div>
+                <div>
+                    <div class="label">Invoice #</div>
+                    <div class="data-label" th:text="${invoice.invoiceNumber}">invoiceNumber</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="addresses">
+            <div class="address">
+                <div>Invoice from:</div>
+                <div th:text="${seller.name}">Agnieszka Markiewicz</div>
+                <div th:text="${seller.street}">28 Ballater Place</div>
+                <div>
+                    <span th:text="${seller.postcode}">DD4 8SF</span>,
+                    <span th:text="${seller.city}">Dundee</span>
+                </div>
+            </div>
+
+            <div class="client-address">
+                <div class="right">Invoice for:</div>
+                <div th:text="${client.clientName}"></div>
+                <div>
+                    <span th:text="${client.houseNo}"></span>
+                    <span th:text="${client.streetName}"></span>
+                </div>
+                <div>
+                    <span th:text="${client.postCode}"></span>,
+                    <span th:text="${client.city}"></span>
+                </div>
+            </div>
+        </div>
+        <div class="items">
+            <table class="items-table">
+                <thead>
+                <tr>
+                    <th class="left">#</th>
+                    <th class="left">Description</th>
+                    <th class="right">Duration (h)</th>
+                    <th class="right">Hourly Rate (£)</th>
+                    <th class="right">Amount (£)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item, itemStat : ${invoice.itemsList}">
+                    <td th:text="${itemStat.count}">1</td>
+                    <td>
+                        Cleaning services at
+                        <span th:text="${#temporals.format(item.serviceDate, 'yyyy-MM-dd')}"></span>
+                    </td>
+                    <td class="right" th:text="${item.duration}">2.5</td>
+                    <td class="right" th:text="${client.hourlyRate}">50.00</td>
+                    <td class="right" th:text="${item.amount}">125.00</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="total-section">
+                <div class="total-row">
+                    <div>Total Amount:</div>
+                    <div class="amount" th:text="'£  '+ ${invoice.totalAmount}">384.00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-details">
+            <div class="section-title">PAYMENT DETAILS</div>
+            <div>Bank: TSB</div>
+            <div>Sort Code: 87-68-20</div>
+            <div>Account Number: 75040460</div>
+        </div>
+
+        <div class="notes">
+            <div class="section-title">Notes</div>
+            <div>:)</div>
+        </div>
+        <br/>
+
+        <button onclick="savePdfAndSendEmail()" class="nav-button">Generate & Send PDF Invoice</button>
+            <input type="hidden" id="invoiceId" th:value="${invoice.id}">
+
+        <div class="footer">
+            <span class="separator">|</span>
+            <span>robgro.dev</span>
+            <span class="separator">|</span>
+            <span>+44 747 8385 228</span>
+            <span class="separator">|</span>
+            <span>contact@robgro.dev</span>
+            <span class="separator">|</span>
+    <!--        <span th:text="${client.email}">email</span>-->
+        </div>
+
+    </div>
+<script th:src="@{/js/invoice-create.js}"></script>
+</body>
+</html>

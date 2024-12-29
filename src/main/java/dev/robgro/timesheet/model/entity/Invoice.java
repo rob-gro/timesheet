@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,4 +35,16 @@ public class Invoice {
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItem> itemsList = new ArrayList<>();
+
+    @Column(name = "issued_date")
+    private LocalDateTime issuedDate;
+
+    @Column(name = "pdf_path")
+    private String pdfPath;  // ścieżka gdzie zapisano PDF
+
+    @Column(name = "pdf_generated_at")
+    private LocalDateTime pdfGeneratedAt;  // kiedy wygenerowano PDF
+
+    @Column(name = "email_sent_at")
+    private LocalDateTime emailSentAt;  // kiedy wysłano email
 }

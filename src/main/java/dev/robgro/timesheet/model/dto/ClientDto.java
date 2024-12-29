@@ -9,4 +9,5 @@ public record ClientDto(
         String city,
         String postCode,
         String email
-) {}
+) {
+}
