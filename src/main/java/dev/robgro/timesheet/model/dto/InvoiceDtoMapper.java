@@ -19,13 +19,17 @@ public class InvoiceDtoMapper implements Function<Invoice, InvoiceDto> {
     public InvoiceDto apply(Invoice invoice) {
         return new InvoiceDto(
                 invoice.getId(),
+                invoice.getClient().getId(),
+                invoice.getClient().getClientName(),
                 invoice.getInvoiceNumber(),
                 invoice.getIssueDate(),
                 invoice.getTotalAmount(),
-                invoice.getClient().getId(),
+                invoice.getPdfPath(),
                 invoice.getItemsList().stream()
                         .map(invoiceItemDtoMapper)
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                invoice.getPdfGeneratedAt(),
+                invoice.getEmailSentAt()
         );
     }
 }

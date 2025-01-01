@@ -7,5 +7,7 @@ public record TimesheetDto(
         LocalDate serviceDate,
         double duration,
         boolean isInvoice,
-        Long clientId
-) {}
+        Long clientId,
+        double hourlyRate
+) {
+}

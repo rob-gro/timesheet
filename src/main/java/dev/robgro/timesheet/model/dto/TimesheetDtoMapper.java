@@ -14,7 +14,8 @@ public class TimesheetDtoMapper implements Function<Timesheet, TimesheetDto> {
                 timesheet.getServiceDate(),
                 timesheet.getDuration(),
                 timesheet.isInvoice(),
-                timesheet.getClient().getId()
+                timesheet.getClient().getId(),
+                timesheet.getClient().getHourlyRate()
         );
     }
 }

@@ -13,6 +13,7 @@ public class InvoiceItemDtoMapper implements Function<InvoiceItem, InvoiceItemDt
                 invoiceItem.getId(),
                 invoiceItem.getServiceDate(),
                 invoiceItem.getDescription(),
+                invoiceItem.getDuration(),
                 invoiceItem.getAmount()
         );
     }

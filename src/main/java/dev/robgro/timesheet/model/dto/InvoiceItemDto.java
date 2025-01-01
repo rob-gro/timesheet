@@ -7,5 +7,7 @@ public record InvoiceItemDto(
         Long id,
         LocalDate serviceDate,
         String description,
+        double duration,
         BigDecimal amount
-) {}
+) {
+}
