@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-public class OpenApiConfig {
+public class OpenApi {
 
     @Bean
     public OpenAPI springOpenAPI() {
@@ -22,11 +22,11 @@ public class OpenApiConfig {
                         .version("v1.0")
                         .contact(new Contact()
                                 .name("Robert Grodzki")
-                                .email("robgrodev@gmail.com")
+                                .email("contact@robgro.dev")
                                 .url("https://robgro.dev"))
                         .license(new License()
                                 .name("Apache 2.0")
-                                .url("http://springdoc.org")))
+                                .url("https://springdoc.org")))
                 .servers(List.of(
                         new Server().url("http://localhost:8080").description("Production Server on Heroku")
                 ));
