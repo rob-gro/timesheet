@@ -3,14 +3,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearSelect = document.querySelector('select[name="year"]');
     const monthSelect = document.querySelector('select[name="month"]');
 
-    // Aktualizacja miesięcy przy zmianie roku
+// Aktualizacja miesięcy przy zmianie roku
     yearSelect?.addEventListener('change', function() {
         if (!this.value) {
-            monthSelect.value = '';  // Reset miesiąca gdy rok nie jest wybrany
+            monthSelect.value = '';
         }
     });
 
-    // Funkcja usuwania faktury
+// Funkcja usuwania faktury
     window.deleteInvoice = function(id) {
         if (confirm('Are you sure you want to delete this invoice?')) {
             fetch(`/api/v1/invoices/${id}`, {

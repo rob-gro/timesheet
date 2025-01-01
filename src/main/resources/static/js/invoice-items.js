@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         totalAmountElement.textContent = total.toFixed(2);
-    }
+    }0
 
     function filterRowsByClient() {
         const selectedClientId = clientSelect.value;
