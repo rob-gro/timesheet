@@ -145,7 +145,6 @@ textarea.form-control {
     color: #e16b1a; /* Kolor tekstu (opcjonalnie) */
 }
 
-
 .alert-success {
     display: none;
     background-color: transparent;
@@ -280,4 +279,29 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     font-size: 16px;
     padding: 6px 2px;
     -moz-appearance: textfield;
+}
+.client-form-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    margin-left: 1rem;
+    width: 80%;
+}
+
+.client-form-field label {
+    color: var(--my-yellow);
+    margin-bottom: 0.5rem;
+}
+
+.client-form-field input {
+    text-align: right;
+    max-width: 80%;
+}
+
+.client-form-button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
 }
