@@ -14,4 +14,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findByClientIdAndIssueDateBetween(Long clientId, LocalDate startDate, LocalDate endDate);
 
     long countByInvoiceNumberEndingWith(String yearMonth);
+
+    List<Invoice> findAllByOrderByIssueDateDesc();
+    List<Invoice> findByIssueDateBetweenOrderByIssueDateDesc(LocalDate startDate, LocalDate endDate);
 }
