@@ -3,6 +3,7 @@ package dev.robgro.timesheet.controller.api;
 import dev.robgro.timesheet.model.dto.CreateInvoiceRequest;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
+import dev.robgro.timesheet.service.BillingService;
 import dev.robgro.timesheet.service.InvoiceService;
 import dev.robgro.timesheet.service.TimesheetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +25,7 @@ public class InvoiceController {
 
     private final InvoiceService invoiceService;
     private final TimesheetService timesheetService;
+    private final BillingService billingService;
 
 
     @Operation(summary = "Create invoice for selected timesheets")
@@ -36,7 +38,7 @@ public class InvoiceController {
     public ResponseEntity<InvoiceDto> createInvoice(
             @PathVariable Long clientId,
             @RequestBody CreateInvoiceRequest request) {
-        InvoiceDto invoice = invoiceService.createInvoice(
+        InvoiceDto invoice = billingService.createInvoice(
                 clientId,
                 request.issueDate(),
                 request.timesheetIds());
@@ -55,7 +57,7 @@ public class InvoiceController {
             @RequestParam int year,
             @RequestParam int month) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(invoiceService.createMonthlyInvoice(clientId, year, month));
+                .body(billingService.createMonthlyInvoice(clientId, year, month));
     }
 
 

@@ -1,6 +1,7 @@
 package dev.robgro.timesheet.controller.api;
 
 import dev.robgro.timesheet.model.dto.InvoiceDto;
+import dev.robgro.timesheet.service.BillingService;
 import dev.robgro.timesheet.service.InvoiceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,6 +22,7 @@ import java.util.List;
 public class InvoiceManagementController {
 
     private final InvoiceService invoiceService;
+    private final BillingService billingService;
 
     @Operation(summary = "Get all invoices")
     @ApiResponse(responseCode = "200", description = "List of all invoices retrieved successfully")
@@ -58,6 +60,6 @@ public class InvoiceManagementController {
             @RequestParam int year,
             @RequestParam int month) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(invoiceService.generateMonthlyInvoices(year, month));
+                .body(billingService.generateMonthlyInvoices(year, month));
     }
 }

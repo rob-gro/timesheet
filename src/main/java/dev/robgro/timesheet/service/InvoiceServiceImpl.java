@@ -1,99 +1,46 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.model.dto.*;
+import dev.robgro.timesheet.model.entity.Client;
 import dev.robgro.timesheet.model.entity.Invoice;
 import dev.robgro.timesheet.model.entity.InvoiceItem;
 import dev.robgro.timesheet.repository.ClientRepository;
 import dev.robgro.timesheet.repository.InvoiceRepository;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+
+import static dev.robgro.timesheet.service.EmailMessageService.COPY_EMAIL;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
 public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
-    private final ClientService clientService;
     private final TimesheetService timesheetService;
     private final InvoiceDtoMapper invoiceDtoMapper;
-    private final ClientDtoMapper clientDtoMapper;
-    private final TimesheetDtoMapper timesheetDtoMapper;
     private final ClientRepository clientRepository;
+    private final InvoiceSeller seller;
+    private final PdfGenerator pdfGenerator;
+    private final EmailMessageService emailMessageService;
 
-    @Override
-    public List<InvoiceDto> generateMonthlyInvoices(int year, int month) {
-        List<ClientDto> clients = clientService.getAllClients();
+    private final ClientDtoMapper clientDtoMapper;
 
-        return clients.stream()
-                .map(client -> generateMonthlyInvoiceForClient(client.id(), year, month))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-    }
-
-    public Optional<InvoiceDto> generateMonthlyInvoiceForClient(Long clientId, int year, int month) {
-        List<TimesheetDto> uninvoicedTimesheets = timesheetService.getMonthlyTimesheets(clientId, year, month)
-                .stream()
-                .filter(timesheet -> !timesheet.isInvoice())
-                .toList();
-
-        if (uninvoicedTimesheets.isEmpty()) {
-            return Optional.empty();
-        }
-
-        List<Long> timesheetsIds = uninvoicedTimesheets.stream()
-                .map(TimesheetDto::id)
-                .toList();
-        return Optional.of(createInvoice(clientId, year, month, timesheetsIds));
-    }
-
-    @Override
-    public InvoiceDto createInvoice(Long clientId, int year, int month, List<Long> timesheetsIds) {
-        LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
-        return createInvoice(clientId, lastDayOfMonth, timesheetsIds);
-    }
-
-    @Override
-    public InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetsIds) {
-        if (timesheetsIds.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "No timesheets selected for invoice");
-        }
-
-        ClientDto clientDto = clientService.getClientById(clientId);
-        List<TimesheetDto> selectedTimeshseets = timesheetsIds.stream()
-                .map(timesheetService::getTimesheetById)
-                .filter(timesheet -> timesheet.isInvoice())
-                .toList();
-
-        if (selectedTimeshseets.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "All selected timesheets are alredy invoiced");
-        }
-
-        Invoice invoice = createInvoiceFromTimesheets(clientDto, selectedTimeshseets, issueDate);
-        Invoice savedInvoice = invoiceRepository.save(invoice);
-
-        timesheetsIds.forEach(timesheetService::markAsInvoiced);
-
-        return invoiceDtoMapper.apply(savedInvoice);
-    }
-
-    @Override
-    public InvoiceDto createMonthlyInvoice(Long clientId, int year, int month) {
-        Optional<InvoiceDto> invoice = generateMonthlyInvoiceForClient(clientId, year, month);
-        return invoice.orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, "No uninvoiced timesheets found"));
-    }
 
     @Override
     public List<InvoiceDto> getAllInvoices() {
@@ -103,8 +50,30 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
+    public List<InvoiceDto> getAllInvoicesOrderByDateDesc() {
+        return invoiceRepository.findAllByOrderByIssueDateDesc()
+                .stream()
+                .map(invoiceDtoMapper)
+                .toList();
+    }
+
+    @Override
+    public List<InvoiceDto> getInvoicesByDateRange(LocalDate startDate, LocalDate endDate) {
+        return invoiceRepository.findByIssueDateBetweenOrderByIssueDateDesc(startDate, endDate)
+                .stream()
+                .map(invoiceDtoMapper)
+                .toList();
+    }
+
+    @Override
     public InvoiceDto getInvoiceById(long id) {
         return invoiceDtoMapper.apply(getInvoiceOrThrow(id));
+    }
+
+    @Override
+    public Optional<InvoiceDto> findByInvoiceNumber(String invoiceNumber) {
+        return invoiceRepository.findByInvoiceNumber(invoiceNumber)
+                .map(invoiceDtoMapper);
     }
 
     @Override
@@ -131,14 +100,9 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
-    public Optional<InvoiceDto> findByInvoiceNumber(String invoiceNumber) {
-        return invoiceRepository.findByInvoiceNumber(invoiceNumber)
-                .map(invoiceDtoMapper);
-    }
-
-    private Invoice createInvoiceFromTimesheets(ClientDto clientDto, List<TimesheetDto> timesheets, LocalDate issueDate) {
+    public InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate) {
         Invoice invoice = new Invoice();
-        invoice.setClient(clientRepository.getReferenceById(clientDto.id()));
+        invoice.setClient(clientRepository.getReferenceById(client.id()));
         invoice.setIssueDate(issueDate);
         invoice.setInvoiceNumber(generateInvoiceNumber(issueDate));
 
@@ -148,27 +112,33 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         invoice.setItemsList(items);
         invoice.setTotalAmount(calculateTotalAmount(items));
+        invoice.setIssuedDate(LocalDateTime.now());
 
-        return invoice;
-    }
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+        timesheets.forEach(timesheet -> timesheetService.markAsInvoiced(timesheet.id()));
 
-    private String generateInvoiceNumber(LocalDate issueDate) {
-        int year = issueDate.getYear();
-        int month = issueDate.getMonthValue();
-        String yearMonth = String.format("%02d/%d", month, year);
-        long count = invoiceRepository.countByInvoiceNumberEndingWith(yearMonth);
-        int nextNumber = (int) (count + 1);
-
-        return String.format("%03d/%s", nextNumber, yearMonth);
+        return invoiceDtoMapper.apply(savedInvoice);
     }
 
     private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {
         InvoiceItem item = new InvoiceItem();
         item.setInvoice(invoice);
         item.setServiceDate(timesheet.serviceDate());
-        item.setDescription("Cleaning service");
+        item.setDescription(String.format("Cleaning service - %s",
+                timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE)));
         item.setAmount(calculateAmount(timesheet.duration(), invoice.getClient().getHourlyRate()));
+        item.setDuration(timesheet.duration());
+        item.setTimesheetId(timesheet.id());
         return item;
+    }
+
+    private String generateInvoiceNumber(LocalDate issueDate) {
+        int year = issueDate.getYear();
+        int month = issueDate.getMonthValue();
+        String yearMonth = String.format("%02d-%d", month, year);
+        long count = invoiceRepository.countByInvoiceNumberEndingWith(yearMonth);
+        int nextNumber = (int) (count + 1);
+        return String.format("%03d-%s", nextNumber, yearMonth);
     }
 
     private BigDecimal calculateAmount(double duration, double hourlyRate) {
@@ -186,5 +156,61 @@ public class InvoiceServiceImpl implements InvoiceService {
         return invoiceRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Invoice with id: " + id + "not found"));
+    }
+
+    @Transactional
+    @Override
+    public void savePdfAndSendInvoice(Long id) {
+        Invoice invoice = getInvoiceOrThrow(id);
+        Client client = invoice.getClient();
+        String fileName = invoice.getInvoiceNumber() + ".pdf";
+        String filePath = "src/main/resources/invoices_pdf/" + fileName;
+
+        invoice.setPdfPath(filePath);
+        invoice.setPdfGeneratedAt(LocalDateTime.now());
+
+        generatePdfFromHtml(invoice, seller, filePath);
+
+        try {
+            String firstName = client.getClientName().split(" ")[0];
+            File pdfFile = new File(filePath);
+            String invoiceNumber = invoice.getInvoiceNumber();
+            String preMonth = invoice.getIssueDate().getMonth().toString();
+            String month = preMonth.charAt(0) + preMonth.substring(1).toLowerCase();
+            emailMessageService.sendInvoiceEmail(client.getEmail(), COPY_EMAIL, firstName, invoiceNumber, month, pdfFile);
+            invoice.setEmailSentAt(LocalDateTime.now());
+            invoiceRepository.save(invoice);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
+    private void generatePdfFromHtml(Invoice invoice, InvoiceSeller seller, String filePath) {
+        pdfGenerator.generateInvoicePdf(invoice, seller, filePath);
+    }
+
+    @Override
+    public List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month, Boolean emailSent) {
+        List<Invoice> invoices = invoiceRepository.findAll();
+
+        return invoices.stream()
+                .filter(invoice -> clientId == null || invoice.getClient().getId().equals(clientId))
+                .filter(invoice -> year == null || invoice.getIssueDate().getYear() == year)
+                .filter(invoice -> month == null || invoice.getIssueDate().getMonthValue() == month)
+                .filter(invoice -> emailSent == null || (emailSent && invoice.getEmailSentAt() != null)
+                        || (!emailSent && invoice.getEmailSentAt() == null))
+                .map(invoiceDtoMapper)
+                .collect(toList());
+    }
+
+    @Transactional
+    @Override
+    public void deleteInvoice(Long id) {
+        Invoice invoice = getInvoiceOrThrow(id);
+        invoice.getItemsList().forEach(item ->
+                timesheetService.updateInvoiceFlag(item.getTimesheetId(), false));
+        invoice.getItemsList().clear();
+        invoiceRepository.saveAndFlush(invoice);
+        invoiceRepository.delete(invoice);
     }
 }
