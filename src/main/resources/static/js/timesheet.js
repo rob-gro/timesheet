@@ -52,21 +52,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// document.addEventListener('DOMContentLoaded', function() {
-//     const dateInput = document.getElementById('serviceDate');
-//
-//     // Ustaw placeholder zgodnie z formatem yyyy-MM-dd
-//     dateInput.setAttribute('placeholder', 'yyyy-MM-dd');
-//
-//     // Opcjonalnie: ustaw wartość domyślną na dzisiejszą datę w formacie yyyy-MM-dd
-//     const today = new Date();
-//     const yyyy = today.getFullYear();
-//     const mm = String(today.getMonth() + 1).padStart(2, '0'); // Dodaj zero dla miesięcy 01-09
-//     const dd = String(today.getDate()).padStart(2, '0'); // Dodaj zero dla dni 01-09
-//     dateInput.value = `${yyyy}-${mm}-${dd}`;
-// });
-
-
 document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('serviceDate');
 
@@ -85,8 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
-
 
 function incrementHours() {
     const input = document.querySelector('input[name="duration"]');
