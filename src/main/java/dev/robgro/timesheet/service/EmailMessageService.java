@@ -1,6 +1,5 @@
 package dev.robgro.timesheet.service;
 
-import dev.robgro.timesheet.model.entity.Client;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +14,16 @@ import java.io.File;
 public class EmailMessageService {
 
     private final JavaMailSender emailSender;
+    public static final String CONTACT_EMAIL = "contact@robgro.dev";
+    public static final String COPY_EMAIL = "robgrodev@gmail.com";
 
 
-    public void sendInvoiceEmail(String recipientEmail, String firstName, String invoiceNumber, String month, String email, File attachment) throws MessagingException {
+    public void sendInvoiceEmail(String recipientEmail, String ccEmail, String firstName, String invoiceNumber, String month, File attachment) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setTo(recipientEmail);
+        helper.setCc(ccEmail);
         helper.setSubject("Invoice " + invoiceNumber);
 
 
@@ -39,7 +41,7 @@ public class EmailMessageService {
                 <p>Aga</p>
                 <hr>
                 <p style='color: #666; font-size: 12px;'>
-                    Mobile: +44 7922 322 002<br>
+                    Mobile: Aga: +44 7922 322 002; Rob: +44 747 8385 228<br>
                     Email: <a href='mailto:contact@robgro.dev'>contact@robgro.dev</a><br>
                     Web: <a href='https://robgro.dev' target='_blank'>https://robgro.dev</a>
                 </p>
@@ -48,7 +50,7 @@ public class EmailMessageService {
                 </p>
                     </body>
                     </html>
-                """.formatted(firstName, invoiceNumber, month, email, email);
+                """.formatted(firstName, invoiceNumber, month, CONTACT_EMAIL, CONTACT_EMAIL);
 
         helper.setText(emailContent, true);
         helper.addAttachment(attachment.getName(), attachment);
