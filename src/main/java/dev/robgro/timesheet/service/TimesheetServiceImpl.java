@@ -18,6 +18,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Service
 @RequiredArgsConstructor
 public class TimesheetServiceImpl implements TimesheetService {
@@ -30,12 +32,20 @@ public class TimesheetServiceImpl implements TimesheetService {
     public List<TimesheetDto> getAllTimesheets() {
         return timesheetRepository.findAll().stream()
                 .map(timesheetDtoMapper)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
     public TimesheetDto getTimesheetById(Long id) {
         return timesheetDtoMapper.apply(getTimesheetOrThrow(id));
+    }
+
+    @Override
+    public List<TimesheetDto> getUnbilledTimesheetsByClientId(Long clientId) {
+        return timesheetRepository.findByClientIdAndIsInvoiceFalse(clientId)
+                .stream()
+                .map(timesheetDtoMapper)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -67,16 +77,31 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    @Transactional
     public void deleteTimesheet(Long id) {
-        getTimesheetOrThrow(id);
-        timesheetRepository.deleteById(id);
+        Timesheet timesheet = getTimesheetOrThrow(id);
+        if (timesheet.isInvoice()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Cannot delete timesheet that is attached to an invoice"
+            );
+        }
+        timesheetRepository.delete(timesheet);
     }
 
     @Override
     public List<TimesheetDto> getTimesheetByClientId(Long clientId) {
         return timesheetRepository.findAllByClientId(clientId).stream()
                 .map(timesheetDtoMapper)
-                .collect(Collectors.toList());
+                .collect(toList());
+    }
+
+    @Override
+    public List<TimesheetDto> getUnbilledTimesheets() {
+        return timesheetRepository.findByIsInvoice(false)
+                .stream()
+                .map(timesheetDtoMapper)
+                .collect(toList());
     }
 
     @Override
@@ -89,7 +114,7 @@ public class TimesheetServiceImpl implements TimesheetService {
                 .stream()
                 .map(timesheetDtoMapper)
                 .sorted(Comparator.comparing(TimesheetDto::serviceDate))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private Timesheet getTimesheetOrThrow(Long id) {
@@ -101,6 +126,25 @@ public class TimesheetServiceImpl implements TimesheetService {
     public void markAsInvoiced(Long id) {
         Timesheet timesheet = getTimesheetOrThrow(id);
         timesheet.setInvoice(true);
+        timesheetRepository.save(timesheet);
+    }
+
+    @Transactional
+    @Override
+    public void updateInvoiceFlag(Long id, boolean isInvoiced) {
+        Timesheet timesheet = timesheetRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Timesheet with id: " + id + " not found"));
+
+        timesheet.setInvoice(isInvoiced);
+        timesheetRepository.save(timesheet);
+    }
+
+    @Override
+    @Transactional
+    public void detachFromInvoice(Long id) {
+        Timesheet timesheet = getTimesheetOrThrow(id);
+        timesheet.setInvoice(false);
         timesheetRepository.save(timesheet);
     }
 }

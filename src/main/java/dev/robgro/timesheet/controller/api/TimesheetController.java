@@ -66,12 +66,29 @@ public class TimesheetController {
 
     @Operation(summary = "Delete timesheet")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Timesheet deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Timesheet not found")
+            @ApiResponse(responseCode = "204", description = "Timesheet deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Timesheet not found"),
+            @ApiResponse(responseCode = "400", description = "Cannot delete timesheet attached to invoice")
     })
-    @DeleteMapping("/{id}")
+        @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTimesheet(@PathVariable Long id) {
         timesheetService.deleteTimesheet(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @Operation(summary = "Detach timesheet from invoice")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Timesheet detached successfully"),
+            @ApiResponse(responseCode = "404", description = "Timesheet not found")
+    })
+    @PostMapping("/{id}/detach")
+    public ResponseEntity<Void> detachFromInvoice(@PathVariable Long id) {
+        timesheetService.detachFromInvoice(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/client/{clientId}")
+    public ResponseEntity<List<TimesheetDto>> getTimesheetsByClient(@PathVariable Long clientId) {
+        return ResponseEntity.ok(timesheetService.getTimesheetByClientId(clientId));
     }
 }
