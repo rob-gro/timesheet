@@ -8,7 +8,6 @@
     --main-color: #5c6ac4;
 }
 
-
 body {
     margin: 0;
     padding: 0;
@@ -35,8 +34,8 @@ body {
 .invoice-info {
     display: flex;
     gap: 2rem;
-    margin-left: auto;  /* to przesunie na prawą stronę */
-    text-align: right;  /* tekst wyrównany do prawej */
+    margin-left: auto; /* to przesunie na prawą stronę */
+    text-align: right; /* tekst wyrównany do prawej */
     /*color: #5c6ac4;*/
 }
 
@@ -59,7 +58,7 @@ body {
 }
 
 .invoice-info {
-     display: flex;
+    display: flex;
     gap: 2rem;
 }
 
@@ -90,7 +89,6 @@ body {
 }
 
 .items-table th {
-    /*text-align: right;*/
     padding: 0.75rem;
     border-bottom: 2px solid var(--border-color);
 }
