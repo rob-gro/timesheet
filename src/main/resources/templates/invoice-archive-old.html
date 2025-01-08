@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="gb" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Archive</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Invoice Archive</h2>
+
+                    <!-- Filtry -->
+                    <form class="mb-4" method="get" th:action="@{/invoice-archive}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <select class="form-select" name="clientId">
+                                    <option value="">All Clients</option>
+                                    <option th:each="client : ${clients}"
+                                            th:value="${client.id}"
+                                            th:text="${client.clientName}"
+                                            th:selected="${client.id == selectedClientId}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" name="year">
+                                    <option value="">All Years</option>
+                                    <option th:each="year : ${#numbers.sequence(2025, 2021)}"
+                                            th:value="${year}"
+                                            th:text="${year}"
+                                            th:selected="${year == selectedYear}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" name="month">
+                                    <option value="">All Months</option>
+                                    <option th:each="month : ${#numbers.sequence(1, 12)}"
+                                            th:value="${month}"
+                                            th:text="${month}"
+                                            th:selected="${month == selectedMonth}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="nav-button">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Lista faktur -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Total Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="invoice : ${invoices}">
+                                <td th:text="${invoice.invoiceNumber}"></td>
+                                <td th:text="${#temporals.format(invoice.issueDate, 'yyyy-MM-dd')}"></td>
+                                <td th:text="${invoice.clientName}"></td>
+                                <td th:text="${'£ ' + invoice.totalAmount}"></td>
+                                <td>
+                                    <a th:href="@{/invoice-create/{id}(id=${invoice.id})}"
+                                       class="btn btn-sm btn-primary">View</a>
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="/" class="nav-button text-center text-decoration-none">Back to Main Page</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    function deleteInvoice(id) {
+        if (confirm('Are you sure you want to delete this invoice?')) {
+            fetch(`/api/v1/invoices/${id}`, {
+                method: 'DELETE'
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error deleting invoice');
+                }
+            });
+        }
+    }
+</script>
+<script th:src="@{/js/invoice-archive-old.js}"></script>
+</body>
+</html>
