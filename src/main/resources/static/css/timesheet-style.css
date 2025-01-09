@@ -2,8 +2,9 @@
 .table-responsive {
     margin-bottom: 1rem;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    border-radius: 4px;
+    border-radius: 10px;
     background-color: var(--my-bg);
+    width: 100%;
 }
 
 .table th {
@@ -32,144 +33,101 @@
     color: black;
 }
 
-/********************** 2
-/* timesheet-style.css */
-/* Podstawowe style kontenera i tabeli */
-/*.container {*/
-/*    max-width: 1200px;*/
-/*    margin: 0 auto;*/
-/*    padding: 20px;*/
-/*}*/
 
-/*.table-responsive {*/
-/*    margin-bottom: 1rem;*/
-/*    box-shadow: 0 0 10px rgba(0,0,0,0.1);*/
-/*    border-radius: 4px;*/
-/*}*/
+/* Podstawowe style dla formularza na urządzeniach mobilnych */
+@media (max-width: 768px) {
+    .card {
+        margin: 10px;
+        width: calc(100% - 20px);
+        padding: 0;
+    }
 
-/* Przyciski akcji */
-/*.view-btn, .edit-btn, .delete-btn {*/
-/*    padding: 6px 12px;*/
-/*    border-radius: 4px;*/
-/*    font-size: 0.875rem;*/
-/*    margin-right: 8px;*/
-/*    cursor: pointer;*/
-/*    border: none;*/
-/*}*/
+    .card-body {
+        padding: 1.5rem !important;
+    }
 
-/*.view-btn {*/
-/*    background-color: #5c6ac4;*/
-/*    color: white;*/
-/*}*/
+    .container {
+        padding: 0;
+        max-width: 100%;
+    }
 
-/*.edit-btn {*/
-/*    background-color: #28a745;*/
-/*    color: white;*/
-/*}*/
+    /* Powiększone pola formularza */
+    .form-control,
+    .form-select {
+        font-size: 1.3rem !important;
+        padding: 15px !important;
+        height: auto !important;
+        margin-bottom: 1.2rem;
+    }
 
-/*.delete-btn {*/
-/*    background-color: #dc3545;*/
-/*    color: white;*/
-/*}*/
+    /* Powiększone etykiety */
+    .form-label {
+        font-size: 1.3rem !important;
+        margin-bottom: 1rem !important;
+        display: block;
+    }
 
-/*!* Nawigacja *!*/
-/*.nav-button {*/
-/*    width: 100%;*/
-/*    padding: 10px;*/
-/*    margin-top: 10px;*/
-/*}*/
+    /* Powiększony nagłówek */
+    h2 {
+        font-size: 2.2rem !important;
+        margin-bottom: 2rem !important;
+    }
 
-/*!* Responsywność *!*/
-/*@media (max-width: 768px) {*/
-/*    .container {*/
-/*        padding: 10px;*/
-/*    }*/
+    /* Dostosowanie przycisku czasu */
+    .time-btn {
+        width: 70px !important;
+        height: 50px !important;
+        font-size: 28px !important;
+    }
 
-/*    .table-responsive {*/
-/*        overflow-x: auto;*/
-/*    }*/
+    .time-input {
+        font-size: 1.3rem !important;
+        padding: 10px 5px !important;
+    }
 
-/*    .nav-button {*/
-/*        margin-bottom: 10px;*/
-/*    }*/
-/*}*/
+    .input-time-wrapper {
+        margin-bottom: 1.5rem;
+    }
 
+    /* Powiększone przyciski nawigacyjne */
+    .nav-button {
+        width: 100% !important;
+        padding: 18px !important;
+        font-size: 1.4rem !important;
+        margin: 0.5rem 0 !important;
+    }
 
-/************* 11111111111111111111111111111111 */
+    /* Dostosowanie komunikatu sukcesu */
+    .alert {
+        font-size: 1.3rem !important;
+        padding: 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }
 
+    /* Dostosowanie kalendarza */
+    input[type="date"] {
+        min-height: 50px !important;
+    }
 
-/*.container {*/
-/*    max-width: 1200px;*/
-/*    margin: 0 auto;*/
-/*    padding: 20px;*/
-/*}*/
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        width: 30px !important;
+        height: 30px !important;
+        margin-right: 10px;
+    }
+}
 
-/*.table-responsive {*/
-/*    margin-bottom: 1rem;*/
-/*    box-shadow: 0 0 10px rgba(0,0,0,0.1);*/
-/*    border-radius: 4px;*/
-/*}*/
+/* Zachowanie oryginalnych stylów dla większych ekranów */
+.view-btn, .edit-btn, .delete-btn {
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--my-yellow);
+    background-color: var(--my-bg);
+    color: var(--my-yellow);
+    margin-right: 8px;
+    cursor: pointer;
+}
 
-/*.table thead th {*/
-/*    background-color: #f8f9fa;*/
-/*    border-bottom: 2px solid #5c6ac4;*/
-/*    color: #404040;*/
-/*    padding: 12px;*/
-/*}*/
-
-/*.table tbody td {*/
-/*    padding: 12px;*/
-/*    border-bottom: 1px solid #f1f5f9;*/
-/*}*/
-
-/*.table tbody tr:hover {*/
-/*    background-color: #f5f5f5;*/
-/*}*/
-
-/*.view-btn, .edit-btn, .delete-btn {*/
-/*    padding: 6px 12px;*/
-/*    border-radius: 4px;*/
-/*    font-size: 0.875rem;*/
-/*    margin-right: 8px;*/
-/*    cursor: pointer;*/
-/*    border: none;*/
-/*}*/
-
-/*.view-btn {*/
-/*    background-color: #5c6ac4;*/
-/*    color: white;*/
-/*}*/
-
-/*.edit-btn {*/
-/*    background-color: #28a745;*/
-/*    color: white;*/
-/*}*/
-
-/*.delete-btn {*/
-/*    background-color: #dc3545;*/
-/*    color: white;*/
-/*}*/
-
-/*.nav-button {*/
-/*    width: 100%;*/
-/*    padding: 10px;*/
-/*    margin-top: 10px;*/
-/*    background-color: #5c6ac4;*/
-/*    color: white;*/
-/*    border: none;*/
-/*    border-radius: 4px;*/
-/*}*/
-
-/*@media (max-width: 768px) {*/
-/*    .container {*/
-/*        padding: 10px;*/
-/*    }*/
-
-/*    .table-responsive {*/
-/*        overflow-x: auto;*/
-/*    }*/
-
-/*    .nav-button {*/
-/*        margin-bottom: 10px;*/
-/*    }*/
-/*}*/
+.view-btn:hover, .edit-btn:hover, .delete-btn:hover {
+    background-color: var(--my-yellow);
+    color: black;
+}
