@@ -2,16 +2,16 @@
 <html lang="pl" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TimeSheet</title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/style.css}">
-
 </head>
 <body>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-12">
-            <div class="card">
+<div class="container-fluid p-0">
+    <div class="row justify-content-center m-0">
+        <div class="col-12 col-md-8 col-lg-6 px-2">
+            <div class="card mt-3 mb-3">
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">TimeSheet</h2>
 
@@ -19,10 +19,10 @@
                         Timesheet saved successfully!
                     </div>
 
-                    <form id="timesheet" method="POST" action="/api/v1/timesheets">
-                        <div class="mb-3">
+                    <form id="timesheet" method="POST" action="/api/v1/timesheets" class="needs-validation" novalidate>
+                        <div class="mb-4">
                             <label for="clientId" class="form-label">Client</label>
-                            <select class="form-select" id="clientId" name="clientId" required>
+                            <select class="form-select form-select-lg" id="clientId" name="clientId" required>
                                 <option value="">Select client</option>
                                 <option th:each="client : ${clients}"
                                         th:value="${client.id()}"
@@ -31,13 +31,13 @@
                             </select>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="serviceDate" class="form-label">Service Date</label>
-                            <input type="date" class="form-control" id="serviceDate" name="serviceDate" placeholder="yyyy-MM-dd" required>
-
+                            <input type="date" class="form-control form-control-lg" id="serviceDate"
+                                   name="serviceDate" placeholder="yyyy-MM-dd" required>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label for="duration" class="form-label">Duration (hours)</label>
                             <div class="input-time-wrapper" id="duration">
                                 <button type="button" class="time-btn" onclick="decrementHours()">-</button>
@@ -47,9 +47,9 @@
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="nav-button">Save Timesheet</button>
-                            <a th:href="@{/}" class="nav-button text-center text-decoration-none">Back</a>
+                        <div class="d-grid gap-3 mt-4">
+                            <button type="submit" class="nav-button btn-lg">Save Timesheet</button>
+                            <a th:href="@{/}" class="nav-button btn-lg text-center text-decoration-none">Back</a>
                         </div>
                     </form>
                 </div>
@@ -60,3 +60,66 @@
 <script th:src="@{/js/timesheet.js}"></script>
 </body>
 </html>
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="pl" xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>TimeSheet</title>-->
+<!--    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">-->
+<!--    <link rel="stylesheet" th:href="@{/css/style.css}">-->
+
+<!--</head>-->
+<!--<body>-->
+<!--<div class="container mt-5">-->
+<!--    <div class="row justify-content-center">-->
+<!--        <div class="col-12">-->
+<!--            <div class="card">-->
+<!--                <div class="card-body p-4">-->
+<!--                    <h2 class="text-center mb-4">TimeSheet</h2>-->
+
+<!--                    <div id="success" class="alert alert-success" style="display: none;">-->
+<!--                        Timesheet saved successfully!-->
+<!--                    </div>-->
+
+<!--                    <form id="timesheet" method="POST" action="/api/v1/timesheets">-->
+<!--                        <div class="mb-3">-->
+<!--                            <label for="clientId" class="form-label">Client</label>-->
+<!--                            <select class="form-select" id="clientId" name="clientId" required>-->
+<!--                                <option value="">Select client</option>-->
+<!--                                <option th:each="client : ${clients}"-->
+<!--                                        th:value="${client.id()}"-->
+<!--                                        th:text="${client.clientName()}">-->
+<!--                                </option>-->
+<!--                            </select>-->
+<!--                        </div>-->
+
+<!--                        <div class="mb-3">-->
+<!--                            <label for="serviceDate" class="form-label">Service Date</label>-->
+<!--                            <input type="date" class="form-control" id="serviceDate" name="serviceDate" placeholder="yyyy-MM-dd" required>-->
+
+<!--                        </div>-->
+
+<!--                        <div class="mb-3">-->
+<!--                            <label for="duration" class="form-label">Duration (hours)</label>-->
+<!--                            <div class="input-time-wrapper" id="duration">-->
+<!--                                <button type="button" class="time-btn" onclick="decrementHours()">-</button>-->
+<!--                                <input type="number" class="form-control time-input" name="duration"-->
+<!--                                       step="0.5" min="0.5" max="12" value="0.5" required>-->
+<!--                                <button type="button" class="time-btn" onclick="incrementHours()">+</button>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        <div class="d-grid gap-2">-->
+<!--                            <button type="submit" class="nav-button">Save Timesheet</button>-->
+<!--                            <a th:href="@{/}" class="nav-button text-center text-decoration-none">Back</a>-->
+<!--                        </div>-->
+<!--                    </form>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+<!--<script th:src="@{/js/timesheet.js}"></script>-->
+<!--</body>-->
+<!--</html>-->
