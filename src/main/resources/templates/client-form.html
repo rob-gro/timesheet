@@ -7,37 +7,49 @@
 </head>
 <body>
 <div class="container mt-5">
-    <div class="card">
+    <div class="row justify-content-center">
         <div class="card-body p-4">
-            <h2 class="text-center mb-4">Edit Client</h2>
+            <h2 class="text-center mb-4" th:text="${client.id == null ? 'Add New Client' : 'Edit Client'}">Client Details</h2>
 
-            <form th:action="@{/clients/save}" method="post" th:object="${client}">
+            <form th:action="@{/clients/save}" method="post" th:object="${client}" class="text-end">
                 <input type="hidden" th:field="*{id}">
 
-                <div class="form-fields">
-                    <label>Client Name:</label>
-                    <input type="text" th:field="*{clientName}" required>
-
-                    <label>House No.:</label>
-                    <input type="text" th:field="*{houseNo}" required>
-
-                    <label>Street Name:</label>
-                    <input type="text" th:field="*{streetName}" required>
-
-                    <label>Post Code:</label>
-                    <input type="text" th:field="*{postCode}" required>
-
-                    <label>City:</label>
-                    <input type="text" th:field="*{city}" required>
-
-                    <label>Email:</label>
-                    <input type="email" th:field="*{email}" required>
-
-                    <label>Hourly Rate (£):</label>
-                    <input type="number" th:field="*{hourlyRate}" class="text-end" step="0.01" min="0" required>
+                <div class="client-form-field">
+                        <label>Client Name:</label>
+                        <input type="text" th:field="*{clientName}" class="form-control" required>
                 </div>
 
-                <div class="button-group">
+                <div class="client-form-field">
+                    <label>House No.:</label>
+                    <input type="text" th:field="*{houseNo}" class="form-control" required>
+                </div>
+
+                <div class="client-form-field">
+                    <label>Street Name:</label>
+                    <input type="text" th:field="*{streetName}" class="form-control" required>
+                </div>
+
+                <div class="client-form-field">
+                    <label>Post Code:</label>
+                    <input type="text" th:field="*{postCode}" class="form-control" required>
+                </div>
+
+                <div class="client-form-field">
+                    <label>City:</label>
+                    <input type="text" th:field="*{city}" class="form-control" required>
+                </div>
+
+                <div class="client-form-field">
+                    <label>Email:</label>
+                    <input type="email" th:field="*{email}" class="form-control" required>
+                </div>
+
+                <div class="client-form-field">
+                    <label>Hourly Rate (£):</label>
+                    <input type="number" th:field="*{hourlyRate}" class="form-control text-end" step="0.01" min="0" required>
+                </div>
+
+                <div class="client-form-button-group">
                     <button type="submit" class="save-button">Save Client</button>
                     <button type="button" class="nav-button" onclick="window.location.href='/clients';">Back to Clients List</button>
                 </div>
