@@ -11,6 +11,9 @@ function savePdfAndSendEmail() {
         .then(response => {
             if (response.ok) {
                 alert('Invoice has been saved and sent to the client');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
             } else {
                 alert('There was an error processing the invoice');
             }
