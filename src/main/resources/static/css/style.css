@@ -216,6 +216,38 @@ input[type="number"]::-webkit-inner-spin-button {
     color: var(--my-yellow);
 }
 
+.client-form-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    margin-left: 1rem;
+    width: 80%;
+}
+
+.client-form-field label {
+    color: var(--my-yellow);
+    margin-bottom: 0.5rem;
+}
+
+.client-form-field input {
+    text-align: right;
+    max-width: 80%;
+}
+
+.client-form-button-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-left: 1rem;
+}
+
+.client-form-button-group button {
+    width: 80%;
+}
+
 /* M E D I A */
 
 @media (max-width: 768px) {
@@ -232,8 +264,6 @@ input[type="number"]::-webkit-inner-spin-button {
         font-size: 1.2rem !important;
         margin-bottom: 0.8rem !important;
     }
-
-
 
     .nav-button {
         width: 100% !important;
@@ -270,6 +300,24 @@ input[type="number"]::-webkit-inner-spin-button {
     select option {
         background-color: var(--my-bg) !important;
         color: var(--my-yellow) !important;
+    }
+
+    .client-form-button-group {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .client-form-button-group button {
+        width: 100%;
+    }
+
+    .client-form-field {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .client-form-field input {
+        max-width: 100%;
     }
 }
 
