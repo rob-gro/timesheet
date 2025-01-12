@@ -9,11 +9,14 @@ import dev.robgro.timesheet.repository.ClientRepository;
 import dev.robgro.timesheet.repository.InvoiceRepository;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.core.io.ByteArrayResource;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,6 +30,7 @@ import java.util.Optional;
 import static dev.robgro.timesheet.service.EmailMessageService.COPY_EMAIL;
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InvoiceServiceImpl implements InvoiceService {
@@ -38,6 +42,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final InvoiceSeller seller;
     private final PdfGenerator pdfGenerator;
     private final EmailMessageService emailMessageService;
+    private final FtpService ftpService;
 
     private final ClientDtoMapper clientDtoMapper;
 
@@ -161,32 +166,45 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Transactional
     @Override
     public void savePdfAndSendInvoice(Long id) {
+
+        log.info("Processing invoice PDF generation and email for invoice id: {}", id);
+
         Invoice invoice = getInvoiceOrThrow(id);
         Client client = invoice.getClient();
         String fileName = invoice.getInvoiceNumber() + ".pdf";
-        String filePath = "src/main/resources/invoices_pdf/" + fileName;
 
-        invoice.setPdfPath(filePath);
+        ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
+        pdfGenerator.generateInvoicePdf(invoice, seller, pdfOutput);
+        byte[] pdfContent = pdfOutput.toByteArray();
+
+        ftpService.uploadPdfInvoice(fileName, pdfContent);
+
+        invoice.setPdfPath(ftpService.getInvoicesDirectory() + "/" + fileName);
         invoice.setPdfGeneratedAt(LocalDateTime.now());
-
-        generatePdfFromHtml(invoice, seller, filePath);
 
         try {
             String firstName = client.getClientName().split(" ")[0];
-            File pdfFile = new File(filePath);
             String invoiceNumber = invoice.getInvoiceNumber();
             String preMonth = invoice.getIssueDate().getMonth().toString();
             String month = preMonth.charAt(0) + preMonth.substring(1).toLowerCase();
-            emailMessageService.sendInvoiceEmail(client.getEmail(), COPY_EMAIL, firstName, invoiceNumber, month, pdfFile);
+
+            emailMessageService.sendInvoiceEmailWithBytes(
+                    client.getEmail(),
+                    COPY_EMAIL,
+                    firstName,
+                    invoiceNumber,
+                    month,
+                    fileName,
+                    pdfContent
+            );
+
             invoice.setEmailSentAt(LocalDateTime.now());
             invoiceRepository.save(invoice);
+            log.info("Successfully processed invoice id: {}", id);
         } catch (MessagingException e) {
+            log.error("Failed to send invoice email for id: {}", id, e);
             throw new RuntimeException("Failed to send email", e);
         }
-    }
-
-    private void generatePdfFromHtml(Invoice invoice, InvoiceSeller seller, String filePath) {
-        pdfGenerator.generateInvoicePdf(invoice, seller, filePath);
     }
 
     @Override

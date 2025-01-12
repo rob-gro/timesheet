@@ -3,12 +3,13 @@ package dev.robgro.timesheet.service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailMessageService {
@@ -17,15 +18,16 @@ public class EmailMessageService {
     public static final String CONTACT_EMAIL = "contact@robgro.dev";
     public static final String COPY_EMAIL = "robgrodev@gmail.com";
 
+    public void sendInvoiceEmailWithBytes(String recipientEmail, String ccEmail, String firstName,
+                                          String invoiceNumber, String month, String fileName, byte[] attachment) throws MessagingException {
+        log.info("Preparing to send invoice email to: {}, invoice: {}", recipientEmail, invoiceNumber);
 
-    public void sendInvoiceEmail(String recipientEmail, String ccEmail, String firstName, String invoiceNumber, String month, File attachment) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setTo(recipientEmail);
         helper.setCc(ccEmail);
         helper.setSubject("Invoice " + invoiceNumber);
-
 
         String emailContent = """
                 <html>
@@ -53,8 +55,10 @@ public class EmailMessageService {
                 """.formatted(firstName, invoiceNumber, month, CONTACT_EMAIL, CONTACT_EMAIL);
 
         helper.setText(emailContent, true);
-        helper.addAttachment(attachment.getName(), attachment);
+        helper.addAttachment(fileName, new ByteArrayResource(attachment));
 
+        log.debug("Sending email with attachment: {}", fileName);
         emailSender.send(message);
+        log.info("Successfully sent invoice email to: {}, invoice: {}", recipientEmail, invoiceNumber);
     }
 }

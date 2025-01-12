@@ -40,11 +40,11 @@ public class Invoice {
     private LocalDateTime issuedDate;
 
     @Column(name = "pdf_path")
-    private String pdfPath;  // ścieżka gdzie zapisano PDF
+    private String pdfPath;
 
     @Column(name = "pdf_generated_at")
-    private LocalDateTime pdfGeneratedAt;  // kiedy wygenerowano PDF
+    private LocalDateTime pdfGeneratedAt;
 
     @Column(name = "email_sent_at")
-    private LocalDateTime emailSentAt;  // kiedy wysłano email
+    private LocalDateTime emailSentAt;
 }

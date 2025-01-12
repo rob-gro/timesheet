@@ -14,15 +14,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
-import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
 public class PdfGenerator {
 
-    public void generateInvoicePdf(Invoice invoice, InvoiceSeller seller, String filePath) {
-        try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
+    public void generateInvoicePdf(Invoice invoice, InvoiceSeller seller, OutputStream outputStream) {
+
+        try {
             Document document = new Document(PageSize.A4);
             PdfWriter writer = PdfWriter.getInstance(document, outputStream);
             document.open();
