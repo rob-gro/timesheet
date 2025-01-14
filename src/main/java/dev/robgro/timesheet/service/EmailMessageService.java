@@ -27,7 +27,7 @@ public class EmailMessageService {
 
         helper.setTo(recipientEmail);
         helper.setCc(ccEmail);
-        helper.setSubject("Invoice from Aga " + invoiceNumber);
+        helper.setSubject("Invoice " + invoiceNumber + " from Aga");
 
         String emailContent = """
                 <html>
