@@ -1,3 +1,5 @@
+
+
 :root {
     --my-yellow: #ffc008;
     --my-grey: #6c757d;
@@ -49,53 +51,31 @@ label {
 }
 
 .card {
+    max-width: 500px;
+    /*max-width: 500px;*/
+    /*margin-left: auto;*/
+    /*margin-right: auto;*/
+    margin: 20px auto;
     background-color: var(--my-bg);
     border: 1px solid var(--my-yellow);
     border-radius: 10px;
-    margin: 20px auto;
-    max-width: 500px;
 }
 
-/* Style headera */
-h2 {
-    color: var(--my-grey);
-    text-align: center;
-    width: 100%;
-}
-
-/* Style formularza */
-.form-row {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    /*align-items: center;*/
-    margin-bottom: 15px;
-    padding: 0 20px;
-}
-
-.form-row label {
-    color: var(--my-grey);
-    margin-bottom: 8px;
-    /*flex: 0 0 120px;*/
-    text-align: left;
-    font-weight: 500;
-}
-
-.form-row input {
-    width: 90%;
-    ;
-    /*flex: 0 0 40%;*/
-    background-color: transparent;
-    border: 1px solid var(--my-yellow);
-    border-radius: 10px;
+.form-control,
+.form-select {
+    background-color: rgb(45, 48, 50);
     color: var(--my-yellow);
-    padding: 10px 15px;
-    text-align: center;
+    border-color: var(--my-yellow);
+    border-radius: 10px;
+    padding: 10px;
+    transition: all 0.3s ease;
 }
 
 .form-control:focus,
 .form-select:focus {
     background-color: rgba(255, 192, 8, 0.1);
+    color: var(--my-yellow);
+    border-color: var(--my-yellow);
     box-shadow: 0px 0px 4px 1px rgba(245, 231, 71, 0.9);
 }
 
@@ -133,15 +113,14 @@ h2 {
 }
 
 .save-button {
-    width: auto;
-    /*width: 40%;*/
+    /*width: 80%;*/
     color: #0dcaf0;
     border-radius: 10px;
     border-color: #0dcaf0;
-    padding: 10px 30px;
+    padding: 10px;
+    /*margin: 0.7%;*/
     background-color: transparent;
     transition-duration: 0.4s;
-    text-align: center;
 }
 
 .save-button:hover {
@@ -157,8 +136,9 @@ h2 {
 .del-button {
     color: var(--my-red);
     border-radius: 10px;
-    border-color: #ffc008;
+    border-color: var(--my-red);
     padding: 10px;
+    margin: 0.7%;
     background-color: transparent;
     transition-duration: 0.4s;
 }
@@ -320,47 +300,185 @@ input[type="number"]::-webkit-inner-spin-button {
 /* M E D I A */
 
 @media (max-width: 768px) {
+    .card {
+        margin: 10px;
+        width: calc(100% - 20px);
+    }
 
     .container {
-        margin: 0;
         padding: 0;
-        width: 100%;
     }
 
-    .card {
-        width: 100vw;
-        /*max-width: 100%;*/
-        margin: 0;
-        border-radius: 0;
-        /*margin: 10px;*/
-        /*width: calc(100% - 20px);*/
+    .form-label {
+        font-size: 1.2rem !important;
+        margin-bottom: 0.8rem !important;
     }
 
-    .form-row {
-        flex-direction: column;
-        align-items: stretch;
+    .nav-button {
+        width: 100% !important;
+        padding: 15px !important;
+        font-size: 1.3rem !important;
     }
 
-    .form-row label {
-        color: var(--my-grey);
-        margin-bottom: 8px;
+    h2 {
+        font-size: 2rem !important;
+        margin-bottom: 1.5rem !important;
     }
 
-    .form-row input {
-        width: 90%;
-        font-size: 2rem;
-        padding: 15px;
+    .alert {
+        font-size: 1.2rem !important;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 1.2rem !important;
+        padding: 15px !important;
+        height: auto !important;
+    }
+
+    .form-select option {
+        font-size: 1.2rem !important;
+        background-color: var(--my-bg);
+        color: var(--my-yellow);
+    }
+
+    .form-group input {
+        font-size: 1.2rem !important;
+        padding: 15px !important;
+    }
+
+    .form-group label {
+        font-size: 1.2rem !important;
+        margin-bottom: 0.8rem !important;
     }
 
     .nav-button,
     .save-button {
-        width: 100%;
-        padding: 15px;
-        font-size: 1.3rem;
+        width: 100% !important;
+        padding: 15px !important;
+        font-size: 1.3rem !important;
     }
 
-    h2 {
-        font-size: 3rem;
-        margin-bottom: 1.5rem;
+    textarea.form-control {
+        min-height: 120px !important;
     }
+
+    select option {
+        background-color: var(--my-bg) !important;
+        color: var(--my-yellow) !important;
+    }
+
+    .client-form-button-group {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .client-form-button-group button {
+        width: 100%;
+    }
+
+    .client-form-field {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .client-form-field input {
+        max-width: 100%;
+    }
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 20px;
+    height: 20px;
+}
+
+@media (max-width: 768px) {
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        width: 25px;
+        height: 25px;
+    }
+}
+
+/* Stylowanie dla iOS */
+@supports (-webkit-touch-callout: none) {
+    .modern-time-input {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+
+.time-btn {
+    width: 60px;
+    height: 40px;
+    border: none;
+    background: var(--my-yellow);
+    color: #444;
+    font-size: 23px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-btn:hover {
+    background: var(--my-yellow);
+}
+
+.time-btn:active {
+    background: var(--my-yellow);
+}
+
+.time-input::-webkit-inner-spin-button,
+.time-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.time-input:focus {
+    outline: none;
+    box-shadow: none !important;
+}
+
+.input-time-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: var(--my-bg);
+    border: 1px solid var(--my-yellow);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.time-input {
+    flex: 1;
+    width: auto !important;
+    border: none !important;
+    text-align: center;
+    font-size: 16px;
+    padding: 6px 2px;
+    -moz-appearance: textfield;
+}
+
+.client-form-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    margin-left: 1rem;
+    width: 80%;
+}
+
+.client-form-field label {
+    color: var(--my-yellow);
+    margin-bottom: 0.5rem;
+}
+
+.client-form-field input {
+    text-align: right;
+    max-width: 80%;
+}
+
+.client-form-button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
 }
