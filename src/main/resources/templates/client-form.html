@@ -7,67 +7,133 @@
 </head>
 <body>
 <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body p-4">
-                    <h2 class="text-center mb-4">Edit Client</h2>
-                    <form th:action="@{/clients/save}" method="post" th:object="${client}">
-                        <div class="d-grid gap-3">
-                            <input type="hidden" th:field="*{id}">
+    <div class="card">
+        <h2 class="text-center mb-4">Edit Client</h2>
 
-                            <div class="form-group">
-                                <label>Client Name:</label>
-                                <input type="text" th:field="*{clientName}" class="form-control" required>
-                            </div>
+        <form th:action="@{/clients/save}" method="post" th:object="${client}">
+            <input type="hidden" th:field="*{id}">
 
-                            <div class="form-group">
-                                <label>House No.:</label>
-                                <input type="text" th:field="*{houseNo}" class="form-control" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Street Name:</label>
-                                <input type="text" th:field="*{streetName}" class="form-control" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Post Code:</label>
-                                <input type="text" th:field="*{postCode}" class="form-control" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>City:</label>
-                                <input type="text" th:field="*{city}" class="form-control" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Email:</label>
-                                <input type="email" th:field="*{email}" class="form-control" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Hourly Rate (£):</label>
-                                <input type="number" th:field="*{hourlyRate}" class="form-control" step="0.01" min="0"
-                                       required>
-                            </div>
-
-                            <div class="form-button">
-                                <button type="submit" class="save-button text-center text-decoration-none">Save Client
-                                </button>
-                            </div>
-
-                            <div class="form-button">
-                                <a th:href="@{/clients}" class="nav-button text-center text-decoration-none">Back to
-                                    Clients List</a>
-                            </div>
-                            <br>
-                        </div>
-                    </form>
-                </div>
+            <div class="form-row">
+                <label>Client Name:</label>
+                <input type="text" th:field="*{clientName}" class="form-control" required>
             </div>
-        </div>
+
+            <div class="form-row">
+                <label>House No.:</label>
+                <input type="text" th:field="*{houseNo}" class="form-control" required>
+            </div>
+
+            <div class="form-row">
+                <label>Street Name:</label>
+                <input type="text" th:field="*{streetName}" class="form-control" required>
+            </div>
+
+            <div class="form-row">
+                <label>Post Code:</label>
+                <input type="text" th:field="*{postCode}" class="form-control" required>
+            </div>
+
+            <div class="form-row">
+                <label>City:</label>
+                <input type="text" th:field="*{city}" class="form-control" required>
+            </div>
+
+            <div class="form-row">
+                <label>Email:</label>
+                <input type="email" th:field="*{email}" class="form-control" required>
+            </div>
+
+            <div class="form-row">
+                <label>Hourly Rate (£):</label>
+                <input type="number" th:field="*{hourlyRate}" class="form-control" step="0.01" min="0" required>
+            </div>
+
+            <div class="button-section">
+                <!--            <div class="client-form-button-group">-->
+                <button type="submit" class="save-button">Save Client</button>
+            </div>
+
+
+            <div class="client-form-button-group">
+                <a th:href="@{/clients}" class="nav-button">Back to Clients List</a>
+            </div>
+        </form>
     </div>
 </div>
 </body>
 </html>
+
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="gb" xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Client Details</title>-->
+<!--    <link rel="stylesheet" th:href="@{/css/style.css}">-->
+<!--</head>-->
+<!--<body>-->
+<!--<div class="container mt-5">-->
+<!--    <div class="row justify-content-center">-->
+<!--        <div class="col-12">-->
+<!--            <div class="card">-->
+<!--                <div class="card-body p-4">-->
+<!--                    <h2 class="text-center mb-4">Edit Client</h2>-->
+<!--                    <form th:action="@{/clients/save}" method="post" th:object="${client}">-->
+<!--                        <div class="d-grid gap-3">-->
+<!--                            <input type="hidden" th:field="*{id}">-->
+
+<!--                            <div class="form-group">-->
+<!--                                <label>Client Name:</label>-->
+<!--                                <input type="text" th:field="*{clientName}" class="form-control" required>-->
+<!--                            </div>-->
+
+<!--                            <div class="form-group">-->
+<!--                                <label>House No.:</label>-->
+<!--                                <input type="text" th:field="*{houseNo}" class="form-control" required>-->
+<!--                            </div>-->
+
+<!--                            <div class="form-group">-->
+<!--                                <label>Street Name:</label>-->
+<!--                                <input type="text" th:field="*{streetName}" class="form-control" required>-->
+<!--                            </div>-->
+
+<!--                            <div class="form-group">-->
+<!--                                <label>Post Code:</label>-->
+<!--                                <input type="text" th:field="*{postCode}" class="form-control" required>-->
+<!--                            </div>-->
+
+<!--                            <div class="form-group">-->
+<!--                                <label>City:</label>-->
+<!--                                <input type="text" th:field="*{city}" class="form-control" required>-->
+<!--                            </div>-->
+
+<!--                            <div class="form-group">-->
+<!--                                <label>Email:</label>-->
+<!--                                <input type="email" th:field="*{email}" class="form-control" required>-->
+<!--                            </div>-->
+
+<!--                            <div class="form-group">-->
+<!--                                <label>Hourly Rate (£):</label>-->
+<!--                                <input type="number" th:field="*{hourlyRate}" class="form-control" step="0.01" min="0"-->
+<!--                                       required>-->
+<!--                            </div>-->
+
+<!--                            <div class="form-button">-->
+<!--                                <button type="submit" class="save-button text-center text-decoration-none">Save Client-->
+<!--                                </button>-->
+<!--                            </div>-->
+
+<!--                            <div class="form-button">-->
+<!--                                <a th:href="@{/clients}" class="nav-button text-center text-decoration-none">Back to-->
+<!--                                    Clients List</a>-->
+<!--                            </div>-->
+<!--                            <br>-->
+<!--                        </div>-->
+<!--                    </form>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->
