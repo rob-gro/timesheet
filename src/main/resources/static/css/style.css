@@ -118,9 +118,12 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 /* Media queries */
-@media (max-width: 500px) {
+@media (max-width: 768px) {
     .card {
         width: 100%;
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
         /*margin: 10px;*/
         /*width: calc(100% - 20px);*/
     }
