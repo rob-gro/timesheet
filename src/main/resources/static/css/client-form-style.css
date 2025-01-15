@@ -114,7 +114,7 @@ input[type="number"]::-webkit-inner-spin-button {
     margin: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1170px) {
     .container {
         width: 100vw;
         margin: 0;

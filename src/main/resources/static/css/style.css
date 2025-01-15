@@ -299,7 +299,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 /* M E D I A */
 
-@media (max-width: 428px) {
+@media (max-width: 768px) {
     .card {
         margin: 10px;
         width: calc(100% - 20px);
