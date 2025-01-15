@@ -1,0 +1,131 @@
+:root {
+    --my-yellow: #ffc008;
+    --my-grey: #6c757d;
+    --my-blue: #0dcaf0;
+    --my-bg: rgb(35, 36, 36);
+    --my-body-bg: #10151c;
+}
+
+body {
+    background-color: var(--my-body-bg);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.card {
+    background-color: var(--my-bg);
+    border: 1px solid var(--my-yellow);
+    border-radius: 10px;
+    margin: 20px auto;
+    max-width: 500px;
+}
+
+h2 {
+    color: var(--my-grey);
+    text-align: center;
+    width: 100%;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    padding: 0 20px;
+}
+
+.form-row label {
+    color: var(--my-grey);
+    margin-bottom: 8px;
+    text-align: left;
+    font-weight: 500;
+}
+
+.form-row input {
+    width: 90%;
+    background-color: transparent;
+    border: 1px solid var(--my-yellow);
+    border-radius: 10px;
+    color: var(--my-yellow);
+    padding: 10px 15px;
+    text-align: center;
+}
+
+.form-row input:focus {
+    outline: none;
+    background-color: rgba(255, 192, 8, 0.1);
+    box-shadow: 0 0 4px 1px rgba(245, 231, 71, 0.9);
+}
+
+.button-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.save-button {
+    width: auto;
+    color: var(--my-blue);
+    border-radius: 10px;
+    border-color: var(--my-blue);
+    padding: 10px 30px;
+    background-color: transparent;
+    transition-duration: 0.4s;
+    text-align: center;
+}
+
+.save-button:hover {
+    color: black;
+    background-color: var(--my-blue);
+}
+
+.nav-button {
+    width: auto;
+    color: var(--my-yellow);
+    border-radius: 10px;
+    border-color: var(--my-yellow);
+    padding: 10px;
+    background-color: transparent;
+    transition-duration: 0.4s;
+    text-align: center;
+    display: block;
+    margin-top: 20px;
+}
+
+.nav-button:hover {
+    color: black;
+    background-color: var(--my-yellow);
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+    }
+
+    .card {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+}
