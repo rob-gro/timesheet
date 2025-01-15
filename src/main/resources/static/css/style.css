@@ -51,7 +51,7 @@ label {
 }
 
 .card {
-    max-width: 500px;
+    max-width: 768px;
     /*max-width: 500px;*/
     /*margin-left: auto;*/
     /*margin-right: auto;*/
@@ -299,7 +299,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 /* M E D I A */
 
-@media (max-width: 768px) {
+@media (max-width: 1170px) {
     .card {
         margin: 10px;
         width: calc(100% - 20px);
