@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Automatyczne ustawienie domyślnej daty w formacie yyyy-MM-dd
     const today = new Date();
-    const yyyy = today.getFullYear();
+    // const yyyy = today.getFullYear();
+    const yyyy = 2023;
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     dateInput.value = `${yyyy}-${mm}-${dd}`; // Ustawienie wartości
