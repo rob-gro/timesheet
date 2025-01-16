@@ -1,8 +1,8 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('timesheet'); // zmieniona nazwa id
     const successAlert = document.getElementById('success');
 
-    form?.addEventListener('submit', function(e) {
+    form?.addEventListener('submit', function (e) {
         e.preventDefault(); // zatrzymaj domyślną akcję formularza
 
         const submitButton = form.querySelector('button[type="submit"]');
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const durationInput = document.querySelector('input[name="duration"]');
 
-    durationInput?.addEventListener('change', function() {
+    durationInput?.addEventListener('change', function () {
         let value = parseFloat(this.value);
         if (value < 0.5) value = 0.5;
         if (value > 12) value = 12;
@@ -52,19 +52,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const dateInput = document.getElementById('serviceDate');
 
     // Automatyczne ustawienie domyślnej daty w formacie yyyy-MM-dd
     const today = new Date();
-    // const yyyy = today.getFullYear();
-    const yyyy = 2023;
+    const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     dateInput.value = `${yyyy}-${mm}-${dd}`; // Ustawienie wartości
 
     // Walidacja daty przed wysłaniem formularza
-    document.getElementById('timesheet').addEventListener('submit', function(e) {
+    document.getElementById('timesheet').addEventListener('submit', function (e) {
         if (!dateInput.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
             e.preventDefault();
             alert('Proszę wprowadzić datę w formacie yyyy-MM-dd.');
