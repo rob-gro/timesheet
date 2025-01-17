@@ -273,7 +273,7 @@ public class PdfGenerator {
             ColumnText.showTextAligned(
                     writer.getDirectContent(),
                     Element.ALIGN_LEFT,
-                    new Phrase("Happy New Year :))", normalFont),
+                    new Phrase("____", normalFont),
                     leftMargin,
                     y + 105, 0
             );
