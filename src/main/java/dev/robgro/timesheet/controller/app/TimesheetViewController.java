@@ -50,4 +50,19 @@ public class TimesheetViewController {
         redirectAttributes.addFlashAttribute("success", true);
         return "redirect:/timesheets";
     }
+
+    @GetMapping("/view/{id}")
+    public String viewTimesheet(@PathVariable Long id, Model model) {
+        model.addAttribute("timesheet", timesheetService.getTimesheetById(id));
+        model.addAttribute("clients", clientService.getAllClients());
+        model.addAttribute("readOnly", true);
+        return "timesheet";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String editTimesheet(@PathVariable Long id, Model model) {
+        model.addAttribute("timesheet", timesheetService.getTimesheetById(id));
+        model.addAttribute("clients", clientService.getAllClients());
+        return "timesheet";
+    }
 }

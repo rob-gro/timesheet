@@ -1,21 +1,26 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('timesheet'); // zmieniona nazwa id
+    const form = document.getElementById('timesheet');
     const successAlert = document.getElementById('success');
 
     form?.addEventListener('submit', function (e) {
-        e.preventDefault(); // zatrzymaj domyślną akcję formularza
+        e.preventDefault();
 
         const submitButton = form.querySelector('button[type="submit"]');
-        submitButton.disabled = true; // Wyłącz przycisk, aby zapobiec wielokrotnemu kliknięciu
+        submitButton.disabled = true;
 
+        const timesheetId = document.querySelector('input[name="id"]')?.value;
         const formData = {
             clientId: document.querySelector('select[name="clientId"]').value,
             serviceDate: document.querySelector('input[name="serviceDate"]').value,
             duration: parseFloat(document.querySelector('input[name="duration"]').value)
         };
 
-        fetch('/api/v1/timesheets', {
-            method: 'POST',
+        const url = timesheetId
+            ? `/api/v1/timesheets/${timesheetId}`
+            : '/api/v1/timesheets';
+
+        fetch(url, {
+            method: timesheetId ? 'PUT' : 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -38,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Fetch error:', error);
             })
             .finally(() => {
-                submitButton.disabled = false; // Włącz przycisk ponownie po zakończeniu żądania
+                submitButton.disabled = false;
             });
     });
 
@@ -55,18 +60,20 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
     const dateInput = document.getElementById('serviceDate');
 
-    // Automatyczne ustawienie domyślnej daty w formacie yyyy-MM-dd
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    dateInput.value = `${yyyy}-${mm}-${dd}`; // Ustawienie wartości
+    // Ustawienie domyślnej daty tylko dla nowego timesheeta
+    if (!document.querySelector('input[name="id"]')) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
 
     // Walidacja daty przed wysłaniem formularza
     document.getElementById('timesheet').addEventListener('submit', function (e) {
         if (!dateInput.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
             e.preventDefault();
-            alert('Proszę wprowadzić datę w formacie yyyy-MM-dd.');
+            alert('Please provide date in format yyyy-MM-dd.');
         }
     });
 });

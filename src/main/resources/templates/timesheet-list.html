@@ -26,19 +26,29 @@
         </div>
       </div>
 
+      <div class="col-md-2">
+        <label>Status:</label>
+        <select class="form-control" id="statusFilter">
+          <option value="">All Status</option>
+          <option value="false">Not Invoiced</option>
+          <option value="true">Invoiced</option>
+        </select>
+      </div>
+
       <div class="table-responsive">
         <table class="table">
           <colgroup>
             <col style="width: 25%">
-            <col style="width: 30%">
-            <col style="width: 10%">
-            <col style="width: 35%">
+            <col style="width: 25%">
+            <col style="width: 5%">
+            <col style="width: 45%">
           </colgroup>
           <thead>
           <tr>
             <th>Client</th>
             <th>Service Date</th>
             <th>Duration</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
           </thead>
@@ -47,11 +57,26 @@
             <td th:text="${timesheet.clientName}"></td>
             <td th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
             <td th:text="${timesheet.duration}"></td>
+            <td th:text="${timesheet.isInvoice ? 'Invoiced' : 'Not Invoiced'}"></td>
+
             <td>
-              <button class="nav-button" th:onclick="'viewTimesheet(' + ${timesheet.id} + ')'">View</button>
+<!--              <button class="nav-button" th:onclick="'viewTimesheet(' + ${timesheet.id} + ')'">View</button>-->
               <button class="save-button" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit</button>
               <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete</button>
             </td>
+
+<!--            <td>-->
+<!--              <a th:href="@{/timesheets/view/{id}(id=${timesheet.id})}" class="nav-button">View</a>-->
+<!--              <a th:href="@{/timesheets/edit/{id}(id=${timesheet.id})}" class="save-button">Edit</a>-->
+<!--              <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete</button>-->
+<!--            </td>-->
+
+
+<!--            <td>-->
+<!--              <button class="nav-button" th:onclick="'viewTimesheet(' + ${timesheet.id} + ')'">View</button>-->
+<!--              <button class="save-button" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit</button>-->
+<!--              <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete</button>-->
+<!--            </td>-->
           </tr>
           </tbody>
         </table>
@@ -66,7 +91,6 @@
 </div>
 
 <script th:src="@{/js/timesheet-list.js}"></script>
-
 
 </body>
 </html>
