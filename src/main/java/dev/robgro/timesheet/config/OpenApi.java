@@ -28,7 +28,7 @@ public class OpenApi {
                                 .name("Apache 2.0")
                                 .url("https://springdoc.org")))
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Production Server on Heroku")
+                        new Server().url("https://robgro-hourly-tracker-app-444662682339.herokuapp.com/").description("Production Server on Heroku")
                 ));
     }
 }
