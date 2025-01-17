@@ -273,7 +273,7 @@ public class PdfGenerator {
             ColumnText.showTextAligned(
                     writer.getDirectContent(),
                     Element.ALIGN_LEFT,
-                    new Phrase("____", normalFont),
+                    new Phrase("_________________________________________________________________________", normalFont),
                     leftMargin,
                     y + 105, 0
             );
