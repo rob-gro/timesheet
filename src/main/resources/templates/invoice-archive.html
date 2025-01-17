@@ -28,7 +28,7 @@
           <div class="col-md-2">
             <select name="year" class="form-select">
               <option value="">All Years</option>
-              <option th:each="year : ${#numbers.sequence(2024, 2020)}"
+              <option th:each="year : ${#numbers.sequence(2024, 2019)}"
                       th:value="${year}"
                       th:text="${year}"
                       th:selected="${year == param.year}">

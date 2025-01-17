@@ -9,42 +9,36 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body p-4">
-                    <h2 class="text-center mb-4">HourlyTrack</h2>
+                    <h2 class="text-center mb-4">Hourly Track</h2>
                     <div class="d-grid gap-3">
                         <a th:href="@{/timesheet}"
                            class="nav-button text-center text-decoration-none">
-                            New TimeSheet
+                            New Timesheet
                         </a>
                         <a th:href="@{/invoice-items}"
                            class="nav-button text-center text-decoration-none">
                             Create Invoice
                         </a>
-
                         <a th:href="@{/timesheets/list}"
                            class="nav-button text-center text-decoration-none">
-                            TimeSheets List
+                            Timesheets
                         </a>
-                        <a th:href="@{/timesheet-archive}"
+                        <a th:href="@{/clients}"
                            class="nav-button text-center text-decoration-none">
-                            TimeSheet Archive
-                        </a>
-                        <a th:href="@{/invoice-archive}"
-                           class="nav-button text-center text-decoration-none">
-                            Invoice Archive
+                            Clients
                         </a>
                         <a th:href="@{/invoice-list}"
                            class="nav-button text-center text-decoration-none">
                             Invoices PDF
                         </a>
+                        <a th:href="@{/invoice-archive}"
+                           class="nav-button text-center text-decoration-none">
+                            Invoice Archive
+                        </a>
                         <a th:href="@{/invoice-edit}"
                            class="nav-button text-center text-decoration-none">
                             Edit Invoice
                         </a>
-                        <a th:href="@{/clients}"
-                           class="nav-button text-center text-decoration-none">
-                            Edit Client
-                        </a>
-
                     </div>
                 </div>
             </div>

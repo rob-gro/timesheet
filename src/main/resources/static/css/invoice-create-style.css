@@ -164,6 +164,27 @@ body {
     font-weight: bold;
 }
 
+.save-button {
+    display: inline-block; /* Dla pełnej szerokości */
+    padding: 1rem 2rem; /* Większe wymiary przycisku */
+    font-size: 1.7rem; /* Większy tekst */
+    font-weight: bold;
+    background-color: #161b22; /* Główny kolor */
+    color: #ffc008;
+    border: none;
+    border-radius: 5px; /* Lekko zaokrąglone rogi */
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 1rem auto;
+}
+
+.save-button:hover {
+        color: black;
+        background-color: #ffc008;
+        box-shadow: 0px 4px 15px rgba(255, 192, 8, 0.5);
+}
+
 /* Drukowanie */
 @media print {
     body {
@@ -176,7 +197,7 @@ body {
     }
 
     /* ukryj przyciski i elementy nawigacji */
-    .nav-button {
+    .save-button {
         display: none;
     }
 
@@ -204,6 +225,11 @@ body {
     .header, .addresses, .items, .payment-details, .notes, .footer {
         padding-left: 1rem;
         padding-right: 1rem;
+    }
+
+    .save-button {
+        width: 100%; /* Pełna szerokość na małych ekranach */
+        font-size: 1rem; /* Nieco mniejszy tekst */
     }
 
     .addresses {

@@ -2,7 +2,6 @@
 <html lang="gb" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Invoice</title>
-<!--    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">-->
     <link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
 </head>
 <body>
@@ -86,11 +85,11 @@
 
         <div class="notes">
             <div class="section-title">Notes</div>
-            <div>:)</div>
+            <div>________________________________________</div>
         </div>
         <br/>
 
-        <button onclick="savePdfAndSendEmail()" class="nav-button">Generate & Send PDF Invoice</button>
+        <button onclick="savePdfAndSendEmail()" class="save-button">Generate & Send PDF Invoice</button>
             <input type="hidden" id="invoiceId" th:value="${invoice.id}">
 
         <div class="footer">
