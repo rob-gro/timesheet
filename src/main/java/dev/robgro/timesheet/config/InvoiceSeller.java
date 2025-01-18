@@ -11,7 +11,9 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class InvoiceSeller {
     private String name = "Agnieszka Markiewicz";
-    private String street = "28 Ballater Place";
-    private String postcode = "DD4 8SF";
+    private String street = "29 Forth Crescent";
+    private String postcode = "DD2 4JB";
+//    private String street = "28 Ballater Place";
+//    private String postcode = "DD4 8SF";
     private String city = "Dundee";
 }
