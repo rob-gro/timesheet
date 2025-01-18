@@ -52,7 +52,7 @@ public class TimesheetController {
             @ApiResponse(responseCode = "400", description = "Invalid input data"),
             @ApiResponse(responseCode = "404", description = "Timesheet not found")
     })
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<TimesheetDto> updateTimesheet(
             @PathVariable Long id,
             @RequestBody UpdateTimesheetRequest request) {
@@ -63,6 +63,24 @@ public class TimesheetController {
                 request.duration());
         return ResponseEntity.status(HttpStatus.OK).body(timesheet);
     }
+
+//    @Operation(summary = "Update existing timesheet")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Timesheet updated successfully"),
+//            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+//            @ApiResponse(responseCode = "404", description = "Timesheet not found")
+//    })
+//    @PostMapping("/{id}")
+//    public ResponseEntity<TimesheetDto> updateTimesheet(
+//            @PathVariable Long id,
+//            @RequestBody UpdateTimesheetRequest request) {
+//        TimesheetDto timesheet = timesheetService.updateTimesheet(
+//                id,
+//                request.clientId(),
+//                request.serviceDate(),
+//                request.duration());
+//        return ResponseEntity.status(HttpStatus.OK).body(timesheet);
+//    }
 
     @Operation(summary = "Delete timesheet")
     @ApiResponses(value = {

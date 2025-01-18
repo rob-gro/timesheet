@@ -28,15 +28,15 @@ document.addEventListener('DOMContentLoaded', function () {
         })
             .then(response => {
                 if (response.ok) {
-                    successAlert.style.display = 'block';
-                    setTimeout(() => {
-                        successAlert.style.display = 'none';
-                        form.reset();
-                    }, 3000);
-                } else {
-                    return response.text().then(err => {
-                        console.error('Error response:', err);
-                    });
+                    if (timesheetId) {
+                        window.location.href = '/timesheets/list';
+                    } else {
+                        successAlert.style.display = 'block';
+                        setTimeout(() => {
+                            successAlert.style.display = 'none';
+                            form.reset();
+                        }, 3000);
+                    }
                 }
             })
             .catch(error => {
