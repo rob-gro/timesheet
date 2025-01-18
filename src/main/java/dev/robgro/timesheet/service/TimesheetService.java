@@ -29,4 +29,6 @@ public interface TimesheetService {
     void updateInvoiceFlag(Long id, boolean isInvoiced);
 
     void detachFromInvoice(Long id);
+
+    List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean isInvoice);
 }

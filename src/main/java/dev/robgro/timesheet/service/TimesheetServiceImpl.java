@@ -49,6 +49,13 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    public List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean isInvoice) {
+        return timesheetRepository.findByClientIdAndIsInvoice(clientId, isInvoice).stream()
+                .map(timesheetDtoMapper)
+                .collect(toList());
+    }
+
+    @Override
     @Transactional
     public TimesheetDto createTimesheet(Long clientId, LocalDate date, double duration) {
         Client client = clientRepository.getReferenceById(clientId);

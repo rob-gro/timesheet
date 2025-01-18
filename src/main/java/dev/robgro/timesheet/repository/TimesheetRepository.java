@@ -14,4 +14,6 @@ public interface TimesheetRepository extends JpaRepository<Timesheet, Long> {
     List<Timesheet> findByClientIdAndIsInvoiceFalse(Long clientId);
 
     List<Timesheet> findByClient_IdAndServiceDateBetween(Long clientId, LocalDate startDate, LocalDate endDate);
+
+    List<Timesheet> findByClientIdAndIsInvoice(Long clientId, boolean isInvoice);
 }

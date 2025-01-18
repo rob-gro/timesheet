@@ -8,8 +8,12 @@ document.addEventListener('DOMContentLoaded', function() {
             url += `/client/${clientId}`;
         }
         if (status !== '') {
-            url += `${clientId ? '?' : '?'}invoiced=${status}`;
+            url += '?isInvoice=' + status;
         }
+        else if (status !== '') {
+        url = `/api/v1/timesheets/status/${status}`;
+    }
+        console.log('Calling URL:', url); // dodaj ten log
 
         fetch(url)
             .then(response => response.json())

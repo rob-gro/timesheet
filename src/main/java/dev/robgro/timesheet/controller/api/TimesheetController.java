@@ -88,7 +88,13 @@ public class TimesheetController {
     }
 
     @GetMapping("/client/{clientId}")
-    public ResponseEntity<List<TimesheetDto>> getTimesheetsByClient(@PathVariable Long clientId) {
+    public ResponseEntity<List<TimesheetDto>> getTimesheetsByClient(
+            @PathVariable Long clientId,
+            @RequestParam(required = false) Boolean isInvoice) {
+
+        if (isInvoice != null) {
+            return ResponseEntity.ok(timesheetService.getTimesheetsByClientAndInvoiceStatus(clientId, isInvoice));
+        }
         return ResponseEntity.ok(timesheetService.getTimesheetByClientId(clientId));
     }
 }
