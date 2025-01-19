@@ -32,7 +32,7 @@ public class EmailMessageService {
         String emailContent = """
                 <html>
                 <body style='font-family: Verdana, sans-serif;'>
-                    <h4>Dear %s,</h4>
+                    <h4>Dear %s</h4>,
                     <p>I hope everything is going well with you!</p>
                     <p>Please find attached your invoice number: <strong>%s</strong>,</p>
                     <p>for cleaning services for %s.</p>
