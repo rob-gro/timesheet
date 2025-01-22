@@ -19,6 +19,6 @@ public interface InvoiceService {
     List<InvoiceDto> getYearlyInvoices(Long clientId, int year);
     InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
     void savePdfAndSendInvoice(Long id);
-    List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month, Boolean emailSent);
+    List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);
     void deleteInvoice(Long id);
 }

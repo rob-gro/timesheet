@@ -74,6 +74,8 @@ label {
     border-color: var(--my-yellow);
     border-radius: 10px;
     padding: 10px;
+    margin-left: 10px;
+    margin-bottom: 10px;
     transition: all 0.3s ease;
 }
 
@@ -119,12 +121,12 @@ label {
 }
 
 .save-button {
-    /*width: 80%;*/
     color: #0dcaf0;
     border-radius: 10px;
     border-color: #0dcaf0;
     padding: 10px;
-    /*margin: 0.7%;*/
+    margin-left: 10px;
+    margin-bottom: 10px;
     background-color: transparent;
     transition-duration: 0.4s;
 }

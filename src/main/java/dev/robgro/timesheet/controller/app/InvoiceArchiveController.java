@@ -25,13 +25,12 @@ public class InvoiceArchiveController {
             Model model,
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month,
-            @RequestParam(required = false) Boolean emailSent) {
+            @RequestParam(required = false) Integer month) {
 
-        List<InvoiceDto> invoices = invoiceService.searchInvoices(clientId, year, month, emailSent);
+        List<InvoiceDto> invoices = invoiceService.searchInvoices(clientId, year, month);
         model.addAttribute("invoices", invoices);
         model.addAttribute("clients", clientService.getAllClients());
 
-        return "invoice-archive-old";
+        return "invoice-archive";
     }
 }

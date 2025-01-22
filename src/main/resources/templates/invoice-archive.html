@@ -2,106 +2,98 @@
 <!DOCTYPE html>
 <html lang="gb" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>Invoice Archive</title>
-  <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta charset="UTF-8">
+    <title>Invoice Archive</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="container mt-5">
-  <div class="card">
-    <div class="card-body p-4">
-      <h2 class="text-center mb-4">Invoice Archive</h2>
+    <div class="card">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-4">Invoice Archive</h2>
 
-      <!-- Filtry -->
-      <form id="filterForm" class="mb-4">
-        <div class="row">
-          <div class="col-md-3">
-            <select name="clientId" class="form-select">
-              <option value="">All Clients</option>
-              <option th:each="client : ${clients}"
-                      th:value="${client.id}"
-                      th:text="${client.clientName}"
-                      th:selected="${client.id == param.clientId}">
-              </option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <select name="year" class="form-select">
-              <option value="">All Years</option>
-              <option th:each="year : ${#numbers.sequence(2024, 2019)}"
-                      th:value="${year}"
-                      th:text="${year}"
-                      th:selected="${year == param.year}">
-              </option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <select name="month" class="form-select">
-              <option value="">All Months</option>
-              <option th:each="month : ${#numbers.sequence(1, 12)}"
-                      th:value="${month}"
-                      th:text="${month}"
-                      th:selected="${month == param.month}">
-              </option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <select name="emailSent" class="form-select">
-              <option value="">All Status</option>
-              <option value="true">Email Sent</option>
-              <option value="false">Email Not Sent</option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <button type="submit" class="nav-button">Filter</button>
-          </div>
+            <form id="filterForm" class="mb-4">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select name="clientId" class="form-select">
+                            <option value="">All Clients</option>
+                            <option th:each="client : ${clients}"
+                                    th:value="${client.id}"
+                                    th:text="${client.clientName}"
+                                    th:selected="${client.id == param.clientId}">
+                            </option>
+                        </select>
+                        <select name="year" class="form-select">
+                            <option value="">All Years</option>
+                            <option th:each="year : ${#numbers.sequence(2024, 2019)}"
+                                    th:value="${year}"
+                                    th:text="${year}"
+                                    th:selected="${year == param.year}">
+                            </option>
+                        </select>
+                        <select name="month" class="form-select">
+                            <option value="">All Months</option>
+                            <option th:each="month : ${#numbers.sequence(1, 12)}"
+                                    th:value="${month}"
+                                    th:text="${month}"
+                                    th:selected="${month == param.month}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" class="save-button">Apply Sorting Filters</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-container">
+                <table class="table">
+                    <colgroup>
+                        <col style="width: 20%">
+                        <col style="width: 15%">
+                        <col style="width: 20%">
+                        <col style="width: 20%">
+                        <col style="width: 25%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="invoice : ${invoices}">
+                        <td th:text="${invoice.invoiceNumber}"></td>
+                        <td th:text="${#temporals.format(invoice.issueDate, 'dd.MM.yyyy')}"></td>
+                        <td th:text="${invoice.clientName}"></td>
+                        <td class="text-end" th:text="${'£ ' + invoice.totalAmount}"></td>
+                        <td>
+                            <button class="nav-button" th:onclick="'window.location.href=\'/invoice-create/' + ${invoice.id} + '\''">View</button>
+                            <button class="del-button"
+                                    th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4">
+                <button th:if="${invoices != null && !invoices.isEmpty()}"
+                        onclick="window.location.href = this.getAttribute('data-url')"
+                        th:data-url="@{/invoice-reports/generate(clientId=${param.clientId},year=${param.year},month=${param.month})}"
+                        class="save-button"
+                        style="margin-right: 10px;">Generate Report
+                </button>
+                <a th:href="@{/}" class="nav-button btn-lg text-center text-decoration-none">Back to Main Page</a>
+            </div>
         </div>
-      </form>
-
-      <!-- Lista faktur -->
-      <div class="table-container">
-        <table class="table">
-          <thead>
-          <tr>
-            <th>Invoice #</th>
-            <th>Date</th>
-            <th>Client</th>
-            <th>Amount</th>
-            <th>Email Status</th>
-            <th>Actions</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="invoice : ${invoices}">
-            <td th:text="${invoice.invoiceNumber}"></td>
-            <td th:text="${#temporals.format(invoice.issueDate, 'dd.MM.yyyy')}"></td>
-            <td th:text="${invoice.clientName}"></td>
-            <td class="text-end" th:text="${'£ ' + invoice.totalAmount}"></td>
-            <td>
-                                   <span th:if="${invoice.emailSentAt}"
-                                         th:text="${#temporals.format(invoice.emailSentAt, 'dd.MM.yyyy HH:mm')}"></span>
-              <span th:unless="${invoice.emailSentAt}" class="text-warning">Not Sent</span>
-            </td>
-            <td>
-              <a th:href="@{/invoice-create/{id}(id=${invoice.id})}" class="edit-button">View</a>
-              <button th:if="${invoice.emailSentAt == null}"
-                      class="nav-button"
-                      th:onclick="'resendEmail(' + ${invoice.id} + ')'">Send</button>
-              <button class="del-button"
-                      th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete</button>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="mt-4">
-        <a href="/" class="nav-button">Back to Main Page</a>
-      </div>
     </div>
-  </div>
 </div>
 
-<script th:src="@{/js/invoice-archive-old.js}"></script>
+<script th:src="@{/js/invoice-archive.js}"></script>
 </body>
 </html>

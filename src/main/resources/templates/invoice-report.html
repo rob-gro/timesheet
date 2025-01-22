@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Invoice Report</title>
+  <link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
+</head>
+<body>
+<div class="container">
+  <div class="report-header">
+      <div class="title">Report for period:</div>
+      <div class="period" style="font-size: 20px;" th:text="${period}">AUGUST 2023</div>
+    <div style="font-size: 20px;" th:text="${param.year}">2024</div>
+  </div>
+
+  <div class="items">
+    <table class="items-table">
+      <thead>
+      <tr>
+        <th class="left">#</th>
+        <th class="left">Date</th>
+        <th class="left">Invoice #</th>
+        <th class="left">Client Name</th>
+        <th class="right">Amount (£)</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="invoice, invStat : ${invoices}">
+        <td th:text="${invStat.count}">1</td>
+        <td th:text="${#temporals.format(invoice.issueDate, 'dd.MM.yyyy')}">Date</td>
+        <td th:text="${invoice.invoiceNumber}">INV-001</td>
+        <td th:text="${invoice.clientName}">Client Name</td>
+        <td class="right" th:text="${invoice.totalAmount}">0.00</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="total-section">
+      <div class="total-row">
+        <div>Total Amount:</div>
+        <div class="amount" th:text="'£ ' + ${totalAmount}">0.00</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -206,15 +206,13 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
-    public List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month, Boolean emailSent) {
+    public List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month) {
         List<Invoice> invoices = invoiceRepository.findAll();
 
         return invoices.stream()
                 .filter(invoice -> clientId == null || invoice.getClient().getId().equals(clientId))
                 .filter(invoice -> year == null || invoice.getIssueDate().getYear() == year)
                 .filter(invoice -> month == null || invoice.getIssueDate().getMonthValue() == month)
-                .filter(invoice -> emailSent == null || (emailSent && invoice.getEmailSentAt() != null)
-                        || (!emailSent && invoice.getEmailSentAt() == null))
                 .map(invoiceDtoMapper)
                 .collect(toList());
     }
