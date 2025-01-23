@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.time.Month;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -35,6 +36,9 @@ public class InvoiceReportController {
 
         List<InvoiceDto> invoices = invoiceService.searchInvoices(clientId, year, month);
         log.debug("Found {} invoices", invoices.size());
+
+        invoices.sort(Comparator.comparing(InvoiceDto::issueDate));
+
         BigDecimal totalAmount = invoices.stream()
                 .map(InvoiceDto::totalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
