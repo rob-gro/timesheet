@@ -139,8 +139,21 @@ public class InvoiceServiceImpl implements InvoiceService {
         int year = issueDate.getYear();
         int month = issueDate.getMonthValue();
         String yearMonth = String.format("%02d-%d", month, year);
-        long count = invoiceRepository.countByInvoiceNumberEndingWith(yearMonth);
-        int nextNumber = (int) (count + 1);
+
+        List<Integer> existingNumbers = invoiceRepository.findByInvoiceNumberEndingWith(yearMonth)
+                .stream()
+                .map(invoice -> Integer.parseInt(invoice.getInvoiceNumber().substring(0, 3)))
+                .sorted()
+                .toList();
+
+        int nextNumber = 1;
+        for (Integer existingNumber : existingNumbers) {
+            if (existingNumber != nextNumber) {
+                break;
+            }
+            nextNumber++;
+        }
+
         return String.format("%03d-%s", nextNumber, yearMonth);
     }
 
