@@ -25,7 +25,7 @@ public class ViewController {
     @GetMapping("/timesheet")
     public String showTimesheet(Model model) {
         model.addAttribute("clients", clientService.getAllClients());
-        model.addAttribute("timesheet", new TimesheetDto(null, null, null, 0.5, false, null, 0.0));
+        model.addAttribute("timesheet", new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null));
         return "timesheet";
     }
 

@@ -9,7 +9,8 @@ public record TimesheetDto(
         double duration,
         boolean isInvoice,
         Long clientId,
-        double hourlyRate
+        double hourlyRate,
+        String invoiceNumber
 
 ) {
 }

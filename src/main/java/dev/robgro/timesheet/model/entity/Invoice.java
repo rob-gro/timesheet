@@ -47,4 +47,7 @@ public class Invoice {
 
     @Column(name = "email_sent_at")
     private LocalDateTime emailSentAt;
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL)
+    private List<Timesheet> timesheets;
 }

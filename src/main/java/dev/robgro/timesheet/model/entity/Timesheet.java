@@ -29,6 +29,10 @@ public class Timesheet {
     @Column(name = "is_invoice")
     private boolean isInvoice;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", referencedColumnName = "id")
+    private Invoice invoice;
+
     public Timesheet(Long id, Client client, LocalDate serviceDate, double duration, boolean isInvoice) {
         this.id = id;
         this.client = client;
