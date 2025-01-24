@@ -57,7 +57,9 @@ label {
 }
 
 .card {
-    max-width: 768px;
+    max-width: none;
+    width: 85%;
+    /*max-width: 768px;*/
     /*max-width: 500px;*/
     /*margin-left: auto;*/
     /*margin-right: auto;*/
@@ -309,12 +311,13 @@ input[type="number"]::-webkit-inner-spin-button {
 
 @media (max-width: 768px) {
     .card {
-        margin: 10px;
-        width: calc(100% - 20px);
+        width: 100%;
+        /*margin: 10px;*/
+        /*width: calc(100% - 20px);*/
     }
 
     .container {
-        padding: 0;
+        padding: 1rem;
     }
 
     .form-label {
