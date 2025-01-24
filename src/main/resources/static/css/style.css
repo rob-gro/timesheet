@@ -1,5 +1,4 @@
 
-
 :root {
     --my-yellow: #ffc008;
     --my-grey: #6c757d;
@@ -58,11 +57,7 @@ label {
 
 .card {
     max-width: none;
-    width: 85%;
-    /*max-width: 768px;*/
-    /*max-width: 500px;*/
-    /*margin-left: auto;*/
-    /*margin-right: auto;*/
+    width: 70%;
     margin: 20px auto;
     background-color: #161b22;
     border: 1px solid var(--my-yellow);
@@ -97,7 +92,6 @@ label {
     background-color: var(--my-grey);
     color: var(--my-yellow);
 }
-
 
 .nav-button {
     color: #ffc008;
@@ -213,13 +207,13 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .form-button {
-    max-width: 300px;  /* lub inna preferowana szerokość */
+    max-width: 300px;
     margin: 0 auto;
 }
 
 .form-control,
 .form-select {
-    background-color: rgb(45,48,50);
+    background-color: rgb(45, 48, 50);
     color: var(--my-yellow);
     border-color: var(--my-yellow);
     border-radius: 10px;
