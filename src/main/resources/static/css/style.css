@@ -93,6 +93,14 @@ label {
     color: var(--my-yellow);
 }
 
+.timesheet-select {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    transform: scale(1.5);
+}
+
+
 .nav-button {
     color: #ffc008;
     border-radius: 10px;
@@ -314,8 +322,8 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .sort-icon.active {
-    color: #df1124; /* Kolor dla aktywnego sortowania */
-    transform: scale(130%); /* Opcjonalne podkreślenie aktywności */
+    color: #df1124;
+    transform: scale(130%);
 }
 
 /* M E D I A */
