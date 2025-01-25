@@ -1,7 +1,7 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
     const filterForm = document.getElementById('filterForm');
-    filterForm.addEventListener('submit', function(e) {
+    filterForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const formData = new FormData(this);
         const params = new URLSearchParams();
@@ -14,7 +14,46 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/invoice-archive?' + params.toString();
     });
 
-    window.resendEmail = function(id) {
+    window.sortTable = function (column, direction) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('sortBy', column);
+        currentUrl.searchParams.set('sortDir', direction);
+
+        // Usuń istniejącą klasę "active" z innych ikon
+        document.querySelectorAll('.sort-icon').forEach(icon => {
+            icon.classList.remove('active');
+        });
+
+        // Znajdź kliknięty element i dodaj mu klasę "active"
+        const activeIcon = document.querySelector(`.sort-icon[data-column="${column}"][data-direction="${direction}"]`);
+        if (activeIcon) {
+            activeIcon.classList.add('active');
+        }
+
+        window.location.href = currentUrl.toString();
+    };
+
+    // Funkcja do oznaczenia aktywnej ikony sortowania po załadowaniu strony
+    const currentUrl = new URL(window.location.href);
+    const sortBy = currentUrl.searchParams.get('sortBy'); // Pobierz aktualną kolumnę
+
+    console.log(' ######################   sortBy:', sortBy);
+
+
+    const sortDir = currentUrl.searchParams.get('sortDir'); // Pobierz aktualny kierunek sortowania
+
+    console.log('#######################  sortDir:', sortDir);
+
+    if (sortBy && sortDir) {
+        const activeIcon = document.querySelector(`.sort-icon[data-column="${sortBy}"][data-direction="${sortDir}"]`);
+        if (activeIcon) {
+            activeIcon.classList.add('active'); // Dodaj klasę "active" do ikony
+
+            console.log('@@@@@@@@@@@@@@@@  Active Icon:', activeIcon);
+        }
+    }
+
+    window.resendEmail = function (id) {
         fetch(`/api/v1/invoices/${id}/send-email`, {
             method: 'POST'
         })
@@ -31,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     };
 
-    window.deleteInvoice = function(id) {
+    window.deleteInvoice = function (id) {
         if (confirm('Are you sure you want to delete this invoice?')) {
             fetch(`/api/v1/invoices/${id}`, {
                 method: 'DELETE'

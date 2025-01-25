@@ -25,12 +25,13 @@ public class InvoiceArchiveController {
             Model model,
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month) {
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false, defaultValue = "invoiceNumber") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortDir) {
 
-        List<InvoiceDto> invoices = invoiceService.searchInvoices(clientId, year, month);
+        List<InvoiceDto> invoices = invoiceService.searchAndSortInvoices(clientId, year, month, sortBy, sortDir);
         model.addAttribute("invoices", invoices);
         model.addAttribute("clients", clientService.getAllClients());
-
         return "invoice-archive";
     }
 }

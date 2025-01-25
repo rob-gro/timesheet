@@ -22,8 +22,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static dev.robgro.timesheet.service.EmailMessageService.COPY_EMAIL;
 import static java.util.stream.Collectors.toList;
@@ -77,6 +79,26 @@ public class InvoiceServiceImpl implements InvoiceService {
     public Optional<InvoiceDto> findByInvoiceNumber(String invoiceNumber) {
         return invoiceRepository.findByInvoiceNumber(invoiceNumber)
                 .map(invoiceDtoMapper);
+    }
+
+    @Override
+    public List<InvoiceDto> searchAndSortInvoices(Long clientId, Integer year, Integer month, String sortBy, String sortDir) {
+        List<InvoiceDto> invoices = searchInvoices(clientId, year, month);
+        return sortInvoices(invoices, sortBy, sortDir);
+    }
+
+    private List<InvoiceDto> sortInvoices(List<InvoiceDto> invoices, String sortBy, String sortDir) {
+        Comparator<InvoiceDto> comparator = switch (sortBy) {
+            case "invoiceNumber" -> Comparator.comparing(InvoiceDto::invoiceNumber);
+            case "issueDate" -> Comparator.comparing(InvoiceDto::issueDate);
+            case "clientName" -> Comparator.comparing(InvoiceDto::clientName);
+            case "totalAmount" -> Comparator.comparing(InvoiceDto::totalAmount);
+            default -> Comparator.comparing(InvoiceDto::invoiceNumber);
+        };
+
+        return invoices.stream()
+                .sorted(sortDir.equals("desc") ? comparator.reversed() : comparator)
+                .collect(Collectors.toList());
     }
 
     @Override

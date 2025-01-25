@@ -301,6 +301,23 @@ input[type="number"]::-webkit-inner-spin-button {
     width: 100%;
 }
 
+.sort-icon {
+    display: inline-block;
+    margin: 0 5px;
+    cursor: pointer;
+    color: #838687;
+    scale: 120%;
+}
+
+.sort-icon:hover {
+    color: #38dbfa;
+}
+
+.sort-icon.active {
+    color: #df1124; /* Kolor dla aktywnego sortowania */
+    transform: scale(130%); /* Opcjonalne podkreślenie aktywności */
+}
+
 /* M E D I A */
 
 @media (max-width: 768px) {

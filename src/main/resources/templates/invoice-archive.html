@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Invoice Archive</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
 <div class="container mt-5">
@@ -40,7 +41,6 @@
                             </option>
                         </select>
                     </div>
-
                     <div class="col-md-2">
                         <button type="submit" class="save-button">Apply Sorting Filters</button>
                     </div>
@@ -58,12 +58,43 @@
                     </colgroup>
                     <thead>
                     <tr>
-                        <th>Invoice #</th>
-                        <th>Date</th>
-                        <th>Client</th>
-                        <th>Amount</th>
-                        <th>Actions</th>
-                    </tr>
+                        <th class="text-center">
+                            Invoice #
+                            <div>
+                                <span class="sort-icon" data-column="invoiceNumber" data-direction="asc"
+                                      onclick="sortTable('invoiceNumber', 'asc')">▲</span>
+                                <span class="sort-icon" data-column="invoiceNumber" data-direction="desc"
+                                      onclick="sortTable('invoiceNumber', 'desc')">▼</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            Date
+                            <div>
+                                <span class="sort-icon" data-column="issueDate" data-direction="asc"
+                                      onclick="sortTable('issueDate', 'asc')">▲</span>
+                                <span class="sort-icon" data-column="issueDate" data-direction="desc"
+                                      onclick="sortTable('issueDate', 'desc')">▼</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            Client
+                            <div>
+                                <span class="sort-icon" data-column="clientName" data-direction="asc"
+                                      onclick="sortTable('clientName', 'asc')">▲</span>
+                                <span class="sort-icon" data-column="clientName" data-direction="desc"
+                                      onclick="sortTable('clientName', 'desc')">▼</span>
+                            </div>
+                        </th>
+                        <th class="text-center">
+                            Amount
+                            <div>
+                                <span class="sort-icon" data-column="totalAmount" data-direction="asc"
+                                      onclick="sortTable('totalAmount', 'asc')">▲</span>
+                                <span class="sort-icon" data-column="totalAmount" data-direction="desc"
+                                      onclick="sortTable('totalAmount', 'desc')">▼</span>
+                            </div>
+                        </th>
+                        <th class="text-center">Actions</th>
                     </thead>
                     <tbody>
                     <tr th:each="invoice : ${invoices}">
@@ -72,7 +103,9 @@
                         <td th:text="${invoice.clientName}"></td>
                         <td class="text-end" th:text="${'£ ' + invoice.totalAmount}"></td>
                         <td>
-                            <button class="nav-button" th:onclick="'window.location.href=\'/invoice-create/' + ${invoice.id} + '\''">View</button>
+                            <button class="nav-button"
+                                    th:onclick="'window.location.href=\'/invoice-create/' + ${invoice.id} + '\''">View
+                            </button>
                             <button class="del-button"
                                     th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete
                             </button>
