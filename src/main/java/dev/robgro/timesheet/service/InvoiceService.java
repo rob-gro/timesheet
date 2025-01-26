@@ -21,5 +21,6 @@ public interface InvoiceService {
     InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
     void savePdfAndSendInvoice(Long id);
     List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);
-    void deleteInvoice(Long id);
+    void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient);
+
 }

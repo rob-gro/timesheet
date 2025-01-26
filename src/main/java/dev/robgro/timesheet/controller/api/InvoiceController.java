@@ -1,8 +1,11 @@
 package dev.robgro.timesheet.controller.api;
 
 import dev.robgro.timesheet.model.dto.CreateInvoiceRequest;
+import dev.robgro.timesheet.model.dto.DeleteInvoiceRequest;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
+import dev.robgro.timesheet.model.entity.Invoice;
+import dev.robgro.timesheet.model.entity.Timesheet;
 import dev.robgro.timesheet.service.BillingService;
 import dev.robgro.timesheet.service.InvoiceService;
 import dev.robgro.timesheet.service.TimesheetService;
@@ -111,9 +114,16 @@ public class InvoiceController {
         return ResponseEntity.ok(invoiceService.getYearlyInvoices(clientId, year));
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteInvoice(@PathVariable Long id) {
-        invoiceService.deleteInvoice(id);
+    @Operation(summary = "Delete invoice and optionally its timesheets")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Invoice deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Invoice not found")
+    })
+    @DeleteMapping("/{id}/delete")
+    public ResponseEntity<Void> deleteInvoice(
+            @PathVariable Long id,
+            @RequestBody DeleteInvoiceRequest request) {
+        invoiceService.deleteInvoice(id, request.deleteTimesheets(), request.detachFromClient());
+        return ResponseEntity.noContent().build();
     }
 }
