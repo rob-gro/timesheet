@@ -71,35 +71,76 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.deleteInvoice = function(id) {
-        if (confirm('Are you sure you want to delete this invoice?')) {
-            const deleteTimesheets = confirm('Do you also want to delete the associated timesheets? \n\nPress YES to delete timesheets\nPress NO to keep timesheets');
-
-            fetch(`/api/v1/invoices/${id}/delete`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    deleteTimesheets: deleteTimesheets, // Tak/Nie dla usuwania timesheetów
-                    detachFromClient: deleteTimesheets, // Odczepienie klienta, jeśli timesheety są usuwane
-                }),
-            })
-                .then((response) => {
-                    if (response.ok) {
-                        alert('Invoice deleted successfully.');
-                        location.reload();
-                    } else {
-                        response.json().then((data) => {
-                            alert(`Error: ${data.message}`);
+        Swal.fire({
+            title: 'Delete Invoice',
+            text: 'Are you sure you want to delete this invoice?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Delete Timesheets',
+                    text: 'Do you also want to delete the associated timesheets?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No'
+                }).then((result) => {
+                    fetch(`/api/v1/invoices/${id}/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            deleteTimesheets: result.isConfirmed,
+                            detachFromClient: result.isConfirmed,
+                        }),
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire('Deleted!', 'Invoice has been deleted.', 'success')
+                                    .then(() => location.reload());
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Error!', 'Failed to delete invoice.', 'error');
                         });
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    alert('Failed to delete the invoice.');
                 });
-        }
+            }
+        });
     };
+    // window.deleteInvoice = function(id) {
+    //     if (confirm('Are you sure you want to delete this invoice?')) {
+    //         const deleteTimesheets = confirm('Do you also want to delete the associated timesheets? \n\nPress YES to delete timesheets\nPress NO to keep timesheets');
+    //
+    //         fetch(`/api/v1/invoices/${id}/delete`, {
+    //             method: 'DELETE',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({
+    //                 deleteTimesheets: deleteTimesheets, // Tak/Nie dla usuwania timesheetów
+    //                 detachFromClient: deleteTimesheets, // Odczepienie klienta, jeśli timesheety są usuwane
+    //             }),
+    //         })
+    //             .then((response) => {
+    //                 if (response.ok) {
+    //                     alert('Invoice deleted successfully.');
+    //                     location.reload();
+    //                 } else {
+    //                     response.json().then((data) => {
+    //                         alert(`Error: ${data.message}`);
+    //                     });
+    //                 }
+    //             })
+    //             .catch((error) => {
+    //                 console.error('Error:', error);
+    //                 alert('Failed to delete the invoice.');
+    //             });
+    //     }
+    // };
 
 
 
