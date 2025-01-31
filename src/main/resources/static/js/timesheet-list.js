@@ -1,47 +1,70 @@
 document.addEventListener('DOMContentLoaded', function () {
-        const clientFilter = document.getElementById('clientFilter');
-        const statusFilter = document.getElementById('statusFilter');
+    const filterForm = document.getElementById('filterForm');
+    filterForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const params = new URLSearchParams();
 
-        function refreshTimesheets() {
-            const clientId = clientFilter.value;
-            const status = statusFilter.value;
-
-            let url = '/api/v1/timesheets';
-            if (clientId) {
-                url += `/client/${clientId}`;
-                if (status !== '') {
-                    url += `?invoiced=${status}`;
-                }
-            } else if (status !== '') {
-                url += `/status/${status}`;
+        for (let [key, value] of formData.entries()) {
+            if (value) {  // dodaj tylko niepuste wartości
+                params.append(key, value);
             }
+        }
+        window.location.href = '/timesheets/list?' + params.toString();
+    });
 
-            fetch(url)
-                .then(response => response.json())
-                .then(timesheets => updateTimesheetsTable(timesheets))
-                .catch(error => console.error('Error:', error));
+    window.sortTable = function (column, direction) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('sortBy', column);
+        currentUrl.searchParams.set('sortDir', direction);
+
+        // Usuń istniejącą klasę "active" z innych ikon
+        document.querySelectorAll('.sort-icon').forEach(icon => {
+            icon.classList.remove('active');
+        });
+
+        // Znajdź kliknięty element i dodaj mu klasę "active"
+        const activeIcon = document.querySelector(`.sort-icon[data-column="${column}"][data-direction="${direction}"]`);
+        if (activeIcon) {
+            activeIcon.classList.add('active');
         }
 
-        clientFilter.addEventListener('change', refreshTimesheets);
-        statusFilter.addEventListener('change', refreshTimesheets);
+        window.location.href = currentUrl.toString();
+    };
 
-        function updateTimesheetsTable(timesheets) {
-            const tbody = document.querySelector('.table tbody');
-            tbody.innerHTML = '';
+    // Oznacz aktywną ikonę sortowania po załadowaniu strony
+    const currentUrl = new URL(window.location.href);
+    const sortBy = currentUrl.searchParams.get('sortBy');
+    const sortDir = currentUrl.searchParams.get('sortDir');
 
-            timesheets.forEach(timesheet => {
-                tbody.innerHTML += `
-               <tr>
-                   <td>${timesheet.clientName}</td>
-                   <td>${timesheet.serviceDate}</td>
-                   <td>${timesheet.duration}</td>
-                   <td>${timesheet.invoiced ? timesheet.invoiceNumber : '---'}</td>
-                   <td>
-                       <button class="save-button" onclick="editTimesheet(${timesheet.id})">Edit</button>
-                       <button class="del-button" onclick="deleteTimesheet(${timesheet.id})">Delete</button>
-                   </td>
-               </tr>`;
-            });
+    if (sortBy && sortDir) {
+        const activeIcon = document.querySelector(`.sort-icon[data-column="${sortBy}"][data-direction="${sortDir}"]`);
+        if (activeIcon) {
+            activeIcon.classList.add('active');
         }
     }
-);
+
+    // Funkcje do edycji i usuwania timesheet'ów
+    window.editTimesheet = function(id) {
+        window.location.href = `/timesheets/edit/${id}`;
+    }
+
+    window.deleteTimesheet = function(id) {
+        if (confirm('Are you sure you want to delete this timesheet?')) {
+            fetch(`/api/v1/timesheets/${id}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        throw new Error('Failed to delete timesheet');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting timesheet. It might be attached to an invoice.');
+                });
+        }
+    }
+});

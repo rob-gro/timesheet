@@ -71,6 +71,37 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    public List<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir) {
+        List<Timesheet> timesheets;
+        if (clientId != null) {
+            timesheets = timesheetRepository.findAllByClientId(clientId);
+        } else {
+            timesheets = timesheetRepository.findAll();
+        }
+
+        List<TimesheetDto> dtos = timesheets.stream()
+                .map(timesheetDtoMapper)
+                .collect(toList());
+
+        return sortTimesheets(dtos, sortBy, sortDir);
+    }
+
+    private List<TimesheetDto> sortTimesheets(List<TimesheetDto> timesheets, String sortBy, String sortDir) {
+        Comparator<TimesheetDto> comparator = switch (sortBy) {
+            case "serviceDate" -> Comparator.comparing(TimesheetDto::serviceDate);
+            case "duration" -> Comparator.comparing(TimesheetDto::duration);
+            case "invoiceNumber" -> Comparator.comparing(
+                    ts -> ts.invoiceNumber() != null ? ts.invoiceNumber() : ""
+            );
+            default -> Comparator.comparing(TimesheetDto::serviceDate);
+        };
+
+        return timesheets.stream()
+                .sorted(sortDir.equals("desc") ? comparator.reversed() : comparator)
+                .collect(toList());
+    }
+
+    @Override
     @Transactional
     public TimesheetDto updateTimesheet(Long id, Long clientId, LocalDate date, double duration) {
         Timesheet timesheet = getTimesheetOrThrow(id);

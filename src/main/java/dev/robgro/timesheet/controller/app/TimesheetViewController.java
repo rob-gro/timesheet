@@ -27,9 +27,15 @@ public class TimesheetViewController {
     }
 
     @GetMapping("/list")
-    public String showTimesheets(Model model) {
+    public String showTimesheets(
+            Model model,
+            @RequestParam(required = false) Long clientId,
+            @RequestParam(required = false, defaultValue = "serviceDate") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+
+        List<TimesheetDto> timesheets = timesheetService.searchAndSortTimesheets(clientId, sortBy, sortDir);
+        model.addAttribute("timesheets", timesheets);
         model.addAttribute("clients", clientService.getAllClients());
-        model.addAttribute("timesheets", timesheetService.getAllTimesheets());
         return "timesheet-list";
     }
 
