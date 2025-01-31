@@ -4,8 +4,6 @@ import dev.robgro.timesheet.model.dto.CreateInvoiceRequest;
 import dev.robgro.timesheet.model.dto.DeleteInvoiceRequest;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
-import dev.robgro.timesheet.model.entity.Invoice;
-import dev.robgro.timesheet.model.entity.Timesheet;
 import dev.robgro.timesheet.service.BillingService;
 import dev.robgro.timesheet.service.InvoiceService;
 import dev.robgro.timesheet.service.TimesheetService;
@@ -62,7 +60,6 @@ public class InvoiceController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(billingService.createMonthlyInvoice(clientId, year, month));
     }
-
 
     @Operation(summary = "Get all timesheets for a client")
     @ApiResponses(value = {

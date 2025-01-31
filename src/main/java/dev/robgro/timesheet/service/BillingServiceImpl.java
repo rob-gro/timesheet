@@ -42,7 +42,7 @@ public class BillingServiceImpl implements BillingService {
     private Optional<InvoiceDto> generateMonthlyInvoiceForClient(Long clientId, int year, int month, LocalDate issueDate) {
         List<TimesheetDto> uninvoicedTimesheets = timesheetService.getMonthlyTimesheets(clientId, year, month)
                 .stream()
-                .filter(timesheet -> !timesheet.isInvoice())
+                .filter(timesheet -> !timesheet.invoiced())
                 .toList();
 
         if (uninvoicedTimesheets.isEmpty()) {
@@ -66,7 +66,7 @@ public class BillingServiceImpl implements BillingService {
         ClientDto client = clientService.getClientById(clientId);
         List<TimesheetDto> selectedTimesheets = timesheetIds.stream()
                 .map(timesheetService::getTimesheetById)
-                .filter(timesheet -> !timesheet.isInvoice())
+                .filter(timesheet -> !timesheet.invoiced())
                 .toList();
 
         if (selectedTimesheets.isEmpty()) {

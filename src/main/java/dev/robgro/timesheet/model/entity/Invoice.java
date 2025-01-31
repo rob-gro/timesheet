@@ -29,8 +29,8 @@ public class Invoice {
     @Column(name = "total_amount")
     private BigDecimal totalAmount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "client_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Client client;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -48,6 +48,6 @@ public class Invoice {
     @Column(name = "email_sent_at")
     private LocalDateTime emailSentAt;
 
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL)
-    private List<Timesheet> timesheets;
+    @OneToMany(mappedBy = "invoice")
+    private List<Timesheet> timesheets = new ArrayList<>();
 }

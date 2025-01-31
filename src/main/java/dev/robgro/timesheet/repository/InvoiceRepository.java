@@ -27,10 +27,10 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> getInvoicesByClientId(Long clientId);
 
     @Modifying
-    @Query("DELETE FROM InvoiceItem i WHERE i.invoice.id = :invoiceId")
-    void deleteInvoiceItemsByInvoiceId(@Param("invoiceId") Long invoiceId);
-
-    @Modifying
     @Query("DELETE FROM InvoiceItem i WHERE i.id = :id")
     void deleteInvoiceItem(@Param("id") Long id);
+
+    @Modifying
+    @Query("DELETE FROM InvoiceItem i WHERE i.invoice.id = :invoiceId")
+    void deleteInvoiceItemsByInvoiceId(@Param("invoiceId") Long invoiceId);
 }

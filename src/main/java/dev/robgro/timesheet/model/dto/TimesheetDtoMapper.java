@@ -14,11 +14,10 @@ public class TimesheetDtoMapper implements Function<Timesheet, TimesheetDto> {
                 timesheet.getClient().getClientName(),
                 timesheet.getServiceDate(),
                 timesheet.getDuration(),
-                timesheet.isInvoice(),
+                timesheet.isInvoiced(),
                 timesheet.getClient().getId(),
                 timesheet.getClient().getHourlyRate(),
                 timesheet.getInvoice() == null ? null : timesheet.getInvoice().getInvoiceNumber()
-
         );
     }
 }

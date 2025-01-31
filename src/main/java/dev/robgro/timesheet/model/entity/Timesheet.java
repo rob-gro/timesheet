@@ -3,6 +3,7 @@ package dev.robgro.timesheet.model.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -16,7 +17,7 @@ public class Timesheet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "client_id", referencedColumnName = "id")
     private Client client;
 
@@ -27,18 +28,21 @@ public class Timesheet {
     private double duration;
 
     @Column(name = "is_invoice")
-    private boolean isInvoice;
+    private boolean invoiced;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "invoice_id", referencedColumnName = "id")
     private Invoice invoice;
 
-    public Timesheet(Long id, Client client, LocalDate serviceDate, double duration, boolean isInvoice) {
+    @Formula("(SELECT i.invoice_number FROM invoices i WHERE i.id = invoice_id)")
+    private String invoiceNumber;
+
+    public Timesheet(Long id, Client client, LocalDate serviceDate, double duration, boolean invoiced) {
         this.id = id;
         this.client = client;
         this.serviceDate = serviceDate;
         this.duration = duration;
-        this.isInvoice = isInvoice;
+        this.invoiced = invoiced;
     }
 
     public Timesheet() {
@@ -51,7 +55,8 @@ public class Timesheet {
                 ", client=" + client +
                 ", serviceDate=" + serviceDate +
                 ", duration=" + duration +
-                ", isInvoice=" + isInvoice +
+                ", invoiced=" + invoiced +
+                ", invoice=" + (invoice != null ? invoice.getInvoiceNumber() : "null") +
                 '}';
     }
 
@@ -60,7 +65,7 @@ public class Timesheet {
         if (o == null || getClass() != o.getClass()) return false;
 
         Timesheet timesheet = (Timesheet) o;
-        return Double.compare(duration, timesheet.duration) == 0 && isInvoice == timesheet.isInvoice && Objects.equals(id, timesheet.id) && Objects.equals(client, timesheet.client) && Objects.equals(serviceDate, timesheet.serviceDate);
+        return Double.compare(duration, timesheet.duration) == 0 && invoiced == timesheet.invoiced && Objects.equals(id, timesheet.id) && Objects.equals(client, timesheet.client) && Objects.equals(serviceDate, timesheet.serviceDate);
     }
 
     @Override
@@ -69,7 +74,7 @@ public class Timesheet {
         result = 31 * result + Objects.hashCode(client);
         result = 31 * result + Objects.hashCode(serviceDate);
         result = 31 * result + Double.hashCode(duration);
-        result = 31 * result + Boolean.hashCode(isInvoice);
+        result = 31 * result + Boolean.hashCode(invoiced);
         return result;
     }
 }

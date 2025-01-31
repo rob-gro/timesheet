@@ -34,6 +34,10 @@ public class FtpService {
     @Value("${ftp.invoices.directory}")
     private String invoicesDirectory;
 
+    public FtpService() {
+        this.ftpClient = new FTPClient();
+    }
+
     public void uploadPdfInvoice(String fileName, byte[] content) {
         log.info("Starting upload of invoice PDF: {}", fileName);
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {

@@ -30,6 +30,5 @@ public interface TimesheetService {
 
     void detachFromInvoice(Long id);
 
-
-    List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean isInvoice);
+    List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced);
 }

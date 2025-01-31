@@ -64,31 +64,13 @@ public class TimesheetController {
         return ResponseEntity.status(HttpStatus.OK).body(timesheet);
     }
 
-//    @Operation(summary = "Update existing timesheet")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Timesheet updated successfully"),
-//            @ApiResponse(responseCode = "400", description = "Invalid input data"),
-//            @ApiResponse(responseCode = "404", description = "Timesheet not found")
-//    })
-//    @PostMapping("/{id}")
-//    public ResponseEntity<TimesheetDto> updateTimesheet(
-//            @PathVariable Long id,
-//            @RequestBody UpdateTimesheetRequest request) {
-//        TimesheetDto timesheet = timesheetService.updateTimesheet(
-//                id,
-//                request.clientId(),
-//                request.serviceDate(),
-//                request.duration());
-//        return ResponseEntity.status(HttpStatus.OK).body(timesheet);
-//    }
-
     @Operation(summary = "Delete timesheet")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Timesheet deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Timesheet not found"),
             @ApiResponse(responseCode = "400", description = "Cannot delete timesheet attached to invoice")
     })
-        @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTimesheet(@PathVariable Long id) {
         timesheetService.deleteTimesheet(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -108,10 +90,10 @@ public class TimesheetController {
     @GetMapping("/client/{clientId}")
     public ResponseEntity<List<TimesheetDto>> getTimesheetsByClient(
             @PathVariable Long clientId,
-            @RequestParam(required = false) Boolean isInvoice) {
+            @RequestParam(required = false) Boolean invoiced) {
 
-        if (isInvoice != null) {
-            return ResponseEntity.ok(timesheetService.getTimesheetsByClientAndInvoiceStatus(clientId, isInvoice));
+        if (invoiced != null) {
+            return ResponseEntity.ok(timesheetService.getTimesheetsByClientAndInvoiceStatus(clientId, invoiced));
         }
         return ResponseEntity.ok(timesheetService.getTimesheetByClientId(clientId));
     }

@@ -7,6 +7,7 @@ import dev.robgro.timesheet.model.entity.Timesheet;
 import dev.robgro.timesheet.repository.ClientRepository;
 import dev.robgro.timesheet.repository.TimesheetRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TimesheetServiceImpl implements TimesheetService {
@@ -42,15 +44,15 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     @Override
     public List<TimesheetDto> getUnbilledTimesheetsByClientId(Long clientId) {
-        return timesheetRepository.findByClientIdAndIsInvoiceFalse(clientId)
+        return timesheetRepository.findByClientIdAndInvoicedFalse(clientId)
                 .stream()
                 .map(timesheetDtoMapper)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean isInvoice) {
-        return timesheetRepository.findByClientIdAndIsInvoice(clientId, isInvoice).stream()
+    public List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced) {
+        return timesheetRepository.findByClientIdAndInvoiced(clientId, invoiced).stream()
                 .map(timesheetDtoMapper)
                 .collect(toList());
     }
@@ -64,7 +66,7 @@ public class TimesheetServiceImpl implements TimesheetService {
         timesheet.setClient(client);
         timesheet.setServiceDate(date);
         timesheet.setDuration(duration);
-        timesheet.setInvoice(false);
+        timesheet.setInvoiced(false);
         return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));
     }
 
@@ -87,12 +89,17 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Transactional
     public void deleteTimesheet(Long id) {
         Timesheet timesheet = getTimesheetOrThrow(id);
-        if (timesheet.isInvoice()) {
+        log.debug("Deleting timesheet ID: {}", id);
+
+        if (timesheet.isInvoiced() && timesheet.getInvoice() != null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Cannot delete timesheet that is attached to an invoice"
             );
         }
+
+        timesheet.setClient(null);
+        timesheetRepository.save(timesheet);
         timesheetRepository.delete(timesheet);
     }
 
@@ -105,7 +112,7 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     @Override
     public List<TimesheetDto> getUnbilledTimesheets() {
-        return timesheetRepository.findByIsInvoice(false)
+        return timesheetRepository.findByInvoiced(false)
                 .stream()
                 .map(timesheetDtoMapper)
                 .collect(toList());
@@ -132,7 +139,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     public void markAsInvoiced(Long id) {
         Timesheet timesheet = getTimesheetOrThrow(id);
-        timesheet.setInvoice(true);
+        timesheet.setInvoiced(true);
         timesheetRepository.save(timesheet);
     }
 
@@ -143,7 +150,7 @@ public class TimesheetServiceImpl implements TimesheetService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Timesheet with id: " + id + " not found"));
 
-        timesheet.setInvoice(isInvoiced);
+        timesheet.setInvoiced(isInvoiced);
         timesheetRepository.save(timesheet);
     }
 
@@ -151,7 +158,8 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Transactional
     public void detachFromInvoice(Long id) {
         Timesheet timesheet = getTimesheetOrThrow(id);
-        timesheet.setInvoice(false);
+        timesheet.setInvoiced(false);
+        timesheet.setInvoice(null);
         timesheetRepository.save(timesheet);
     }
 }

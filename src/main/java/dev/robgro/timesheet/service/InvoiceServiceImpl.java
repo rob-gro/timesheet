@@ -1,7 +1,10 @@
 package dev.robgro.timesheet.service;
 
 import dev.robgro.timesheet.config.InvoiceSeller;
-import dev.robgro.timesheet.model.dto.*;
+import dev.robgro.timesheet.model.dto.ClientDto;
+import dev.robgro.timesheet.model.dto.InvoiceDto;
+import dev.robgro.timesheet.model.dto.InvoiceDtoMapper;
+import dev.robgro.timesheet.model.dto.TimesheetDto;
 import dev.robgro.timesheet.model.entity.Client;
 import dev.robgro.timesheet.model.entity.Invoice;
 import dev.robgro.timesheet.model.entity.InvoiceItem;
@@ -24,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +39,9 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class InvoiceServiceImpl implements InvoiceService {
+public
+class InvoiceServiceImpl implements InvoiceService {
+
 
     private final InvoiceRepository invoiceRepository;
     private final TimesheetService timesheetService;
@@ -46,9 +52,6 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final PdfGenerator pdfGenerator;
     private final EmailMessageService emailMessageService;
     private final FtpService ftpService;
-
-    private final ClientDtoMapper clientDtoMapper;
-
 
     @Override
     public List<InvoiceDto> getAllInvoices() {
@@ -93,9 +96,9 @@ public class InvoiceServiceImpl implements InvoiceService {
     private List<InvoiceDto> sortInvoices(List<InvoiceDto> invoices, String sortBy, String sortDir) {
         Comparator<InvoiceDto> comparator = switch (sortBy) {
             case "invoiceNumber" -> Comparator
-                    .comparing((InvoiceDto i) -> i.invoiceNumber().substring(i.invoiceNumber().length() - 4))       // rok
-                    .thenComparing(i -> i.invoiceNumber().substring(4, 6))           // miesiąc
-                    .thenComparing(i -> i.invoiceNumber().substring(0, 3));          // numer
+                    .comparing((InvoiceDto i) -> i.invoiceNumber().substring(i.invoiceNumber().length() - 4))
+                    .thenComparing(i -> i.invoiceNumber().substring(4, 6))
+                    .thenComparing(i -> i.invoiceNumber().substring(0, 3));
             case "issueDate" -> Comparator.comparing(InvoiceDto::issueDate);
             case "clientName" -> Comparator.comparing(InvoiceDto::clientName);
             case "totalAmount" -> Comparator.comparing(InvoiceDto::totalAmount);
@@ -130,6 +133,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .toList();
     }
 
+    @Transactional
     @Override
     public InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate) {
         Invoice invoice = new Invoice();
@@ -146,9 +150,22 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoice.setIssuedDate(LocalDateTime.now());
 
         Invoice savedInvoice = invoiceRepository.save(invoice);
-        timesheets.forEach(timesheet -> timesheetService.markAsInvoiced(timesheet.id()));
 
-        return invoiceDtoMapper.apply(savedInvoice);
+        List<Timesheet> updatedTimesheets = timesheets.stream()
+                .map(timesheet -> {
+                    Timesheet ts = timesheetRepository.findById(timesheet.id()).orElseThrow();
+                    ts.setInvoiced(true);
+                    ts.setInvoice(savedInvoice);
+                    ts.setInvoiceNumber(savedInvoice.getInvoiceNumber());
+                    return ts;
+                })
+                .toList();
+
+        timesheetRepository.saveAll(updatedTimesheets);
+
+        Invoice refreshedInvoice = invoiceRepository.findById(savedInvoice.getId()).orElseThrow();
+
+        return invoiceDtoMapper.apply(refreshedInvoice);
     }
 
     private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {
@@ -255,52 +272,29 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .collect(toList());
     }
 
-//    @Transactional
-//    @Override
-//    public void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient) {
-//        Invoice invoice = getInvoiceOrThrow(id);
-//
-//        if (deleteTimesheets) {
-//            invoice.getItemsList().forEach(item -> {
-//                if (detachFromClient) {
-//                    Timesheet timesheet = timesheetRepository.findById(item.getTimesheetId()).orElseThrow();
-//                    timesheet.setClient(null);
-//                    timesheetRepository.save(timesheet);
-//                }
-//                timesheetService.deleteTimesheet(item.getTimesheetId());
-//            });
-//        } else {
-//            invoice.getItemsList().forEach(item ->
-//                    timesheetService.updateInvoiceFlag(item.getTimesheetId(), false));
-//        }
-//
-//        invoice.getItemsList().clear();
-//        invoiceRepository.delete(invoice);
-//    }
-
     @Transactional
     @Override
     public void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient) {
+        log.info("Starting deletion of invoice ID: {}", id);
         Invoice invoice = getInvoiceOrThrow(id);
 
-        if (deleteTimesheets) {
-            // Usuń timesheety i odczep klienta, jeśli wymagane
-            invoice.getItemsList().forEach(item -> {
-                Timesheet timesheet = timesheetRepository.findById(item.getTimesheetId()).orElseThrow();
-                if (detachFromClient) {
-                    timesheet.setClient(null); // Odczep klienta
-                }
-                timesheetRepository.delete(timesheet); // Usuń timesheet
-            });
-        } else {
-            // Odłącz timesheety od faktury, ale zachowaj przypisanie do klienta
-            invoice.getItemsList().forEach(item -> {
-                timesheetService.updateInvoiceFlag(item.getTimesheetId(), false);
-            });
+        for (InvoiceItem item : new ArrayList<>(invoice.getItemsList())) {
+            Timesheet timesheet = timesheetRepository.findById(item.getTimesheetId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+            timesheet.setInvoice(null);
+            timesheet.setInvoiced(false);
+            timesheetRepository.save(timesheet);
+
+            invoice.getItemsList().remove(item);
+
+            if (deleteTimesheets) {
+                timesheet.setClient(null);
+                timesheetRepository.delete(timesheet);
+            }
         }
-
-        invoice.getItemsList().clear(); // Wyczyść powiązania faktury
-        invoiceRepository.delete(invoice); // Usuń fakturę
+        invoiceRepository.save(invoice);
+        invoiceRepository.delete(invoice);
+        log.info("Invoice deletion completed");
     }
-
 }

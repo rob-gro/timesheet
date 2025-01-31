@@ -7,7 +7,7 @@ public record TimesheetDto(
         String clientName,
         LocalDate serviceDate,
         double duration,
-        boolean isInvoice,
+        boolean invoiced,
         Long clientId,
         double hourlyRate,
         String invoiceNumber
