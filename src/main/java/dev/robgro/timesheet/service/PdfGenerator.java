@@ -85,9 +85,9 @@ public class PdfGenerator {
             PdfPCell fromCell = new PdfPCell();
             fromCell.setBorder(Rectangle.NO_BORDER);
             fromCell.addElement(new Paragraph("Invoice from:", normalFont));
-            fromCell.addElement(new Paragraph(seller.getName(), normalFont));
-            fromCell.addElement(new Paragraph(seller.getStreet(), normalFont));
-            fromCell.addElement(new Paragraph(seller.getPostcode() + ", " + seller.getCity(), normalFont));
+            fromCell.addElement(new Paragraph(seller.getName(), boldFont));
+            fromCell.addElement(new Paragraph(seller.getStreet(), boldFont));
+            fromCell.addElement(new Paragraph(seller.getPostcode() + ", " + seller.getCity(), boldFont));
 
 // receiver / client
             PdfPCell toCell = new PdfPCell();
