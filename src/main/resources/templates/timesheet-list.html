@@ -83,15 +83,15 @@
                                       onclick="sortTable('invoiceNumber', 'desc')">▼</span>
                             </div>
                         </th>
-                        <th>
-                            Paid
-                            <div>
-                                    <span class="sort-icon" data-column="paymentDate" data-direction="asc"
-                                            onclick="sortTable('paymentDate', 'asc')">▲</span>
-                                <span class="sort-icon" data-column="paymentDate" data-direction="desc"
-                                      onclick="sortTable('paymentDate', 'desc')">▼</span>
-                            </div>
-                        </th>
+<!--                        <th>-->
+<!--                            Paid-->
+<!--                            <div>-->
+<!--                                    <span class="sort-icon" data-column="paymentDate" data-direction="asc"-->
+<!--                                            onclick="sortTable('paymentDate', 'asc')">▲</span>-->
+<!--                                <span class="sort-icon" data-column="paymentDate" data-direction="desc"-->
+<!--                                      onclick="sortTable('paymentDate', 'desc')">▼</span>-->
+<!--                            </div>-->
+<!--                        </th>-->
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -101,17 +101,17 @@
                         <td th:class="text-center" th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
                         <td th:text="${timesheet.duration}"></td>
                         <td th:text="${timesheet.invoiced ? timesheet.invoiceNumber : '---'}"></td>
-                        <td class="text-center">
-                            <div class="payment-status" th:if="${timesheet.paymentDate == null}">
-                                <input type="checkbox" class="payment-checkbox"
-                                       th:onclick="'updatePaymentStatus(' + ${timesheet.id} + ', this)'"
-                                       title="Click to mark as paid">
-                            </div>
-                            <div th:unless="${timesheet.paymentDate == null}"
-                                 th:text="${#temporals.format(timesheet.paymentDate, 'yyyy-MM-dd')}"
-                                 title="Payment received">
-                            </div>
-                        </td>
+<!--                        <td class="text-center">-->
+<!--                            <div class="payment-status" th:if="${timesheet.paymentDate == null}">-->
+<!--                                <input type="checkbox" class="payment-checkbox"-->
+<!--                                       th:onclick="'updatePaymentStatus(' + ${timesheet.id} + ', this)'"-->
+<!--                                       title="Click to mark as paid">-->
+<!--                            </div>-->
+<!--                            <div th:unless="${timesheet.paymentDate == null}"-->
+<!--                                 th:text="${#temporals.format(timesheet.paymentDate, 'yyyy-MM-dd')}"-->
+<!--                                 title="Payment received">-->
+<!--                            </div>-->
+<!--                        </td>-->
                         <td>
                             <button class="save-button" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit</button>
                             <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete</button>
