@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', function () {
         currentUrl.searchParams.set('sortBy', column);
         currentUrl.searchParams.set('sortDir', direction);
 
+        // zachowaj istniejące parametry
+        const clientId = currentUrl.searchParams.get('clientId');
+        const size = currentUrl.searchParams.get('size') || '10';
+
         // Usuń istniejącą klasę "active" z innych ikon
         document.querySelectorAll('.sort-icon').forEach(icon => {
             icon.classList.remove('active');

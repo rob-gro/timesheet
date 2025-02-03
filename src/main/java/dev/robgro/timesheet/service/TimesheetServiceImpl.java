@@ -8,6 +8,8 @@ import dev.robgro.timesheet.repository.ClientRepository;
 import dev.robgro.timesheet.repository.TimesheetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,12 +89,35 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     private List<TimesheetDto> sortTimesheets(List<TimesheetDto> timesheets, String sortBy, String sortDir) {
+
+        log.debug("Sorting timesheets by: {}, direction: {}", sortBy, sortDir);
+        if (sortBy.equals("invoiceNumber")) {
+            log.debug("First timesheet invoice number: {}",
+                    timesheets.isEmpty() ? "none" : timesheets.get(0).invoiceNumber());
+        }
+
         Comparator<TimesheetDto> comparator = switch (sortBy) {
+            case "invoiceNumber" -> Comparator
+                    .comparing((TimesheetDto i) -> {
+                        String year = i.invoiceNumber() != null ?
+                                i.invoiceNumber().substring(i.invoiceNumber().length() - 4) : "";
+                        log.debug("Comparing year: {} for invoice {}", year, i.invoiceNumber());
+                        return year;
+                    })
+                    .thenComparing(i -> {
+                        String month = i.invoiceNumber() != null ?
+                                i.invoiceNumber().substring(4, 6) : "";
+                        log.debug("Comparing month: {} for invoice {}", month, i.invoiceNumber());
+                        return month;
+                    })
+                    .thenComparing(i -> {
+                        String number = i.invoiceNumber() != null ?
+                                i.invoiceNumber().substring(0, 3) : "";
+                        log.debug("Comparing number: {} for invoice {}", number, i.invoiceNumber());
+                        return number;
+                    });
             case "serviceDate" -> Comparator.comparing(TimesheetDto::serviceDate);
             case "duration" -> Comparator.comparing(TimesheetDto::duration);
-            case "invoiceNumber" -> Comparator.comparing(
-                    ts -> ts.invoiceNumber() != null ? ts.invoiceNumber() : ""
-            );
             default -> Comparator.comparing(TimesheetDto::serviceDate);
         };
 
@@ -193,4 +218,47 @@ public class TimesheetServiceImpl implements TimesheetService {
         timesheet.setInvoice(null);
         timesheetRepository.save(timesheet);
     }
+
+    @Override
+    public Page<TimesheetDto> getAllTimesheetsPageable(Pageable pageable) {
+        return timesheetRepository.findAll(pageable)
+                .map(timesheetDtoMapper);
+    }
+
+    @Override
+    public Page<TimesheetDto> getTimesheetsByClientIdPageable(Long clientId, Pageable pageable) {
+        return timesheetRepository.findAllByClientId(clientId, pageable)
+                .map(timesheetDtoMapper);
+    }
+
+    @Override
+    public Page<TimesheetDto> getAllTimesheetsSortedByInvoiceNumber(Long clientId, Pageable pageable) {
+        return timesheetRepository.findAllSortedByInvoiceNumber(clientId, pageable)
+                .map(timesheetDtoMapper);
+    }
+
+    @Override
+    public Page<TimesheetDto> getAllTimesheetsPageable(Long clientId, Pageable pageable) {
+        if (clientId != null) {
+            return timesheetRepository.findAllByClientId(clientId, pageable)
+                    .map(timesheetDtoMapper);
+        }
+        return timesheetRepository.findAll(pageable)
+                .map(timesheetDtoMapper);
+    }
+
+//
+//    @Override
+//    public Page<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced, Pageable pageable) {
+//        return timesheetRepository.findByClientIdAndInvoiced(clientId, invoiced, pageable)
+//                .map(timesheetDtoMapper);
+//    }
+//
+//    @Override
+//    public Page<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir, Pageable pageable) {
+//        if (clientId != null) {
+//            return getTimesheetsByClientId(clientId, pageable);
+//        }
+//        return getAllTimesheets(pageable);
+//    }
 }

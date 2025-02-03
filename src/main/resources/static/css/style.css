@@ -512,3 +512,46 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     gap: 1rem;
     margin-top: 1rem;
 }
+
+
+/*  PAGINATION*/
+.pagination {
+    margin: 20px 0;
+}
+
+.pagination .page-link {
+    background-color: rgb(45, 48, 50);
+    color: var(--my-yellow);
+    border-color: var(--my-yellow);
+    margin: 0 2px;
+    transition: all 0.3s ease;
+}
+
+.pagination .page-link:hover {
+    background-color: var(--my-yellow);
+    color: rgb(45, 48, 50);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--my-yellow);
+    color: rgb(45, 48, 50);
+    border-color: var(--my-yellow);
+}
+
+.pagination .page-item.disabled .page-link {
+    background-color: rgb(45, 48, 50);
+    color: var(--my-grey);
+    border-color: var(--my-grey);
+}
+
+/* Responsywność paginacji */
+@media (max-width: 768px) {
+    .pagination .page-link {
+        padding: 12px 16px;
+        font-size: 1.1rem;
+    }
+
+    .pagination {
+        margin: 30px 0;
+    }
+}
