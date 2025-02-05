@@ -37,12 +37,16 @@ public class Timesheet {
     @Formula("(SELECT i.invoice_number FROM invoices i WHERE i.id = invoice_id)")
     private String invoiceNumber;
 
-    public Timesheet(Long id, Client client, LocalDate serviceDate, double duration, boolean invoiced) {
+    @Column(name = "payment_date")
+    private LocalDate paymentDate;
+
+    public Timesheet(Long id, Client client, LocalDate serviceDate, double duration, boolean invoiced, LocalDate paymentDate) {
         this.id = id;
         this.client = client;
         this.serviceDate = serviceDate;
         this.duration = duration;
         this.invoiced = invoiced;
+        this.paymentDate = paymentDate;
     }
 
     public Timesheet() {
@@ -56,7 +60,9 @@ public class Timesheet {
                 ", serviceDate=" + serviceDate +
                 ", duration=" + duration +
                 ", invoiced=" + invoiced +
-                ", invoice=" + (invoice != null ? invoice.getInvoiceNumber() : "null") +
+                ", invoice=" + invoice +
+                ", invoiceNumber='" + invoiceNumber + '\'' +
+                ", paymentDate=" + paymentDate +
                 '}';
     }
 
@@ -65,7 +71,7 @@ public class Timesheet {
         if (o == null || getClass() != o.getClass()) return false;
 
         Timesheet timesheet = (Timesheet) o;
-        return Double.compare(duration, timesheet.duration) == 0 && invoiced == timesheet.invoiced && Objects.equals(id, timesheet.id) && Objects.equals(client, timesheet.client) && Objects.equals(serviceDate, timesheet.serviceDate);
+        return Double.compare(duration, timesheet.duration) == 0 && invoiced == timesheet.invoiced && Objects.equals(id, timesheet.id) && Objects.equals(client, timesheet.client) && Objects.equals(serviceDate, timesheet.serviceDate) && Objects.equals(invoice, timesheet.invoice) && Objects.equals(invoiceNumber, timesheet.invoiceNumber) && Objects.equals(paymentDate, timesheet.paymentDate);
     }
 
     @Override
@@ -75,6 +81,9 @@ public class Timesheet {
         result = 31 * result + Objects.hashCode(serviceDate);
         result = 31 * result + Double.hashCode(duration);
         result = 31 * result + Boolean.hashCode(invoiced);
+        result = 31 * result + Objects.hashCode(invoice);
+        result = 31 * result + Objects.hashCode(invoiceNumber);
+        result = 31 * result + Objects.hashCode(paymentDate);
         return result;
     }
 }

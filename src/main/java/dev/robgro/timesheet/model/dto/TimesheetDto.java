@@ -10,7 +10,7 @@ public record TimesheetDto(
         boolean invoiced,
         Long clientId,
         double hourlyRate,
-        String invoiceNumber
-
+        String invoiceNumber,
+        LocalDate paymentDate
 ) {
 }

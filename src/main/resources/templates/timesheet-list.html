@@ -14,34 +14,42 @@
             <h2 class="text-center mb-4">Timesheets</h2>
 
             <form id="filterForm" class="mb-4">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="d-flex">
-                            <select name="clientId" class="form-select me-2">
-                                <option value="" th:selected="${param.clientId == null}">All Clients</option>
-                                <option th:each="client : ${clients}"
-                                        th:value="${client.id}"
-                                        th:text="${client.clientName}"
-                                        th:selected="${param.clientId != null && client.id.toString() == param.clientId[0]}">
-                                </option>
-                            </select>
-
-                            <div class="col-md-2">
-                                <select class="form-control" id="statusFilter">
-                                    <option value="">All Status</option>
-                                    <option value="true">Paid</option>
-                                    <option value="false">Not Paid</option>
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex gap-3">
+                            <!-- Filtr klienta - szerszy -->
+                            <div class="flex-grow-1">
+                                <select name="clientId" class="form-select">
+                                    <option value="" th:selected="${param.clientId == null}">All Clients</option>
+                                    <option th:each="client : ${clients}"
+                                            th:value="${client.id}"
+                                            th:text="${client.clientName}"
+                                            th:selected="${param.clientId != null && client.id.toString() == param.clientId[0]}">
+                                    </option>
                                 </select>
                             </div>
 
+                            <!-- Filtr statusu płatności - proporcjonalna szerokość -->
+                            <div class="flex-grow-1">
+                                <select class="form-select" id="statusFilter" name="paymentStatus">
+                                    <option value="">Payment Status</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="unpaid">Unpaid</option>
+                                </select>
+                            </div>
 
-                            <button type="submit" class="save-button">Apply Filter</button>
+                            <!-- Przycisk filtrowania -->
+                            <div>
+                                <button type="submit" class="save-button">Filter</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4 ms-auto">
+
+                    <!-- Records per page - zachowujemy po prawej -->
+                    <div class="col-md-4">
                         <div class="d-flex justify-content-end align-items-center">
                             <label class="me-2">Records per page:</label>
-                            <select name="size" class="form-select" style="width: auto"
+                            <select name="size" class="form-select" style="width: 80px"
                                     onchange="document.getElementById('filterForm').submit()">
                                 <option value="10" th:selected="${size == 10}">10</option>
                                 <option value="20" th:selected="${size == 20}">20</option>
@@ -51,6 +59,45 @@
                     </div>
                 </div>
             </form>
+
+<!--            <form id="filterForm" class="mb-4">-->
+<!--                <div class="row">-->
+<!--                    <div class="col-md-4">-->
+<!--                        <div class="d-flex">-->
+<!--                            <select name="clientId" class="form-select me-2">-->
+<!--                                <option value="" th:selected="${param.clientId == null}">All Clients</option>-->
+<!--                                <option th:each="client : ${clients}"-->
+<!--                                        th:value="${client.id}"-->
+<!--                                        th:text="${client.clientName}"-->
+<!--                                        th:selected="${param.clientId != null && client.id.toString() == param.clientId[0]}">-->
+<!--                                </option>-->
+<!--                            </select>-->
+
+<!--                            <div class="col-md-2">-->
+<!--                                <select class="form-control" id="statusFilter">-->
+<!--                                    <option value="">All Status</option>-->
+<!--                                    <option value="true">Paid</option>-->
+<!--                                    <option value="false">Not Paid</option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+
+
+<!--                            <button type="submit" class="save-button">Apply Filter</button>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="col-md-4 ms-auto">-->
+<!--                        <div class="d-flex justify-content-end align-items-center">-->
+<!--                            <label class="me-2">Records per page:</label>-->
+<!--                            <select name="size" class="form-select" style="width: auto"-->
+<!--                                    onchange="document.getElementById('filterForm').submit()">-->
+<!--                                <option value="10" th:selected="${size == 10}">10</option>-->
+<!--                                <option value="20" th:selected="${size == 20}">20</option>-->
+<!--                                <option value="50" th:selected="${size == 50}">50</option>-->
+<!--                            </select>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </form>-->
             <div class="table-responsive">
                 <table class="table">
                     <thead>
@@ -83,15 +130,15 @@
                                       onclick="sortTable('invoiceNumber', 'desc')">▼</span>
                             </div>
                         </th>
-<!--                        <th>-->
-<!--                            Paid-->
-<!--                            <div>-->
-<!--                                    <span class="sort-icon" data-column="paymentDate" data-direction="asc"-->
-<!--                                            onclick="sortTable('paymentDate', 'asc')">▲</span>-->
-<!--                                <span class="sort-icon" data-column="paymentDate" data-direction="desc"-->
-<!--                                      onclick="sortTable('paymentDate', 'desc')">▼</span>-->
-<!--                            </div>-->
-<!--                        </th>-->
+                        <th>
+                            Paid
+                            <div>
+                                    <span class="sort-icon" data-column="paymentDate" data-direction="asc"
+                                            onclick="sortTable('paymentDate', 'asc')">▲</span>
+                                <span class="sort-icon" data-column="paymentDate" data-direction="desc"
+                                      onclick="sortTable('paymentDate', 'desc')">▼</span>
+                            </div>
+                        </th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -101,17 +148,24 @@
                         <td th:class="text-center" th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
                         <td th:text="${timesheet.duration}"></td>
                         <td th:text="${timesheet.invoiced ? timesheet.invoiceNumber : '---'}"></td>
-<!--                        <td class="text-center">-->
-<!--                            <div class="payment-status" th:if="${timesheet.paymentDate == null}">-->
-<!--                                <input type="checkbox" class="payment-checkbox"-->
-<!--                                       th:onclick="'updatePaymentStatus(' + ${timesheet.id} + ', this)'"-->
-<!--                                       title="Click to mark as paid">-->
-<!--                            </div>-->
-<!--                            <div th:unless="${timesheet.paymentDate == null}"-->
-<!--                                 th:text="${#temporals.format(timesheet.paymentDate, 'yyyy-MM-dd')}"-->
-<!--                                 title="Payment received">-->
-<!--                            </div>-->
-<!--                        </td>-->
+                        <td class="text-center">
+                            <div class="payment-status" th:if="${timesheet.paymentDate == null}">
+                                <div class="date-input-container" style="display: none;">
+                                    <input type="date" class="payment-date-input form-control"
+                                           th:data-timesheet-id="${timesheet.id}">
+                                    <button class="save-button confirm-date-btn">✓</button>
+                                </div>
+                                <button class="nav-button payment-date-btn"
+                                        onclick="showDatePicker(this)"
+                                        title="Click to set payment date">Set Date</button>
+                            </div>
+                            <div th:unless="${timesheet.paymentDate == null}" class="payment-date-display">
+                                <span th:text="${#temporals.format(timesheet.paymentDate, 'yyyy-MM-dd')}"></span>
+                                <button class="del-button clear-date-btn"
+                                        th:onclick="'clearPaymentDate(' + ${timesheet.id} + ')'"
+                                        title="Clear payment date">✕</button>
+                            </div>
+                        </td>
                         <td>
                             <button class="save-button" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit</button>
                             <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete</button>

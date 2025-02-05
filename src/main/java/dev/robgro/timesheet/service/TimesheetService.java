@@ -44,8 +44,5 @@ public interface TimesheetService {
 
     Page<TimesheetDto> getAllTimesheetsPageable(Long clientId, Pageable pageable);
 
-//    Page<TimesheetDto> getAllTimesheets(Pageable pageable);
-//    Page<TimesheetDto> getTimesheetsByClientId(Long clientId, Pageable pageable);
-//    Page<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced, Pageable pageable);
-//    Page<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir, Pageable pageable);
+    void updatePaymentDate(Long id, LocalDate paymentDate);
 }

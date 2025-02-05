@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const params = new URLSearchParams();
 
         for (let [key, value] of formData.entries()) {
-            if (value) {  // dodaj tylko niepuste wartości
+            if (value) {
                 params.append(key, value);
             }
         }
@@ -18,16 +18,13 @@ document.addEventListener('DOMContentLoaded', function () {
         currentUrl.searchParams.set('sortBy', column);
         currentUrl.searchParams.set('sortDir', direction);
 
-        // zachowaj istniejące parametry
         const clientId = currentUrl.searchParams.get('clientId');
         const size = currentUrl.searchParams.get('size') || '10';
 
-        // Usuń istniejącą klasę "active" z innych ikon
         document.querySelectorAll('.sort-icon').forEach(icon => {
             icon.classList.remove('active');
         });
 
-        // Znajdź kliknięty element i dodaj mu klasę "active"
         const activeIcon = document.querySelector(`.sort-icon[data-column="${column}"][data-direction="${direction}"]`);
         if (activeIcon) {
             activeIcon.classList.add('active');
@@ -36,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = currentUrl.toString();
     };
 
-    // Oznacz aktywną ikonę sortowania po załadowaniu strony
     const currentUrl = new URL(window.location.href);
     const sortBy = currentUrl.searchParams.get('sortBy');
     const sortDir = currentUrl.searchParams.get('sortDir');
@@ -48,12 +44,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Funkcje do edycji i usuwania timesheet'ów
-    window.editTimesheet = function(id) {
+    window.editTimesheet = function (id) {
         window.location.href = `/timesheets/edit/${id}`;
     }
 
-    window.deleteTimesheet = function(id) {
+    window.deleteTimesheet = function (id) {
         if (confirm('Are you sure you want to delete this timesheet?')) {
             fetch(`/api/v1/timesheets/${id}`, {
                 method: 'DELETE'
@@ -71,4 +66,55 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         }
     }
+
+    window.showDatePicker = function(btn) {
+        const container = btn.parentElement;
+        const dateContainer = container.querySelector('.date-input-container');
+        btn.style.display = 'none';
+        dateContainer.style.display = 'flex';
+    }
+
+    window.clearPaymentDate = function(timesheetId) {
+        if (confirm('Are you sure you want to clear the payment date?')) {
+            fetch(`/api/v1/timesheets/${timesheetId}/payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    paymentDate: null
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                });
+        }
+    }
+
+    document.querySelectorAll('.confirm-date-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const dateInput = this.previousElementSibling;
+            const timesheetId = dateInput.dataset.timesheetId;
+            const selectedDate = dateInput.value;
+
+            if (selectedDate) {
+                fetch(`/api/v1/timesheets/${timesheetId}/payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        paymentDate: selectedDate
+                    })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            location.reload();
+                        }
+                    });
+            }
+        });
+    });
 });

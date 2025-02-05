@@ -513,6 +513,83 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     margin-top: 1rem;
 }
 
+.payment-date-input {
+    width: 130px;
+    margin: 0 auto;
+}
+
+.payment-date-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.clear-date-btn {
+    padding: 2px 6px;
+    font-size: 12px;
+    margin: 0;
+}
+
+.payment-date-btn {
+    padding: 4px 8px;
+    font-size: 14px;
+}
+
+.date-input-container {
+    display: flex;
+    gap: 5px;
+}
+
+.confirm-date-btn {
+    padding: 0 10px;
+}
+
+/* Style dla sekcji filtrów */
+#filterForm {
+    background-color: var(--my-bg);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+}
+
+#filterForm .form-select {
+    height: 50px;             /* Zmniejszona wysokość */
+    padding: 0.375rem 1rem;   /* Mniejszy padding */
+}
+
+#filterForm .save-button {
+    height: 50px;             /* Dopasowanie wysokości przycisku */
+    padding: 0 1.5rem;
+    margin: 0;                /* Usunięcie marginesów */
+}
+
+/* Dopasowanie gap między elementami */
+#filterForm .d-flex.gap-3 {
+    gap: 1rem !important;
+}
+
+/* Style dla mobile */
+@media (max-width: 768px) {
+    #filterForm .d-flex {
+        flex-direction: column;
+        gap: 0.75rem !important;
+    }
+
+    #filterForm .form-select,
+    #filterForm .save-button {
+        width: 100%;
+    }
+
+    #filterForm .col-md-4 {
+        margin-top: 1rem;
+    }
+
+    #filterForm .d-flex.justify-content-end {
+        justify-content: flex-start !important;
+    }
+}
+
 
 /*  PAGINATION*/
 .pagination {

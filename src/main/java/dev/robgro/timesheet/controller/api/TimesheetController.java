@@ -1,6 +1,7 @@
 package dev.robgro.timesheet.controller.api;
 
 import dev.robgro.timesheet.model.dto.CreateTimesheetRequest;
+import dev.robgro.timesheet.model.dto.PaymentUpdateRequest;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
 import dev.robgro.timesheet.model.dto.UpdateTimesheetRequest;
 import dev.robgro.timesheet.service.TimesheetService;
@@ -96,5 +97,13 @@ public class TimesheetController {
             return ResponseEntity.ok(timesheetService.getTimesheetsByClientAndInvoiceStatus(clientId, invoiced));
         }
         return ResponseEntity.ok(timesheetService.getTimesheetByClientId(clientId));
+    }
+
+    @PostMapping("/{id}/payment")
+    public ResponseEntity<Void> updatePaymentStatus(
+            @PathVariable Long id,
+            @RequestBody PaymentUpdateRequest request) {
+        timesheetService.updatePaymentDate(id, request.paymentDate());
+        return ResponseEntity.ok().build();
     }
 }

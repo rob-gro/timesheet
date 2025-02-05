@@ -247,18 +247,11 @@ public class TimesheetServiceImpl implements TimesheetService {
                 .map(timesheetDtoMapper);
     }
 
-//
-//    @Override
-//    public Page<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced, Pageable pageable) {
-//        return timesheetRepository.findByClientIdAndInvoiced(clientId, invoiced, pageable)
-//                .map(timesheetDtoMapper);
-//    }
-//
-//    @Override
-//    public Page<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir, Pageable pageable) {
-//        if (clientId != null) {
-//            return getTimesheetsByClientId(clientId, pageable);
-//        }
-//        return getAllTimesheets(pageable);
-//    }
+    @Override
+    @Transactional
+    public void updatePaymentDate(Long id, LocalDate paymentDate) {
+        Timesheet timesheet = getTimesheetOrThrow(id);
+        timesheet.setPaymentDate(paymentDate);
+        timesheetRepository.save(timesheet);
+    }
 }
