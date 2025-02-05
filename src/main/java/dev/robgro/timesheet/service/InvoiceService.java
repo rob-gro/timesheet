@@ -18,9 +18,12 @@ public interface InvoiceService {
     List<InvoiceDto> searchAndSortInvoices(Long clientId, Integer year, Integer month, String sortBy, String sortDir);
     List<InvoiceDto> getMonthlyInvoices(Long clientId, int year, int month);
     List<InvoiceDto> getYearlyInvoices(Long clientId, int year);
+
+    byte[] getInvoicePdfContent(Long invoiceId);
     InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
     void savePdfAndSendInvoice(Long id);
     List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);
     void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient);
+
 
 }
