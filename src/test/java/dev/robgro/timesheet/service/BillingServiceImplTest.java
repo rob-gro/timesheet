@@ -55,6 +55,7 @@ class BillingServiceImplTest {
                 false,
                 client1.id(),
                 client1.hourlyRate(),
+                null,
                 null
         );
 
@@ -66,6 +67,7 @@ class BillingServiceImplTest {
                 false,
                 client2.id(),
                 client2.hourlyRate(),
+                null,
                 null
         );
 
@@ -145,6 +147,7 @@ class BillingServiceImplTest {
                 false,
                 client.id(),
                 client.hourlyRate(),
+                null,
                 null
         );
 
@@ -216,6 +219,7 @@ class BillingServiceImplTest {
                 false,
                 client.id(),
                 client.hourlyRate(),
+                null,
                 null
         );
 
@@ -227,6 +231,7 @@ class BillingServiceImplTest {
                 false,
                 client.id(),
                 client.hourlyRate(),
+                null,
                 null
         );
 
@@ -290,7 +295,8 @@ class BillingServiceImplTest {
                 true, // already invoiced
                 client.id(),
                 client.hourlyRate(),
-                "001-01-2024"
+                "001-01-2024",
+                null
         );
 
         TimesheetDto timesheet2 = new TimesheetDto(
@@ -301,7 +307,8 @@ class BillingServiceImplTest {
                 true, // already invoiced
                 client.id(),
                 client.hourlyRate(),
-                "001-01-2024"
+                "001-01-2024",
+                null
         );
 
         when(clientService.getClientById(clientId)).thenReturn(client);
