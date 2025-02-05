@@ -133,6 +133,24 @@ class InvoiceServiceImpl implements InvoiceService {
                 .toList();
     }
 
+    @Override
+    public byte[] getInvoicePdfContent(Long invoiceId) {
+        Invoice invoice = getInvoiceOrThrow(invoiceId);
+        if (invoice.getPdfPath() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "PDF not found for invoice: " + invoiceId);
+        }
+
+        try {
+            String fileName = invoice.getInvoiceNumber() + ".pdf";
+            return ftpService.downloadPdfInvoice(fileName);
+        } catch (Exception e) {
+            log.error("Error downloading PDF for invoice: {}", invoiceId, e);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Could not download PDF");
+        }
+    }
+
     @Transactional
     @Override
     public InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate) {

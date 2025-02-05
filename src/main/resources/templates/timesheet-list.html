@@ -17,7 +17,6 @@
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <div class="d-flex gap-3">
-                            <!-- Filtr klienta - szerszy -->
                             <div class="flex-grow-1">
                                 <select name="clientId" class="form-select">
                                     <option value="" th:selected="${param.clientId == null}">All Clients</option>
@@ -28,8 +27,6 @@
                                     </option>
                                 </select>
                             </div>
-
-                            <!-- Filtr statusu płatności - proporcjonalna szerokość -->
                             <div class="flex-grow-1">
                                 <select class="form-select" id="statusFilter" name="paymentStatus">
                                     <option value="">Payment Status</option>
@@ -37,15 +34,12 @@
                                     <option value="unpaid">Unpaid</option>
                                 </select>
                             </div>
-
-                            <!-- Przycisk filtrowania -->
                             <div>
                                 <button type="submit" class="save-button">Filter</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Records per page - zachowujemy po prawej -->
                     <div class="col-md-4">
                         <div class="d-flex justify-content-end align-items-center">
                             <label class="me-2">Records per page:</label>
@@ -60,44 +54,6 @@
                 </div>
             </form>
 
-<!--            <form id="filterForm" class="mb-4">-->
-<!--                <div class="row">-->
-<!--                    <div class="col-md-4">-->
-<!--                        <div class="d-flex">-->
-<!--                            <select name="clientId" class="form-select me-2">-->
-<!--                                <option value="" th:selected="${param.clientId == null}">All Clients</option>-->
-<!--                                <option th:each="client : ${clients}"-->
-<!--                                        th:value="${client.id}"-->
-<!--                                        th:text="${client.clientName}"-->
-<!--                                        th:selected="${param.clientId != null && client.id.toString() == param.clientId[0]}">-->
-<!--                                </option>-->
-<!--                            </select>-->
-
-<!--                            <div class="col-md-2">-->
-<!--                                <select class="form-control" id="statusFilter">-->
-<!--                                    <option value="">All Status</option>-->
-<!--                                    <option value="true">Paid</option>-->
-<!--                                    <option value="false">Not Paid</option>-->
-<!--                                </select>-->
-<!--                            </div>-->
-
-
-<!--                            <button type="submit" class="save-button">Apply Filter</button>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                    <div class="col-md-4 ms-auto">-->
-<!--                        <div class="d-flex justify-content-end align-items-center">-->
-<!--                            <label class="me-2">Records per page:</label>-->
-<!--                            <select name="size" class="form-select" style="width: auto"-->
-<!--                                    onchange="document.getElementById('filterForm').submit()">-->
-<!--                                <option value="10" th:selected="${size == 10}">10</option>-->
-<!--                                <option value="20" th:selected="${size == 20}">20</option>-->
-<!--                                <option value="50" th:selected="${size == 50}">50</option>-->
-<!--                            </select>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </form>-->
             <div class="table-responsive">
                 <table class="table">
                     <thead>

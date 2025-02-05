@@ -67,14 +67,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    window.showDatePicker = function(btn) {
+    window.showDatePicker = function (btn) {
         const container = btn.parentElement;
         const dateContainer = container.querySelector('.date-input-container');
         btn.style.display = 'none';
         dateContainer.style.display = 'flex';
     }
 
-    window.clearPaymentDate = function(timesheetId) {
+    window.clearPaymentDate = function (timesheetId) {
         if (confirm('Are you sure you want to clear the payment date?')) {
             fetch(`/api/v1/timesheets/${timesheetId}/payment`, {
                 method: 'POST',
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.querySelectorAll('.confirm-date-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const dateInput = this.previousElementSibling;
             const timesheetId = dateInput.dataset.timesheetId;
             const selectedDate = dateInput.value;

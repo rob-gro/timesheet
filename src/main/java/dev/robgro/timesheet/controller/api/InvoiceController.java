@@ -12,9 +12,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -97,6 +100,21 @@ public class InvoiceController {
             @RequestParam int year,
             @RequestParam int month) {
         return ResponseEntity.ok(invoiceService.getMonthlyInvoices(clientId, year, month));
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> getInvoicePdf(@PathVariable Long id) {
+        InvoiceDto invoice = invoiceService.getInvoiceById(id);
+        if (invoice.pdfPath() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PDF not found for this invoice");
+        }
+
+        byte[] pdfContent = invoiceService.getInvoicePdfContent(id);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + invoice.invoiceNumber() + ".pdf\"")
+                .body(pdfContent);
     }
 
     @Operation(summary = "Get client's invoices for specific year")

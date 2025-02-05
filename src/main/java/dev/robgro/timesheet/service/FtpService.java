@@ -1,14 +1,15 @@
 package dev.robgro.timesheet.service;
 
 import lombok.Getter;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTP;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 @Slf4j
@@ -51,6 +52,31 @@ public class FtpService {
         } catch (IOException e) {
             log.error("Error uploading invoice PDF: {}", fileName, e);
             throw new RuntimeException("Failed to upload invoice PDF to FTP", e);
+        } finally {
+            disconnect();
+        }
+    }
+
+    public byte[] downloadPdfInvoice(String fileName) {
+        log.info("Starting download of invoice PDF: {}", fileName);
+        try {
+            connectToFtp();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            boolean success = ftpClient.retrieveFile(
+                    invoicesDirectory + "/" + fileName,
+                    outputStream
+            );
+
+            if (!success) {
+                log.error("Failed to download invoice PDF: {}", fileName);
+                throw new RuntimeException("Failed to download invoice PDF from FTP");
+            }
+
+            log.info("Successfully downloaded invoice PDF: {}", fileName);
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            log.error("Error downloading invoice PDF: {}", fileName, e);
+            throw new RuntimeException("Failed to download invoice PDF from FTP", e);
         } finally {
             disconnect();
         }

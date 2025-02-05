@@ -27,48 +27,9 @@ public class TimesheetViewController {
     @GetMapping("/new")
     public String showTimesheetForm(Model model) {
         model.addAttribute("clients", clientService.getAllClients());
-        model.addAttribute("timesheet", new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null));
+        model.addAttribute("timesheet", new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null, null));
         return "timesheet";
     }
-
-//    @GetMapping("/list")
-//    public String showTimesheets(
-//            Model model,
-//            @RequestParam(required = false) Long clientId,
-//            @RequestParam(required = false, defaultValue = "serviceDate") String sortBy,
-//            @RequestParam(required = false, defaultValue = "asc") String sortDir) {
-//
-//        List<TimesheetDto> timesheets = timesheetService.searchAndSortTimesheets(clientId, sortBy, sortDir);
-//        model.addAttribute("timesheets", timesheets);
-//        model.addAttribute("clients", clientService.getAllClients());
-//        return "timesheet-list";
-//    }
-
-//    @GetMapping("/list")
-//    public String showTimesheets(Model model,
-//                                 @RequestParam(required = false) Long clientId,
-//                                 @RequestParam(required = false, defaultValue = "serviceDate") String sortBy,
-//                                 @RequestParam(required = false, defaultValue = "asc") String sortDir,
-//                                 @RequestParam(defaultValue = "0") int page,
-//                                 @RequestParam(defaultValue = "10") int size) {
-//
-//        Page<TimesheetDto> timesheets;
-//        if ("invoiceNumber".equals(sortBy)) {
-//            timesheets = timesheetService.getAllTimesheetsSortedByInvoiceNumber(clientId, PageRequest.of(page, size));
-//        } else {
-//            timesheets = timesheetService.getAllTimesheetsPageable(clientId,
-//                    PageRequest.of(page, size, Sort.Direction.fromString(sortDir), sortBy));
-//        }
-//
-//        model.addAttribute("timesheets", timesheets.getContent());
-//        model.addAttribute("currentPage", page);
-//        model.addAttribute("totalPages", timesheets.getTotalPages());
-//        model.addAttribute("totalItems", timesheets.getTotalElements());
-//        model.addAttribute("size", size);
-//        model.addAttribute("clients", clientService.getAllClients());
-//
-//        return "timesheet-list";
-//    }
 
     @GetMapping("/list")
     public String showTimesheets(

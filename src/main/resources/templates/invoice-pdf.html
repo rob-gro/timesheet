@@ -1,92 +1,114 @@
 <!DOCTYPE html>
 <html lang="gb" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Invoice Items</title>
-  <link rel="stylesheet" th:href="@{/css/style.css}">
+    <title>Invoice PDFs</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<div class="container my-3">
-  <div class="row justify-content-center">
-    <div class="col-9">
-      <div class="card">
+<div class="container mt-5">
+    <div class="card">
         <div class="card-body p-4">
-          <h2 class="text-center mb-4">Check Invoice Items</h2>
+            <h2 class="text-center mb-4">Invoice PDFs</h2>
 
-          <form method="post" th:action="@{/invoice-items}">
-            <div class="row mb-4">
-              <div class="col-md-8">
-                <label>Invoice for:</label>
-                <select class="form-control" id="clientId" name="clientId" required>
-                  <option value="">Select client</option>
-                  <option th:each="client : ${clients}"
-                          th:value="${client.id}"
-                          th:text="${client.clientName}"
-                          th:data-rate="${client.hourlyRate}">
-                  </option>
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label>Invoice date:</label>
-                <input type="date" class="form-control"
-                       name="issueDate" required>
-              </div>
-            </div>
+            <form id="filterForm" class="mb-4">
+                <div class="d-flex gap-3">
+                    <select name="clientId" class="form-select" style="width: 300px;">
+                        <option value="">All Clients</option>
+                        <option th:each="client : ${clients}"
+                                th:value="${client.id}"
+                                th:text="${client.clientName}"
+                                th:selected="${param.clientId != null && client.id.toString() == param.clientId[0]}">
+                        </option>
+                    </select>
+                    <select name="year" class="form-select" style="width: 120px;">
+                        <option value="">All Years</option>
+                        <option th:each="year : ${#numbers.sequence(2024, 2019)}"
+                                th:value="${year}"
+                                th:text="${year}"
+                                th:selected="${param.year != null && year.toString() == param.year[0]}">
+                        </option>
+                    </select>
+                    <select name="month" class="form-select" style="width: 120px;">
+                        <option value="">All Months</option>
+                        <option th:each="month : ${#numbers.sequence(1, 12)}"
+                                th:value="${month}"
+                                th:text="${month}"
+                                th:selected="${param.month != null && month.toString() == param.month[0]}">
+                        </option>
+                    </select>
+                    <button type="submit" class="save-button">Filter</button>
+                </div>
+            </form>
 
-            <div class="table-responsive mb-4">
-              <table class="table">
-                <thead>
-                <tr>
-                  <th>Select</th>
-                  <th>Service Date</th>
-                  <th>Duration</th>
-                  <th>Rate</th>
-                  <th>Amount</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="timesheet : ${timesheets}"
-                    th:data-clientId="${timesheet.clientId}">
-                  <td>
-                    <input type="checkbox"
-                           class="timesheet-select"
-                           name="timesheetIds"
-                           th:value="${timesheet.id}"
-                           th:data-duration="${timesheet.duration}">
-                  </td>
-                  <td th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
-                  <td th:text="${timesheet.duration}"></td>
-                  <td class="hourly-rate">0.00</td>
-                  <td class="amount"></td>
-                </tr>
-                </tbody>
-
-                <tfoot>
-                <tr>
-                  <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>
-                  <td class="total-amount">0.00</td>
-                </tr>
-                </tfoot>
-
-
-                <!--                <tfoot>-->
-<!--                <tr>-->
-<!--                  <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>-->
-<!--                  <td class="total-amount">0.00</td>-->
-<!--                </tr>-->
-<!--                </tfoot>-->
-              </table>
-            </div>
-
-            <div class="d-grid gap-2">
-              <button type="submit" class="nav-button">Create Invoice</button>
-              <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main Page</button>
-            </div>
-          </form>
-        </div>
-      </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>
+                    Invoice #
+                    <div>
+                    <span class="sort-icon" data-column="invoiceNumber" data-direction="asc"
+                          onclick="sortTable('invoiceNumber', 'asc')">▲</span>
+                        <span class="sort-icon" data-column="invoiceNumber" data-direction="desc"
+                              onclick="sortTable('invoiceNumber', 'desc')">▼</span>
+                    </div>
+                </th>
+                <th>
+                    Client
+                    <div>
+                    <span class="sort-icon" data-column="clientName" data-direction="asc"
+                          onclick="sortTable('clientName', 'asc')">▲</span>
+                        <span class="sort-icon" data-column="clientName" data-direction="desc"
+                              onclick="sortTable('clientName', 'desc')">▼</span>
+                    </div>
+                </th>
+                <th>
+                    Issue Date
+                    <div>
+                    <span class="sort-icon" data-column="issueDate" data-direction="asc"
+                          onclick="sortTable('issueDate', 'asc')">▲</span>
+                        <span class="sort-icon" data-column="issueDate" data-direction="desc"
+                              onclick="sortTable('issueDate', 'desc')">▼</span>
+                    </div>
+                </th>
+                <th>
+                    Amount
+                    <div>
+                    <span class="sort-icon" data-column="totalAmount" data-direction="asc"
+                          onclick="sortTable('totalAmount', 'asc')">▲</span>
+                        <span class="sort-icon" data-column="totalAmount" data-direction="desc"
+                              onclick="sortTable('totalAmount', 'desc')">▼</span>
+                    </div>
+                </th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="invoice : ${invoices}" th:if="${invoice.pdfPath != null}">
+                <td th:text="${invoice.invoiceNumber}"></td>
+                <td th:text="${invoice.clientName}"></td>
+                <td th:text="${#temporals.format(invoice.issueDate, 'dd.MM.yyyy')}"></td>
+                <td class="text-end" th:text="${invoice.totalAmount}"></td>
+                <td>
+                    <a th:href="@{'/api/v1/invoices/' + ${invoice.id} + '/pdf'}"
+                       target="_blank"
+                       class="save-button">
+                        View PDF
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
     </div>
-  </div>
+
+    <div class="mt-4">
+        <button type="button" class="nav-button" onclick="window.location.href='/';">
+            Back to Main Page
+        </button>
+    </div>
 </div>
-<script th:src="@{/js/invoice-items.js}"></script>
+</div>
+</div>
+<script th:src="@{/js/invoice-pdf.js}"></script>
 </body>
 </html>
