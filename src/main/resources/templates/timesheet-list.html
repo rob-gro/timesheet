@@ -29,9 +29,9 @@
                             </div>
                             <div class="flex-grow-1">
                                 <select class="form-select" id="statusFilter" name="paymentStatus">
-                                    <option value="">Payment Status</option>
-                                    <option value="paid">Paid</option>
-                                    <option value="unpaid">Unpaid</option>
+                                    <option value="" th:selected="${param.paymentStatus == null}">Payment Status</option>
+                                    <option value="true" th:selected="${param.paymentStatus != null && param.paymentStatus[0] == 'true'}">Paid</option>
+                                    <option value="false" th:selected="${param.paymentStatus != null && param.paymentStatus[0] == 'false'}">Not Paid</option>
                                 </select>
                             </div>
                             <div>

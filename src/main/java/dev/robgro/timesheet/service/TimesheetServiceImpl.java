@@ -3,6 +3,8 @@ package dev.robgro.timesheet.service;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
 import dev.robgro.timesheet.model.dto.TimesheetDtoMapper;
 import dev.robgro.timesheet.model.entity.Client;
+import dev.robgro.timesheet.model.entity.Invoice;
+import dev.robgro.timesheet.model.entity.InvoiceItem;
 import dev.robgro.timesheet.model.entity.Timesheet;
 import dev.robgro.timesheet.repository.ClientRepository;
 import dev.robgro.timesheet.repository.TimesheetRepository;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Comparator;
@@ -72,6 +75,26 @@ public class TimesheetServiceImpl implements TimesheetService {
         return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));
     }
 
+    public List<TimesheetDto> getTimesheetsByFilters(Long clientId, String paymentStatus) {
+        List<Timesheet> timesheets;
+
+        if (clientId != null && paymentStatus != null) {
+            if (paymentStatus.equals("true")) {
+                timesheets = timesheetRepository.findByClientIdAndPaymentDateIsNotNull(clientId);
+            } else {
+                timesheets = timesheetRepository.findByClientIdAndPaymentDateIsNull(clientId);
+            }
+        } else if (clientId != null) {
+            timesheets = timesheetRepository.findAllByClientId(clientId);
+        } else {
+            timesheets = timesheetRepository.findAll();
+        }
+
+        return timesheets.stream()
+                .map(timesheetDtoMapper)
+                .collect(toList());
+    }
+
     @Override
     public List<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir) {
         List<Timesheet> timesheets;
@@ -98,24 +121,31 @@ public class TimesheetServiceImpl implements TimesheetService {
 
         Comparator<TimesheetDto> comparator = switch (sortBy) {
             case "invoiceNumber" -> Comparator
-                    .comparing((TimesheetDto i) -> {
-                        String year = i.invoiceNumber() != null ?
-                                i.invoiceNumber().substring(i.invoiceNumber().length() - 4) : "";
-                        log.debug("Comparing year: {} for invoice {}", year, i.invoiceNumber());
-                        return year;
-                    })
-                    .thenComparing(i -> {
-                        String month = i.invoiceNumber() != null ?
-                                i.invoiceNumber().substring(4, 6) : "";
-                        log.debug("Comparing month: {} for invoice {}", month, i.invoiceNumber());
-                        return month;
-                    })
-                    .thenComparing(i -> {
-                        String number = i.invoiceNumber() != null ?
-                                i.invoiceNumber().substring(0, 3) : "";
-                        log.debug("Comparing number: {} for invoice {}", number, i.invoiceNumber());
-                        return number;
-                    });
+                    .comparing((TimesheetDto i) -> i.invoiceNumber() != null ?
+                            Integer.parseInt(i.invoiceNumber().split("-")[1].split("-")[1]) : 0)  // ROK
+                    .thenComparing(i -> i.invoiceNumber() != null ?
+                            Integer.parseInt(i.invoiceNumber().split("-")[1].split("-")[0]) : 0)  // MIESIĄC
+                    .thenComparing(i -> i.invoiceNumber() != null ?
+                            Integer.parseInt(i.invoiceNumber().split("-")[0]) : 0);               // NUMER
+//            case "invoiceNumber" -> Comparator
+//                    .comparing((TimesheetDto i) -> {
+//                        String year = i.invoiceNumber() != null ?
+//                                i.invoiceNumber().substring(i.invoiceNumber().length() - 4) : "";
+//                        log.debug("Comparing year: {} for invoice {}", year, i.invoiceNumber());
+//                        return year;
+//                    })
+//                    .thenComparing(i -> {
+//                        String month = i.invoiceNumber() != null ?
+//                                i.invoiceNumber().substring(4, 6) : "";
+//                        log.debug("Comparing month: {} for invoice {}", month, i.invoiceNumber());
+//                        return month;
+//                    })
+//                    .thenComparing(i -> {
+//                        String number = i.invoiceNumber() != null ?
+//                                i.invoiceNumber().substring(0, 3) : "";
+//                        log.debug("Comparing number: {} for invoice {}", number, i.invoiceNumber());
+//                        return number;
+//                    });
             case "serviceDate" -> Comparator.comparing(TimesheetDto::serviceDate);
             case "duration" -> Comparator.comparing(TimesheetDto::duration);
             default -> Comparator.comparing(TimesheetDto::serviceDate);
@@ -141,22 +171,25 @@ public class TimesheetServiceImpl implements TimesheetService {
         return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));
     }
 
-    @Override
     @Transactional
+    @Override
     public void deleteTimesheet(Long id) {
         Timesheet timesheet = getTimesheetOrThrow(id);
-        log.debug("Deleting timesheet ID: {}", id);
-
-        if (timesheet.isInvoiced() && timesheet.getInvoice() != null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Cannot delete timesheet that is attached to an invoice"
-            );
+        if (timesheet.getInvoice() != null) {
+            // Jeśli timesheet ma fakturę, odepnij go od niej
+            Invoice invoice = timesheet.getInvoice();
+            invoice.getItemsList().removeIf(item -> item.getTimesheetId().equals(timesheet.getId()));
+            invoice.setTotalAmount(calculateTotalAmount(invoice.getItemsList()));
+            timesheet.setInvoice(null);
+            timesheet.setInvoiced(false);
         }
-
-        timesheet.setClient(null);
-        timesheetRepository.save(timesheet);
         timesheetRepository.delete(timesheet);
+    }
+
+    private BigDecimal calculateTotalAmount(List<InvoiceItem> items) {
+        return items.stream()
+                .map(InvoiceItem::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override

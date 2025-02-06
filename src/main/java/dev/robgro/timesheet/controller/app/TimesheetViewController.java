@@ -6,6 +6,7 @@ import dev.robgro.timesheet.service.TimesheetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -35,6 +36,7 @@ public class TimesheetViewController {
     public String showTimesheets(
             Model model,
             @RequestParam(required = false) Long clientId,
+            @RequestParam(required = false) String paymentStatus,
             @RequestParam(required = false, defaultValue = "serviceDate") String sortBy,
             @RequestParam(required = false, defaultValue = "asc") String sortDir,
             @RequestParam(defaultValue = "0") int page,
@@ -44,12 +46,16 @@ public class TimesheetViewController {
                 Sort.Direction.fromString(sortDir),
                 sortBy.equals("invoiceNumber") ? "serviceDate" : sortBy);
 
-        Page<TimesheetDto> timesheets;
-        if (clientId != null) {
-            timesheets = timesheetService.getTimesheetsByClientIdPageable(clientId, pageRequest);
-        } else {
-            timesheets = timesheetService.getAllTimesheetsPageable(pageRequest);
-        }
+        List<TimesheetDto> filteredTimesheets = timesheetService.getTimesheetsByFilters(clientId, paymentStatus);
+
+        int start = (int) pageRequest.getOffset();
+        int end = Math.min((start + pageRequest.getPageSize()), filteredTimesheets.size());
+
+        Page<TimesheetDto> timesheets = new PageImpl<>(
+                filteredTimesheets.subList(start, end),
+                pageRequest,
+                filteredTimesheets.size()
+        );
 
         model.addAttribute("timesheets", timesheets.getContent());
         model.addAttribute("currentPage", page);

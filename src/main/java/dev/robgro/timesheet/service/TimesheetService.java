@@ -22,6 +22,8 @@ public interface TimesheetService {
 
     List<TimesheetDto> getUnbilledTimesheetsByClientId(Long clientId);
 
+    List<TimesheetDto> getTimesheetsByFilters(Long clientId, String paymentStatus);
+
     List<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir);
 
     TimesheetDto updateTimesheet(Long id, Long clientId, LocalDate serviceDate, double duration);

@@ -17,7 +17,7 @@ public class Timesheet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", referencedColumnName = "id")
     private Client client;
 
@@ -30,7 +30,7 @@ public class Timesheet {
     @Column(name = "is_invoice")
     private boolean invoiced;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
+    @ManyToOne(fetch = FetchType.LAZY)  //  cascade = CascadeType.REFRESH -> don't know if it's necessary
     @JoinColumn(name = "invoice_id", referencedColumnName = "id")
     private Invoice invoice;
 
