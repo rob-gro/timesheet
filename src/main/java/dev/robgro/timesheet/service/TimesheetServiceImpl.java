@@ -121,31 +121,24 @@ public class TimesheetServiceImpl implements TimesheetService {
 
         Comparator<TimesheetDto> comparator = switch (sortBy) {
             case "invoiceNumber" -> Comparator
-                    .comparing((TimesheetDto i) -> i.invoiceNumber() != null ?
-                            Integer.parseInt(i.invoiceNumber().split("-")[1].split("-")[1]) : 0)  // ROK
-                    .thenComparing(i -> i.invoiceNumber() != null ?
-                            Integer.parseInt(i.invoiceNumber().split("-")[1].split("-")[0]) : 0)  // MIESIĄC
-                    .thenComparing(i -> i.invoiceNumber() != null ?
-                            Integer.parseInt(i.invoiceNumber().split("-")[0]) : 0);               // NUMER
-//            case "invoiceNumber" -> Comparator
-//                    .comparing((TimesheetDto i) -> {
-//                        String year = i.invoiceNumber() != null ?
-//                                i.invoiceNumber().substring(i.invoiceNumber().length() - 4) : "";
-//                        log.debug("Comparing year: {} for invoice {}", year, i.invoiceNumber());
-//                        return year;
-//                    })
-//                    .thenComparing(i -> {
-//                        String month = i.invoiceNumber() != null ?
-//                                i.invoiceNumber().substring(4, 6) : "";
-//                        log.debug("Comparing month: {} for invoice {}", month, i.invoiceNumber());
-//                        return month;
-//                    })
-//                    .thenComparing(i -> {
-//                        String number = i.invoiceNumber() != null ?
-//                                i.invoiceNumber().substring(0, 3) : "";
-//                        log.debug("Comparing number: {} for invoice {}", number, i.invoiceNumber());
-//                        return number;
-//                    });
+                    .comparing((TimesheetDto i) -> {
+                        String year = i.invoiceNumber() != null ?
+                                i.invoiceNumber().substring(i.invoiceNumber().length() - 4) : "";
+                        log.debug("Comparing year: {} for invoice {}", year, i.invoiceNumber());
+                        return year;
+                    })
+                    .thenComparing(i -> {
+                        String month = i.invoiceNumber() != null ?
+                                i.invoiceNumber().substring(4, 6) : "";
+                        log.debug("Comparing month: {} for invoice {}", month, i.invoiceNumber());
+                        return month;
+                    })
+                    .thenComparing(i -> {
+                        String number = i.invoiceNumber() != null ?
+                                i.invoiceNumber().substring(0, 3) : "";
+                        log.debug("Comparing number: {} for invoice {}", number, i.invoiceNumber());
+                        return number;
+                    });
             case "serviceDate" -> Comparator.comparing(TimesheetDto::serviceDate);
             case "duration" -> Comparator.comparing(TimesheetDto::duration);
             default -> Comparator.comparing(TimesheetDto::serviceDate);
