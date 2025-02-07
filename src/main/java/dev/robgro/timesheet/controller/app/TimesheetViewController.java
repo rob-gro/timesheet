@@ -42,18 +42,22 @@ public class TimesheetViewController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        PageRequest pageRequest = PageRequest.of(page, size,
-                Sort.Direction.fromString(sortDir),
-                sortBy.equals("invoiceNumber") ? "serviceDate" : sortBy);
-
         List<TimesheetDto> filteredTimesheets = timesheetService.getTimesheetsByFilters(clientId, paymentStatus);
 
-        int start = (int) pageRequest.getOffset();
-        int end = Math.min((start + pageRequest.getPageSize()), filteredTimesheets.size());
+        if (sortBy != null) {
+            filteredTimesheets = timesheetService.searchAndSortTimesheets(
+                    clientId,
+                    sortBy,
+                    sortDir
+            );
+        }
+
+        int start = page * size;
+        int end = Math.min(start + size, filteredTimesheets.size());
 
         Page<TimesheetDto> timesheets = new PageImpl<>(
                 filteredTimesheets.subList(start, end),
-                pageRequest,
+                PageRequest.of(page, size),
                 filteredTimesheets.size()
         );
 

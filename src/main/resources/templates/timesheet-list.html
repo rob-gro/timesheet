@@ -29,9 +29,16 @@
                             </div>
                             <div class="flex-grow-1">
                                 <select class="form-select" id="statusFilter" name="paymentStatus">
-                                    <option value="" th:selected="${param.paymentStatus == null}">Payment Status</option>
-                                    <option value="true" th:selected="${param.paymentStatus != null && param.paymentStatus[0] == 'true'}">Paid</option>
-                                    <option value="false" th:selected="${param.paymentStatus != null && param.paymentStatus[0] == 'false'}">Not Paid</option>
+                                    <option value="" th:selected="${param.paymentStatus == null}">Payment Status
+                                    </option>
+                                    <option value="true"
+                                            th:selected="${param.paymentStatus != null && param.paymentStatus[0] == 'true'}">
+                                        Paid
+                                    </option>
+                                    <option value="false"
+                                            th:selected="${param.paymentStatus != null && param.paymentStatus[0] == 'false'}">
+                                        Not Paid
+                                    </option>
                                 </select>
                             </div>
                             <div>
@@ -90,7 +97,7 @@
                             Paid
                             <div>
                                     <span class="sort-icon" data-column="paymentDate" data-direction="asc"
-                                            onclick="sortTable('paymentDate', 'asc')">▲</span>
+                                          onclick="sortTable('paymentDate', 'asc')">▲</span>
                                 <span class="sort-icon" data-column="paymentDate" data-direction="desc"
                                       onclick="sortTable('paymentDate', 'desc')">▼</span>
                             </div>
@@ -101,7 +108,8 @@
                     <tbody>
                     <tr th:each="timesheet : ${timesheets}">
                         <td th:text="${timesheet.clientName}"></td>
-                        <td th:class="text-center" th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
+                        <td th:class="text-center"
+                            th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
                         <td th:text="${timesheet.duration}"></td>
                         <td th:text="${timesheet.invoiced ? timesheet.invoiceNumber : '---'}"></td>
                         <td class="text-center">
@@ -113,18 +121,22 @@
                                 </div>
                                 <button class="nav-button payment-date-btn"
                                         onclick="showDatePicker(this)"
-                                        title="Click to set payment date">Set Date</button>
+                                        title="Click to set payment date">Set Date
+                                </button>
                             </div>
                             <div th:unless="${timesheet.paymentDate == null}" class="payment-date-display">
                                 <span th:text="${#temporals.format(timesheet.paymentDate, 'yyyy-MM-dd')}"></span>
                                 <button class="del-button clear-date-btn"
                                         th:onclick="'clearPaymentDate(' + ${timesheet.id} + ')'"
-                                        title="Clear payment date">✕</button>
+                                        title="Clear payment date">✕
+                                </button>
                             </div>
                         </td>
                         <td>
-                            <button class="save-button" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit</button>
-                            <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete</button>
+                            <button class="save-button" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit
+                            </button>
+                            <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete
+                            </button>
                         </td>
                     </tr>
                     </tbody>
@@ -134,7 +146,15 @@
                         <ul class="pagination" th:if="${totalPages > 1}">
                             <!-- Previous -->
                             <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
-                                <a class="page-link" th:href="@{/timesheets/list(page=${currentPage - 1})}">&laquo;</a>
+                                <a class="page-link"
+                                   th:href="@{/timesheets/list(
+                                   page=${currentPage - 1},
+                                   size=${size},
+                                   clientId=${param.clientId},
+                                   paymentStatus=${param.paymentStatus},
+                                   sortBy=${param.sortBy},
+                                   sortDir=${param.sortDir}
+                               )}">&laquo;</a>
                             </li>
 
                             <!-- First Page -->
@@ -153,7 +173,7 @@
                                           currentPage + 2 < totalPages - 1 ? currentPage + 2 : totalPages - 1)}"
                                 th:classappend="${currentPage == i} ? active">
                                 <a class="page-link"
-                                   th:href="@{/timesheets/list(page=${i}, size=${size}, clientId=${param.clientId}, sortBy=${param.sortBy}, sortDir=${param.sortDir})}"
+                                   th:href="@{/timesheets/list(page=${i}, size=${size}, clientId=${param.clientId}, paymentStatus=${param.paymentStatus}, sortBy=${param.sortBy}, sortDir=${param.sortDir})}"
                                    th:text="${i + 1}"></a>
                             </li>
 
@@ -164,12 +184,21 @@
 
                             <!-- Last Page -->
                             <li class="page-item" th:if="${currentPage < totalPages - 3}">
-                                <a class="page-link" th:href="@{/timesheets/list(page=${totalPages - 1})}" th:text="${totalPages}"></a>
+                                <a class="page-link" th:href="@{/timesheets/list(page=${totalPages - 1})}"
+                                   th:text="${totalPages}"></a>
                             </li>
 
                             <!-- Next -->
                             <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? disabled">
-                                <a class="page-link" th:href="@{/timesheets/list(page=${currentPage + 1})}">&raquo;</a>
+                                <a class="page-link"
+                                   th:href="@{/timesheets/list(
+                                   page=${currentPage + 1},
+                                   size=${size},
+                                   clientId=${param.clientId},
+                                   paymentStatus=${param.paymentStatus},
+                                   sortBy=${param.sortBy},
+                                   sortDir=${param.sortDir}
+                               )}">&raquo;</a>
                             </li>
                         </ul>
                     </nav>
@@ -178,7 +207,9 @@
             </div>
 
             <div class="card-body p-4">
-                <button type="button" class="nav-button" onclick="window.location.href='/timesheets/new'">Add New Timesheet</button>
+                <button type="button" class="nav-button" onclick="window.location.href='/timesheets/new'">Add New
+                    Timesheet
+                </button>
                 <button type="button" class="nav-button" onclick="window.location.href='/'">Back to Main Page</button>
             </div>
         </div>

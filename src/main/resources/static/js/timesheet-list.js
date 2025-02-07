@@ -15,34 +15,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.sortTable = function (column, direction) {
         const currentUrl = new URL(window.location.href);
+
+        const clientId = currentUrl.searchParams.get('clientId');
+        const paymentStatus = currentUrl.searchParams.get('paymentStatus');
+        const size = currentUrl.searchParams.get('size') || '10';
+        const page = '0';
+
         currentUrl.searchParams.set('sortBy', column);
         currentUrl.searchParams.set('sortDir', direction);
 
-        const clientId = currentUrl.searchParams.get('clientId');
-        const size = currentUrl.searchParams.get('size') || '10';
+        if (clientId) currentUrl.searchParams.set('clientId', clientId);
+        if (paymentStatus) currentUrl.searchParams.set('paymentStatus', paymentStatus);
+        if (size) currentUrl.searchParams.set('size', size);
+        currentUrl.searchParams.set('page', page);
 
         document.querySelectorAll('.sort-icon').forEach(icon => {
             icon.classList.remove('active');
         });
 
-        const activeIcon = document.querySelector(`.sort-icon[data-column="${column}"][data-direction="${direction}"]`);
+        const activeIcon = document.querySelector(
+            `.sort-icon[data-column="${column}"][data-direction="${direction}"]`
+        );
         if (activeIcon) {
             activeIcon.classList.add('active');
         }
 
         window.location.href = currentUrl.toString();
     };
-
-    const currentUrl = new URL(window.location.href);
-    const sortBy = currentUrl.searchParams.get('sortBy');
-    const sortDir = currentUrl.searchParams.get('sortDir');
-
-    if (sortBy && sortDir) {
-        const activeIcon = document.querySelector(`.sort-icon[data-column="${sortBy}"][data-direction="${sortDir}"]`);
-        if (activeIcon) {
-            activeIcon.classList.add('active');
-        }
-    }
 
     window.editTimesheet = function (id) {
         window.location.href = `/timesheets/edit/${id}`;
