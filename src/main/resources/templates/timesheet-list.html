@@ -69,9 +69,15 @@
                         <th>
                             Service Date
                             <div>
-                                    <span class="sort-icon" data-column="serviceDate" data-direction="asc"
-                                          onclick="sortTable('serviceDate', 'asc')">▲</span>
-                                <span class="sort-icon" data-column="serviceDate" data-direction="desc"
+<span class="sort-icon"
+      data-column="serviceDate"
+      data-direction="asc"
+      th:classappend="${param.sortBy == 'serviceDate' && param.sortDir == 'asc'} ? 'active'"
+      onclick="sortTable('serviceDate', 'asc')">▲</span>
+                                <span class="sort-icon"
+                                      data-column="serviceDate"
+                                      data-direction="desc"
+                                      th:classappend="${param.sortBy == 'serviceDate' && param.sortDir == 'desc'} ? 'active'"
                                       onclick="sortTable('serviceDate', 'desc')">▼</span>
                             </div>
                         </th>
