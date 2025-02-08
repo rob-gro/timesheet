@@ -1,10 +1,7 @@
 package dev.robgro.timesheet.service;
 
 import dev.robgro.timesheet.config.InvoiceSeller;
-import dev.robgro.timesheet.model.dto.ClientDto;
-import dev.robgro.timesheet.model.dto.InvoiceDto;
-import dev.robgro.timesheet.model.dto.InvoiceDtoMapper;
-import dev.robgro.timesheet.model.dto.TimesheetDto;
+import dev.robgro.timesheet.model.dto.*;
 import dev.robgro.timesheet.model.entity.Client;
 import dev.robgro.timesheet.model.entity.Invoice;
 import dev.robgro.timesheet.model.entity.InvoiceItem;
@@ -15,6 +12,8 @@ import dev.robgro.timesheet.repository.TimesheetRepository;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -104,7 +104,6 @@ class InvoiceServiceImpl implements InvoiceService {
             case "totalAmount" -> Comparator.comparing(InvoiceDto::totalAmount);
             default -> Comparator.comparing(InvoiceDto::invoiceNumber);
         };
-
         return invoices.stream()
                 .sorted(sortDir.equals("desc") ? comparator.reversed() : comparator)
                 .collect(Collectors.toList());
@@ -115,7 +114,6 @@ class InvoiceServiceImpl implements InvoiceService {
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
-
         return invoiceRepository.findByClientIdAndIssueDateBetween(clientId, startDate, endDate)
                 .stream()
                 .map(invoiceDtoMapper)
@@ -126,7 +124,6 @@ class InvoiceServiceImpl implements InvoiceService {
     public List<InvoiceDto> getYearlyInvoices(Long clientId, int year) {
         LocalDate startDate = LocalDate.of(year, 1, 1);
         LocalDate endDate = LocalDate.of(year, 12, 31);
-
         return invoiceRepository.findByClientIdAndIssueDateBetween(clientId, startDate, endDate)
                 .stream()
                 .map(invoiceDtoMapper)
@@ -140,7 +137,6 @@ class InvoiceServiceImpl implements InvoiceService {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "PDF not found for invoice: " + invoiceId);
         }
-
         try {
             String fileName = invoice.getInvoiceNumber() + ".pdf";
             return ftpService.downloadPdfInvoice(fileName);
@@ -314,5 +310,48 @@ class InvoiceServiceImpl implements InvoiceService {
         invoiceRepository.save(invoice);
         invoiceRepository.delete(invoice);
         log.info("Invoice deletion completed");
+    }
+
+    @Override
+    public Page<InvoiceDto> getAllInvoicesPageable(Long clientId, Integer year, Integer month, Pageable pageable) {
+        return invoiceRepository.findFilteredInvoices(clientId, year, month, pageable)
+                .map(invoiceDtoMapper);
+    }
+
+    @Override
+    public Page<InvoiceDto> searchInvoices(DateRangeRequest dateRange, Long clientId, Pageable pageable) {
+        LocalDate fromDate = convertToStartDate(dateRange);
+        LocalDate toDate = convertToEndDate(dateRange);
+
+        validateDateRange(fromDate, toDate);
+
+        return invoiceRepository.findByDateRangeAndClient(fromDate, toDate, clientId, pageable)
+                .map(invoiceDtoMapper);
+    }
+
+    private LocalDate convertToStartDate(DateRangeRequest range) {
+        return range.fromYear() != null && range.fromMonth() != null
+                ? LocalDate.of(range.fromYear(), range.fromMonth(), 1)
+                : null;
+    }
+
+    private LocalDate convertToEndDate(DateRangeRequest range) {
+        return range.toYear() != null && range.toMonth() != null
+                ? LocalDate.of(range.toYear(), range.toMonth(), 1).plusMonths(1).minusDays(1)
+                : null;
+    }
+
+    private void validateDateRange(LocalDate fromDate, LocalDate toDate) {
+        if (fromDate == null || toDate == null) {
+            return;
+        }
+
+        if (fromDate.isAfter(toDate)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date cannot be after end date");
+        }
+
+        if (ChronoUnit.MONTHS.between(fromDate, toDate) > 12) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Date range cannot exceed 12 months");
+        }
     }
 }

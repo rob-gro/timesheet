@@ -11,10 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TimesheetRepository extends JpaRepository<Timesheet, Long> {
-
-    Page<Timesheet> findAll(Pageable pageable);
-    Page<Timesheet> findAllByClientId(Long clientId, Pageable pageable);
-
     List<Timesheet> findByInvoiced(boolean invoiced);
 
     List<Timesheet> findAllByClientId(Long clientId);
@@ -35,4 +31,7 @@ public interface TimesheetRepository extends JpaRepository<Timesheet, Long> {
             countQuery = "SELECT COUNT(*) FROM timesheets t WHERE (:clientId IS NULL OR t.client_id = :clientId)",
             nativeQuery = true)
     Page<Timesheet> findAllSortedByInvoiceNumber(@Param("clientId") Long clientId, Pageable pageable);
+
+    Page<Timesheet> findAll(Pageable pageable);
+    Page<Timesheet> findAllByClientId(Long clientId, Pageable pageable);
 }

@@ -18,7 +18,7 @@ public class OpenApi {
         return new OpenAPI()
                 .info(new Info()
                         .title("Timesheet Management API")
-                        .description("API for managing timesheets and invoices")
+                        .description("API for managing timesheets and invoices + sending emails to the clients")
                         .version("v1.0")
                         .contact(new Contact()
                                 .name("Robert Grodzki")
@@ -28,7 +28,7 @@ public class OpenApi {
                                 .name("Apache 2.0")
                                 .url("https://springdoc.org")))
                 .servers(List.of(
-                        new Server().url("https://robgro-hourly-tracker-app-444662682339.herokuapp.com/").description("Production Server on Heroku")
+                        new Server().url("https://timesheet.robgro.dev/").description("Production Server on Heroku")
                 ));
     }
 }

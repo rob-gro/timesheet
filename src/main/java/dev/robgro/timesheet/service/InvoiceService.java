@@ -1,8 +1,11 @@
 package dev.robgro.timesheet.service;
 
 import dev.robgro.timesheet.model.dto.ClientDto;
+import dev.robgro.timesheet.model.dto.DateRangeRequest;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,12 +21,11 @@ public interface InvoiceService {
     List<InvoiceDto> searchAndSortInvoices(Long clientId, Integer year, Integer month, String sortBy, String sortDir);
     List<InvoiceDto> getMonthlyInvoices(Long clientId, int year, int month);
     List<InvoiceDto> getYearlyInvoices(Long clientId, int year);
-
     byte[] getInvoicePdfContent(Long invoiceId);
     InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
     void savePdfAndSendInvoice(Long id);
     List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);
     void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient);
-
-
+    Page<InvoiceDto> getAllInvoicesPageable(Long clientId, Integer year, Integer month, Pageable pageable);
+    Page<InvoiceDto> searchInvoices(DateRangeRequest dateRange, Long clientId, Pageable pageable);
 }
