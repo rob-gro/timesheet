@@ -21,11 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
             dateRangeError.textContent = 'End date cannot be earlier than start date';
             return false;
         }
-
-        if (monthDiff > 12) {
-            dateRangeError.textContent = 'Date range cannot exceed 12 months';
-            return false;
-        }
         return true;
     }
 

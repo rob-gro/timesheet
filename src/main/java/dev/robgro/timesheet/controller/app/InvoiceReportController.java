@@ -1,5 +1,6 @@
 package dev.robgro.timesheet.controller.app;
 
+import dev.robgro.timesheet.model.dto.DateRangeRequest;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.service.ClientService;
 import dev.robgro.timesheet.service.InvoiceService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -28,30 +30,40 @@ public class InvoiceReportController {
     @GetMapping("/generate")
     public String generateInvoiceReport(
             @RequestParam(required = false) Long clientId,
-            @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer fromYear,
+            @RequestParam(required = false) Integer fromMonth,
+            @RequestParam(required = false) Integer toYear,
+            @RequestParam(required = false) Integer toMonth,
             Model model) {
 
-        log.debug("Generating report for: clientId={}, year={}, month={}", clientId, year, month);
+        log.debug("Generating report for: clientId={}, from year={}, from month={}, to year{}, to month{}", clientId, fromYear, fromMonth, toYear, toMonth);
 
-        List<InvoiceDto> invoices = invoiceService.searchInvoices(clientId, year, month);
-        log.debug("Found {} invoices", invoices.size());
+        DateRangeRequest dateRange = new DateRangeRequest(fromYear, fromMonth, toYear, toMonth);
+        List<InvoiceDto> invoices = invoiceService.searchInvoices(dateRange, clientId, null).getContent();
 
-        invoices.sort(Comparator.comparing(InvoiceDto::issueDate));
+        List<InvoiceDto> sortableInvoices = new ArrayList<>(invoices);
+        sortableInvoices.sort(Comparator.comparing(InvoiceDto::issueDate));
 
         BigDecimal totalAmount = invoices.stream()
                 .map(InvoiceDto::totalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        String monthName = month != null ? Month.of(month).toString() : "all months";
-        String yearStr = year != null ? year.toString() : "";
-        model.addAttribute("period", month != null ? monthName + " " + yearStr : monthName);
-        model.addAttribute("invoices", invoices);
+        String period = generatePeriodLabel(fromYear, fromMonth, toYear, toMonth);
+        model.addAttribute("period", period);
+        model.addAttribute("invoices", sortableInvoices);
         model.addAttribute("totalAmount", totalAmount);
 
         if (clientId != null) {
             model.addAttribute("clientName", clientService.getClientById(clientId).clientName());
         }
         return "invoice-report";
+    }
+
+    private String generatePeriodLabel(Integer fromYear, Integer fromMonth, Integer toYear, Integer toMonth) {
+        if (fromYear == null || fromMonth == null || toYear == null || toMonth == null) {
+            return "all dates";
+        }
+
+        return Month.of(fromMonth) + " " + fromYear + " - " + Month.of(toMonth) + " " + toYear;
     }
 }

@@ -26,7 +26,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -44,7 +43,6 @@ class InvoiceServiceImpl implements InvoiceService {
 
 
     private final InvoiceRepository invoiceRepository;
-    private final TimesheetService timesheetService;
     private final TimesheetRepository timesheetRepository;
     private final InvoiceDtoMapper invoiceDtoMapper;
     private final ClientRepository clientRepository;
@@ -348,10 +346,6 @@ class InvoiceServiceImpl implements InvoiceService {
 
         if (fromDate.isAfter(toDate)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date cannot be after end date");
-        }
-
-        if (ChronoUnit.MONTHS.between(fromDate, toDate) > 12) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Date range cannot exceed 12 months");
         }
     }
 }
