@@ -3,10 +3,9 @@ package dev.robgro.timesheet.service;
 import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.ClientDtoMapper;
 import dev.robgro.timesheet.model.entity.Client;
-import dev.robgro.timesheet.model.entity.Invoice;
 import dev.robgro.timesheet.repository.ClientRepository;
-import dev.robgro.timesheet.repository.InvoiceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,15 +16,15 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientDtoMapper clientDtoMapper;
-    private final InvoiceRepository invoiceRepository;
 
     @Override
     public List<ClientDto> getAllClients() {
-        return clientRepository.findAll().stream()
+        return clientRepository.findByActiveTrue().stream()
                 .map(clientDtoMapper)
                 .collect(Collectors.toList());
     }
@@ -45,6 +44,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDto createClient(ClientDto clientDto) {
         Client client = new Client();
+        client.setActive(true);
         updateClientFields(client, clientDto);
         return clientDtoMapper.apply(clientRepository.save(client));
     }
@@ -70,14 +70,8 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void deleteClient(Long id) {
         Client client = getClientOrThrow(id);
-        List<Invoice> invoices = invoiceRepository.findByClientId(id);
-
-        if (!invoices.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Cannot delete client with associated invoices. Delete invoices first."
-            );
-        }
-        clientRepository.delete(client);
+        client.setActive(false);
+        clientRepository.save(client);
+        log.info("Client with id {} has been deactivated", id);
     }
 }

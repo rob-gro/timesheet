@@ -46,6 +46,9 @@ public class Client {
     @OneToMany(mappedBy = "client")
     List<Invoice> invoices;
 
+    @Column(name = "active", nullable = false)
+    private boolean active;
+
     @Override
     public String toString() {
         return "Client{" +

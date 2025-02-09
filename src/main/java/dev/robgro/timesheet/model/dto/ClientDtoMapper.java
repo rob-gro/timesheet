@@ -17,7 +17,8 @@ public class ClientDtoMapper implements Function<Client, ClientDto> {
                 client.getStreetName(),
                 client.getCity(),
                 client.getPostCode(),
-                client.getEmail()
+                client.getEmail(),
+                client.isActive()
         );
     }
 }

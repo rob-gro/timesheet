@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/clients")
@@ -29,7 +30,8 @@ public class ClientViewController {
                 "",             // streetName
                 "",             // city
                 "",             // postCode
-                ""              // email
+                "",             // email
+                true            // is active
         ));
         return "client-form";
     }
@@ -46,6 +48,17 @@ public class ClientViewController {
             clientService.createClient(client);
         } else {
             clientService.updateClient(client.id(), client);
+        }
+        return "redirect:/clients";
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public String deleteClient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            clientService.deleteClient(id);
+            redirectAttributes.addFlashAttribute("success", "Client has been successfully deleted. Related invoices and timesheets remain archived");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Unable to delete client due to technical error. Please try again later");
         }
         return "redirect:/clients";
     }

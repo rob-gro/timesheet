@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.nio.channels.FileChannel;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +21,9 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     long countByInvoiceNumberEndingWith(String yearMonth);
 
     List<Invoice> findAllByOrderByIssueDateDesc();
+
     List<Invoice> findByIssueDateBetweenOrderByIssueDateDesc(LocalDate startDate, LocalDate endDate);
+
     List<Invoice> findByClientId(Long clientId);
 
     List<Invoice> findByInvoiceNumberEndingWith(String yearMonth);
@@ -38,11 +39,11 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     void deleteInvoiceItemsByInvoiceId(@Param("invoiceId") Long invoiceId);
 
     @Query(value = """
-        SELECT i FROM Invoice i
-        WHERE (:clientId IS NULL OR i.client.id = :clientId)
-        AND (:year IS NULL OR YEAR(i.issueDate) = :year)
-        AND (:month IS NULL OR MONTH(i.issueDate) = :month)
-        """)
+            SELECT i FROM Invoice i
+            WHERE (:clientId IS NULL OR i.client.id = :clientId)
+            AND (:year IS NULL OR YEAR(i.issueDate) = :year)
+            AND (:month IS NULL OR MONTH(i.issueDate) = :month)
+            """)
     Page<Invoice> findFilteredInvoices(
             @Param("clientId") Long clientId,
             @Param("year") Integer year,
@@ -51,11 +52,11 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     );
 
     @Query("""
-    SELECT i FROM Invoice i 
-    WHERE (:clientId IS NULL OR i.client.id = :clientId) 
-    AND (:fromDate IS NULL OR i.issueDate >= :fromDate) 
-    AND (:toDate IS NULL OR i.issueDate <= :toDate)
-""")
+                SELECT i FROM Invoice i 
+                WHERE (:clientId IS NULL OR i.client.id = :clientId) 
+                AND (:fromDate IS NULL OR i.issueDate >= :fromDate) 
+                AND (:toDate IS NULL OR i.issueDate <= :toDate)
+            """)
     Page<Invoice> findByDateRangeAndClient(
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,

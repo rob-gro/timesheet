@@ -8,6 +8,7 @@ public record ClientDto(
         String streetName,
         String city,
         String postCode,
-        String email
+        String email,
+        boolean active
 ) {
 }

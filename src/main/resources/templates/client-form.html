@@ -49,6 +49,8 @@
                 <input type="number" th:field="*{hourlyRate}" step="0.01" min="0" required>
             </div>
 
+            <input type="hidden" th:field="*{active}" th:value="true"/>
+
             <div class="button-container">
                 <button type="submit" class="save-button">Save Client</button>
                 <button type="button" class="nav-button" onclick="window.location.href='/clients';">Back to Clients
