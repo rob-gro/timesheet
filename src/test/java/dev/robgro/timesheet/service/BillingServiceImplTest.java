@@ -44,8 +44,8 @@ class BillingServiceImplTest {
         int month = 1;
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
 
-        ClientDto client1 = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email1@test.com");
-        ClientDto client2 = new ClientDto(2L, "Client 2", 60.0, 2L, "Street", "City", "12345", "email2@test.com");
+        ClientDto client1 = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email1@test.com", true);
+        ClientDto client2 = new ClientDto(2L, "Client 2", 60.0, 2L, "Street", "City", "12345", "email2@test.com", true);
 
         TimesheetDto timesheet1 = new TimesheetDto(
                 1L,
@@ -137,7 +137,7 @@ class BillingServiceImplTest {
         int month = 1;
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
 
-        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com");
+        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
 
         TimesheetDto timesheet = new TimesheetDto(
                 1L,
@@ -209,7 +209,7 @@ class BillingServiceImplTest {
         LocalDate issueDate = LocalDate.now();
         List<Long> timesheetIds = List.of(1L, 2L);
 
-        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com");
+        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
 
         TimesheetDto timesheet1 = new TimesheetDto(
                 1L,
@@ -285,7 +285,7 @@ class BillingServiceImplTest {
         LocalDate issueDate = LocalDate.now();
         List<Long> timesheetIds = List.of(1L, 2L);
 
-        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com");
+        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
 
         TimesheetDto timesheet1 = new TimesheetDto(
                 1L,
