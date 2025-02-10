@@ -134,6 +134,7 @@ public class InvoiceController {
             @ApiResponse(responseCode = "204", description = "Invoice deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Invoice not found")
     })
+
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<Void> deleteInvoice(
             @PathVariable Long id,

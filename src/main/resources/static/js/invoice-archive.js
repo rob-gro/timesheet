@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('JS loaded');
     const filterForm = document.getElementById('filterForm');
     const fromYear = document.getElementById('fromYear');
     const fromMonth = document.getElementById('fromMonth');
@@ -108,10 +109,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify({
                             deleteTimesheets: result.isConfirmed,
-                            detachFromClient: result.isConfirmed,
+                            detachFromClient: !result.isConfirmed
                         }),
                     })
                         .then(response => {
