@@ -168,8 +168,15 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     public void deleteTimesheet(Long id) {
         Timesheet timesheet = getTimesheetOrThrow(id);
+
+        if (timesheet.isInvoiced()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Cannot delete timesheet that is attached to an invoice"
+            );
+        }
+
         if (timesheet.getInvoice() != null) {
-            // Jeśli timesheet ma fakturę, odepnij go od niej
             Invoice invoice = timesheet.getInvoice();
             invoice.getItemsList().removeIf(item -> item.getTimesheetId().equals(timesheet.getId()));
             invoice.setTotalAmount(calculateTotalAmount(invoice.getItemsList()));
