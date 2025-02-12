@@ -176,7 +176,6 @@ class InvoiceServiceImpl implements InvoiceService {
         timesheetRepository.saveAll(updatedTimesheets);
 
         Invoice refreshedInvoice = invoiceRepository.findById(savedInvoice.getId()).orElseThrow();
-
         return invoiceDtoMapper.apply(refreshedInvoice);
     }
 

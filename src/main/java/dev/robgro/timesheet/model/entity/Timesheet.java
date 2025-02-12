@@ -34,7 +34,7 @@ public class Timesheet {
     @JoinColumn(name = "invoice_id", referencedColumnName = "id")
     private Invoice invoice;
 
-    @Formula("(SELECT i.invoice_number FROM invoices i WHERE i.id = invoice_id)")
+    @Column(name = "invoice_number")
     private String invoiceNumber;
 
     @Column(name = "payment_date")

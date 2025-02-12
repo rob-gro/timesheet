@@ -32,7 +32,7 @@ public class InvoiceViewController {
     public String showItemsForm(Model model) {
         model.addAttribute("timesheets", getUnbilledTimesheets());
         model.addAttribute("clients", clientService.getAllClients());
-        model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, List.of()));
+        model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, List.of(), null));
         return "invoice-items";
     }
 

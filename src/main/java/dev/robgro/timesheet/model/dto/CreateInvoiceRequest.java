@@ -7,6 +7,7 @@ public record CreateInvoiceRequest(
 
         Long clientId,
         LocalDate issueDate,
-        List<Long> timesheetIds
+        List<Long> timesheetIds,
+        String invoiceNumber
 ) {
 }
