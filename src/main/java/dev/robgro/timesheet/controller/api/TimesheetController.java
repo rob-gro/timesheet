@@ -88,6 +88,12 @@ public class TimesheetController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Get timesheets by client",
+            description = "Retrieve all timesheets for specific client with optional invoice status filter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Timesheets retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Client not found")
+    })
     @GetMapping("/client/{clientId}")
     public ResponseEntity<List<TimesheetDto>> getTimesheetsByClient(
             @PathVariable Long clientId,
@@ -99,6 +105,12 @@ public class TimesheetController {
         return ResponseEntity.ok(timesheetService.getTimesheetByClientId(clientId));
     }
 
+    @Operation(summary = "Update timesheet payment status",
+            description = "Updates the payment date for a specific timesheet")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Payment status updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Timesheet not found")
+    })
     @PostMapping("/{id}/payment")
     public ResponseEntity<Void> updatePaymentStatus(
             @PathVariable Long id,
