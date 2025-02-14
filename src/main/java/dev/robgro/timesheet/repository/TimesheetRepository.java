@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.rest.core.annotation.RestResource;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 public interface TimesheetRepository extends JpaRepository<Timesheet, Long> {
     List<Timesheet> findByInvoiced(boolean invoiced);
 
+    @RestResource(path = "byClientId")
     List<Timesheet> findAllByClientId(Long clientId);
 
     List<Timesheet> findByClientIdAndInvoicedFalse(Long clientId);
@@ -33,5 +35,6 @@ public interface TimesheetRepository extends JpaRepository<Timesheet, Long> {
     Page<Timesheet> findAllSortedByInvoiceNumber(@Param("clientId") Long clientId, Pageable pageable);
 
     Page<Timesheet> findAll(Pageable pageable);
+    @RestResource(path = "byClientIdPaged")
     Page<Timesheet> findAllByClientId(Long clientId, Pageable pageable);
 }
