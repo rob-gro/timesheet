@@ -102,6 +102,13 @@ public class InvoiceController {
         return ResponseEntity.ok(invoiceService.getMonthlyInvoices(clientId, year, month));
     }
 
+    @Operation(summary = "Get invoice PDF",
+            description = "Retrieves the generated PDF document for a specific invoice")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PDF retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "PDF not found for this invoice"),
+            @ApiResponse(responseCode = "500", description = "Error while downloading PDF")
+    })
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> getInvoicePdf(@PathVariable Long id) {
         InvoiceDto invoice = invoiceService.getInvoiceById(id);
@@ -134,7 +141,6 @@ public class InvoiceController {
             @ApiResponse(responseCode = "204", description = "Invoice deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Invoice not found")
     })
-
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<Void> deleteInvoice(
             @PathVariable Long id,
