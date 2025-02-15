@@ -41,12 +41,25 @@ public class ClientController {
         return ResponseEntity.ok(clientService.getClientById(id));
     }
 
+    @Operation(summary = "Create new client",
+            description = "Creates a new client with provided details")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Client created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PostMapping
     public ResponseEntity<ClientDto> createClient(@RequestBody ClientDto clientDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(clientService.createClient(clientDto));
     }
 
+    @Operation(summary = "Update existing client",
+            description = "Updates client details for a specific client ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Client updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Client not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<ClientDto> updateClient(@PathVariable Long id,
                                                   @RequestBody ClientDto clientDto) {
