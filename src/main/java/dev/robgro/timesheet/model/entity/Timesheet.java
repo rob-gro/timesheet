@@ -3,7 +3,6 @@ package dev.robgro.timesheet.model.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Formula;
 
 import java.time.LocalDate;
 import java.util.Objects;

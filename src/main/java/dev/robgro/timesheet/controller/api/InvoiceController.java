@@ -1,7 +1,6 @@
 package dev.robgro.timesheet.controller.api;
 
 import dev.robgro.timesheet.model.dto.CreateInvoiceRequest;
-import dev.robgro.timesheet.model.dto.DeleteInvoiceRequest;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
 import dev.robgro.timesheet.service.BillingService;
@@ -12,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/invoices")
 @RequiredArgsConstructor
@@ -142,10 +143,20 @@ public class InvoiceController {
             @ApiResponse(responseCode = "404", description = "Invoice not found")
     })
     @DeleteMapping("/{id}/delete")
-    public ResponseEntity<Void> deleteInvoice(
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteInvoice(
             @PathVariable Long id,
-            @RequestBody DeleteInvoiceRequest request) {
-        invoiceService.deleteInvoice(id, request.deleteTimesheets(), request.detachFromClient());
-        return ResponseEntity.noContent().build();
+            @RequestParam(defaultValue = "false") boolean deleteTimesheets,
+            @RequestParam(defaultValue = "false") boolean detachFromClient) {
+
+        log.info("Received request to delete invoice ID: {}", id);
+
+        try {
+            invoiceService.deleteInvoice(id, deleteTimesheets, detachFromClient);
+            log.info("Successfully deleted invoice ID: {}", id);
+        } catch (Exception e) {
+            log.error("Error deleting invoice ID {}: {}", id, e.getMessage(), e);
+            throw e;
+        }
     }
 }

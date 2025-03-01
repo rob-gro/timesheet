@@ -10,11 +10,15 @@ import dev.robgro.timesheet.repository.ClientRepository;
 import dev.robgro.timesheet.repository.InvoiceRepository;
 import dev.robgro.timesheet.repository.TimesheetRepository;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -40,6 +44,12 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public
 class InvoiceServiceImpl implements InvoiceService {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
     private final InvoiceRepository invoiceRepository;
@@ -287,26 +297,35 @@ class InvoiceServiceImpl implements InvoiceService {
     @Override
     public void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient) {
         log.info("Starting deletion of invoice ID: {}", id);
-        Invoice invoice = getInvoiceOrThrow(id);
 
-        for (InvoiceItem item : new ArrayList<>(invoice.getItemsList())) {
-            Timesheet timesheet = timesheetRepository.findById(item.getTimesheetId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found with id: " + id));
 
+        log.info("Found invoice: {}, associated timesheets: {}",
+                invoice.getInvoiceNumber(), invoice.getTimesheets().size());
+
+        List<Timesheet> timesheetsToProcess = new ArrayList<>(invoice.getTimesheets());
+        for (Timesheet timesheet : timesheetsToProcess) {
+            log.info("Processing timesheet ID: {}", timesheet.getId());
             timesheet.setInvoice(null);
             timesheet.setInvoiced(false);
-            timesheetRepository.save(timesheet);
-
-            invoice.getItemsList().remove(item);
 
             if (deleteTimesheets) {
-                timesheet.setClient(null);
-                timesheetRepository.delete(timesheet);
+                log.info("Deleting timesheet ID: {}", timesheet.getId());
+                invoiceRepository.deleteInvoiceItemsByInvoiceId(id);
+            } else {
+                log.info("Preserving timesheet ID: {}", timesheet.getId());
+                timesheetRepository.save(timesheet);
             }
         }
-        invoiceRepository.save(invoice);
+
+        log.info("Deleting invoice items");
+        jdbcTemplate.update("DELETE FROM invoice_items WHERE invoice_id = ?", id);
+
+        log.info("Deleting invoice");
         invoiceRepository.delete(invoice);
-        log.info("Invoice deletion completed");
+
+        log.info("Successfully deleted invoice ID: {}", id);
     }
 
     @Override

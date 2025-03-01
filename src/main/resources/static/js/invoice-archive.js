@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         element.addEventListener('change', updateDateRangeValidation);
     });
 
-    filterForm.addEventListener('submit', function(e) {
+    filterForm.addEventListener('submit', function (e) {
         e.preventDefault();
         if (!validateDateRange()) {
             return;
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = '/invoice-archive?' + params.toString();
     });
 
-    window.sortTable = function(column, direction) {
+    window.sortTable = function (column, direction) {
         const currentUrl = new URL(window.location.href);
 
         const params = {
@@ -86,10 +86,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         window.location.href = newUrl.toString();
     };
-
-    window.deleteInvoice = function(id) {
+    window.deleteInvoice = function (id) {
         Swal.fire({
-            title: 'Delete Invoice',
+            title: 'Delete Invoice?',
             text: 'Are you sure you want to delete this invoice?',
             icon: 'warning',
             showCancelButton: true,
@@ -98,34 +97,59 @@ document.addEventListener('DOMContentLoaded', function () {
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({
-                    title: 'Delete Timesheets',
-                    text: 'Do you also want to delete the associated timesheets?',
+                    title: 'Delete associated timesheets?',
+                    text: 'Do you also want to delete the timesheets associated with this invoice?',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Yes',
                     cancelButtonText: 'No'
-                }).then((result) => {
-                    fetch(`/api/v1/invoices/${id}/delete`, {
+                }).then((innerResult) => {
+                    const deleteTimesheets = innerResult.isConfirmed;
+
+                    console.log(`Trying to delete invoice ${id}`);
+                    const url = `/api/v1/invoices/${id}/delete?deleteTimesheets=${deleteTimesheets}&detachFromClient=${deleteTimesheets}`;
+                    console.log(`Request URL: ${url}`);
+
+                    // Dodaj wskaźnik ładowania
+                    Swal.fire({
+                        title: 'Deleting...',
+                        text: 'Please wait while the invoice is being deleted',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch(url, {
                         method: 'DELETE',
                         headers: {
-                            'Content-Type': 'application/json',
                             'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            deleteTimesheets: result.isConfirmed,
-                            detachFromClient: !result.isConfirmed
-                        }),
+                        }
                     })
                         .then(response => {
+                            console.log(`Response status: ${response.status}`);
+
                             if (response.ok) {
-                                Swal.fire('Deleted!', 'Invoice has been deleted.', 'success')
-                                    .then(() => location.reload());
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Invoice has been deleted.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    location.reload();
+                                });
                             } else {
-                                throw new Error('Failed to delete');
+                                return response.text().then(text => {
+                                    throw new Error(text || `Server returned ${response.status}`);
+                                });
                             }
                         })
                         .catch(error => {
-                            Swal.fire('Error!', 'Failed to delete invoice.', 'error');
+                            console.error(`Error: ${error.message}`);
+                            Swal.fire({
+                                title: 'Error!',
+                                text: `Failed to delete invoice: ${error.message}`,
+                                icon: 'error'
+                            });
                         });
                 });
             }
