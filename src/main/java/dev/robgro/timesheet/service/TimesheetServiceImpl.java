@@ -11,7 +11,9 @@ import dev.robgro.timesheet.repository.TimesheetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -147,6 +149,35 @@ public class TimesheetServiceImpl implements TimesheetService {
         return timesheets.stream()
                 .sorted(sortDir.equals("desc") ? comparator.reversed() : comparator)
                 .collect(toList());
+    }
+
+    @Override
+    public Page<TimesheetDto> getFilteredAndPaginatedTimesheets(
+            Long clientId,
+            String paymentStatus,
+            String sortBy,
+            String sortDir,
+            int page,
+            int size) {
+
+        Sort sort = Sort.by(sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Page<Timesheet> timesheetPage;
+
+        if (clientId != null && paymentStatus != null) {
+            if (paymentStatus.equals("true")) {
+                timesheetPage = timesheetRepository.findByClientIdAndPaymentDateIsNotNull(clientId, pageRequest);
+            } else {
+                timesheetPage = timesheetRepository.findByClientIdAndPaymentDateIsNull(clientId, pageRequest);
+            }
+        } else if (clientId != null) {
+            timesheetPage = timesheetRepository.findByClientId(clientId, pageRequest);
+        } else {
+            timesheetPage = timesheetRepository.findAll(pageRequest);
+        }
+
+        return timesheetPage.map(timesheetDtoMapper);
     }
 
     @Override

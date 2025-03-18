@@ -32,6 +32,9 @@ class BillingServiceImplTest {
     private InvoiceService invoiceService;
 
     @Mock
+    private InvoiceCreationService invoiceCreationService;
+
+    @Mock
     private TimesheetService timesheetService;
 
     @InjectMocks
@@ -106,13 +109,15 @@ class BillingServiceImplTest {
                 .thenReturn(timesheets1);
         when(timesheetService.getMonthlyTimesheets(client2.id(), year, month))
                 .thenReturn(timesheets2);
-        when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);  // Dodane
-        when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);  // Dodane
-        when(clientService.getClientById(client1.id())).thenReturn(client1); // Dodane
-        when(clientService.getClientById(client2.id())).thenReturn(client2); // Dodane
-        when(invoiceService.createInvoiceFromTimesheets(eq(client1), anyList(), eq(lastDayOfMonth)))
+        when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
+        when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+        when(clientService.getClientById(client1.id())).thenReturn(client1);
+        when(clientService.getClientById(client2.id())).thenReturn(client2);
+
+        // Zmiana: teraz używamy invoiceCreationService zamiast invoiceService
+        when(invoiceCreationService.createInvoiceFromTimesheets(eq(client1), anyList(), eq(lastDayOfMonth)))
                 .thenReturn(invoice1);
-        when(invoiceService.createInvoiceFromTimesheets(eq(client2), anyList(), eq(lastDayOfMonth)))
+        when(invoiceCreationService.createInvoiceFromTimesheets(eq(client2), anyList(), eq(lastDayOfMonth)))
                 .thenReturn(invoice2);
 
         List<InvoiceDto> result = billingService.generateMonthlyInvoices(year, month);
@@ -125,8 +130,8 @@ class BillingServiceImplTest {
         verify(clientService).getAllClients();
         verify(timesheetService).getMonthlyTimesheets(client1.id(), year, month);
         verify(timesheetService).getMonthlyTimesheets(client2.id(), year, month);
-        verify(timesheetService).getTimesheetById(1L); // Dodane
-        verify(timesheetService).getTimesheetById(2L); // Dodane
+        verify(timesheetService).getTimesheetById(1L);
+        verify(timesheetService).getTimesheetById(2L);
     }
 
     @Test
@@ -168,8 +173,10 @@ class BillingServiceImplTest {
         when(clientService.getClientById(clientId)).thenReturn(client);
         when(timesheetService.getMonthlyTimesheets(clientId, year, month))
                 .thenReturn(List.of(timesheet));
-        when(timesheetService.getTimesheetById(timesheet.id())).thenReturn(timesheet);  // Dodane - kluczowe!
-        when(invoiceService.createInvoiceFromTimesheets(eq(client), anyList(), eq(lastDayOfMonth)))
+        when(timesheetService.getTimesheetById(timesheet.id())).thenReturn(timesheet);
+
+        // Zmiana: używamy invoiceCreationService
+        when(invoiceCreationService.createInvoiceFromTimesheets(eq(client), anyList(), eq(lastDayOfMonth)))
                 .thenReturn(expectedInvoice);
 
         InvoiceDto result = billingService.createMonthlyInvoice(clientId, year, month);
@@ -182,8 +189,10 @@ class BillingServiceImplTest {
 
         verify(clientService).getClientById(clientId);
         verify(timesheetService).getMonthlyTimesheets(clientId, year, month);
-        verify(timesheetService).getTimesheetById(timesheet.id());  // Dodane
-        verify(invoiceService).createInvoiceFromTimesheets(eq(client), anyList(), eq(lastDayOfMonth));
+        verify(timesheetService).getTimesheetById(timesheet.id());
+
+        // Zmiana: weryfikujemy wywołanie invoiceCreationService
+        verify(invoiceCreationService).createInvoiceFromTimesheets(eq(client), anyList(), eq(lastDayOfMonth));
     }
 
     @Test
@@ -249,10 +258,11 @@ class BillingServiceImplTest {
         );
 
         when(clientService.getClientById(clientId)).thenReturn(client);
-        // Upewniamy się, że oba wywołania getTimesheetById są zmockowane
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
-        when(invoiceService.createInvoiceFromTimesheets(eq(client), anyList(), eq(issueDate)))
+
+        // Zmiana: używamy invoiceCreationService
+        when(invoiceCreationService.createInvoiceFromTimesheets(eq(client), anyList(), eq(issueDate)))
                 .thenReturn(expectedInvoice);
 
         // when
@@ -261,8 +271,11 @@ class BillingServiceImplTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(expectedInvoice.id());
-        verify(timesheetService).getTimesheetById(1L);  // Weryfikujemy wywołania
+        verify(timesheetService).getTimesheetById(1L);
         verify(timesheetService).getTimesheetById(2L);
+
+        // Zmiana: weryfikujemy wywołanie invoiceCreationService
+        verify(invoiceCreationService).createInvoiceFromTimesheets(eq(client), anyList(), eq(issueDate));
     }
 
     @Test

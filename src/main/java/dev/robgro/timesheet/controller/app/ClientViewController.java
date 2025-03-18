@@ -1,6 +1,7 @@
 package dev.robgro.timesheet.controller.app;
 
 import dev.robgro.timesheet.model.dto.ClientDto;
+import dev.robgro.timesheet.model.dto.OperationResult;
 import dev.robgro.timesheet.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -44,22 +45,14 @@ public class ClientViewController {
 
     @PostMapping("/save")
     public String saveClient(@ModelAttribute ClientDto client) {
-        if (client.id() == null) {
-            clientService.createClient(client);
-        } else {
-            clientService.updateClient(client.id(), client);
-        }
+        clientService.saveClient(client);
         return "redirect:/clients";
     }
 
     @DeleteMapping("/delete/{id}")
     public String deleteClient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            clientService.deleteClient(id);
-            redirectAttributes.addFlashAttribute("success", "Client has been successfully deleted. Related invoices and timesheets remain archived");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Unable to delete client due to technical error. Please try again later");
-        }
+        OperationResult result = clientService.deactivateClient(id);
+        redirectAttributes.addFlashAttribute(result.success() ? "success" : "error", result.message());
         return "redirect:/clients";
     }
 }

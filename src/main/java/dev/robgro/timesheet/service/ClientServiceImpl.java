@@ -2,6 +2,7 @@ package dev.robgro.timesheet.service;
 
 import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.ClientDtoMapper;
+import dev.robgro.timesheet.model.dto.OperationResult;
 import dev.robgro.timesheet.model.entity.Client;
 import dev.robgro.timesheet.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,15 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    public ClientDto saveClient(ClientDto clientDto) {
+        if (clientDto.id() == null) {
+            return createClient(clientDto);
+        } else {
+            return updateClient(clientDto.id(), clientDto);
+        }
+    }
+
+    @Override
     public ClientDto createClient(ClientDto clientDto) {
         Client client = new Client();
         client.setActive(true);
@@ -73,5 +83,20 @@ public class ClientServiceImpl implements ClientService {
         client.setActive(false);
         clientRepository.save(client);
         log.info("Client with id {} has been deactivated", id);
+    }
+
+    @Transactional
+    @Override
+    public OperationResult deactivateClient(Long id) {
+        try {
+            Client client = getClientOrThrow(id);
+            client.setActive(false);
+            clientRepository.save(client);
+            log.info("Client with id {} has been deactivated", id);
+            return new OperationResult(true, "Client has been successfully deactivated");
+        } catch (Exception e) {
+            log.error("Failed to deactivate client with id: {}", id, e);
+            return new OperationResult(false, "Unable to deactivate client");
+        }
     }
 }

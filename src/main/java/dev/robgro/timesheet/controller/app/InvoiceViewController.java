@@ -1,10 +1,8 @@
 package dev.robgro.timesheet.controller.app;
 
-import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.model.dto.CreateInvoiceRequest;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
-import dev.robgro.timesheet.service.BillingService;
 import dev.robgro.timesheet.service.ClientService;
 import dev.robgro.timesheet.service.InvoiceService;
 import dev.robgro.timesheet.service.TimesheetService;
@@ -27,8 +25,6 @@ public class InvoiceViewController {
     private final InvoiceService invoiceService;
     private final TimesheetService timesheetService;
     private final ClientService clientService;
-    private final BillingService billingService;
-    private final InvoiceSeller invoiceSeller;
 
     @GetMapping
     public String showItemsForm(Model model) {
@@ -49,19 +45,9 @@ public class InvoiceViewController {
         }
 
         try {
-            InvoiceDto invoice = billingService.createInvoice(
-                    request.clientId(),
-                    request.issueDate(),
-                    request.timesheetIds()
-            );
-
-            System.out.println("LOG_1 -> Created invoice with ID: " + invoice.id());  // log 1
-            String redirectUrl = "redirect:/invoice-create/" + invoice.id();
-            System.out.println("LOG_2 -> Redirecting to: " + redirectUrl);  // log 2
-            return redirectUrl;
-
+            InvoiceDto invoice = invoiceService.createAndRedirectInvoice(request);
+            return "redirect:/invoice-create/" + invoice.id();
         } catch (Exception e) {
-            System.out.println("LOG_3 -> Error creating invoice: " + e.getMessage());  // log 3
             model.addAttribute("error", "There is an issue: " + e.getMessage());
             model.addAttribute("timesheets", getUnbilledTimesheets());
             model.addAttribute("clients", clientService.getAllClients());

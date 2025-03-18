@@ -11,20 +11,37 @@ import java.util.Optional;
 public interface InvoiceService {
 
     List<InvoiceDto> getAllInvoices();
+
     List<InvoiceDto> getAllInvoicesOrderByDateDesc();
+
     List<InvoiceDto> getInvoicesByDateRange(LocalDate startDate, LocalDate endDate);
+
     InvoiceDto getInvoiceById(long id);
+
     Optional<InvoiceDto> findByInvoiceNumber(String invoiceNumber);
+
     List<InvoiceDto> searchAndSortInvoices(Long clientId, Integer year, Integer month, String sortBy, String sortDir);
+
     List<InvoiceDto> getMonthlyInvoices(Long clientId, int year, int month);
+
     List<InvoiceDto> getYearlyInvoices(Long clientId, int year);
+
     byte[] getInvoicePdfContent(Long invoiceId);
-    InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
+
+    //    InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
     void savePdfAndSendInvoice(Long id);
+
     List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);
 
+    InvoiceDto createAndRedirectInvoice(CreateInvoiceRequest request);
+
     InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request);
+
     void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient);
+
     Page<InvoiceDto> getAllInvoicesPageable(Long clientId, Integer year, Integer month, Pageable pageable);
+
     Page<InvoiceDto> searchInvoices(DateRangeRequest dateRange, Long clientId, Pageable pageable);
+
+    InvoiceReportData generateReport(DateRangeRequest dateRange, Long clientId);
 }

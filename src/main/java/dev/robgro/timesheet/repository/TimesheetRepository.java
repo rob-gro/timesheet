@@ -24,7 +24,15 @@ public interface TimesheetRepository extends JpaRepository<Timesheet, Long> {
     List<Timesheet> findByClientIdAndInvoiced(Long clientId, boolean invoiced);
 
     List<Timesheet> findByClientIdAndPaymentDateIsNotNull(Long clientId);
+
     List<Timesheet> findByClientIdAndPaymentDateIsNull(Long clientId);
+
+    // W TimesheetRepository.java
+    Page<Timesheet> findByClientIdAndPaymentDateIsNotNull(Long clientId, Pageable pageable);
+
+    Page<Timesheet> findByClientIdAndPaymentDateIsNull(Long clientId, Pageable pageable);
+
+    Page<Timesheet> findByClientId(Long clientId, Pageable pageable);
 
     @Query(value = "SELECT t.* FROM timesheets t " +
             "LEFT JOIN invoices i ON t.invoice_id = i.id " +
@@ -35,6 +43,17 @@ public interface TimesheetRepository extends JpaRepository<Timesheet, Long> {
     Page<Timesheet> findAllSortedByInvoiceNumber(@Param("clientId") Long clientId, Pageable pageable);
 
     Page<Timesheet> findAll(Pageable pageable);
+
     @RestResource(path = "byClientIdPaged")
     Page<Timesheet> findAllByClientId(Long clientId, Pageable pageable);
+
+    @Query("SELECT t FROM Timesheet t WHERE " +
+            "(:clientId IS NULL OR t.client.id = :clientId) AND " +
+            "(:paymentStatus IS NULL OR " +
+            "(:paymentStatus = 'true' AND t.paymentDate IS NOT NULL) OR " +
+            "(:paymentStatus = 'false' AND t.paymentDate IS NULL))")
+    Page<Timesheet> findByClientIdAndPaymentStatus(
+            @Param("clientId") Long clientId,
+            @Param("paymentStatus") String paymentStatus,
+            Pageable pageable);
 }

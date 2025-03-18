@@ -15,6 +15,8 @@ import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -28,9 +30,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static dev.robgro.timesheet.service.EmailMessageService.COPY_EMAIL;
@@ -38,6 +44,7 @@ import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Service
+@Primary
 @RequiredArgsConstructor
 public class InvoiceServiceImpl implements InvoiceService {
 
@@ -57,6 +64,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final EmailMessageService emailMessageService;
     private final FtpService ftpService;
     private final TimesheetService timesheetService;
+
+    @Qualifier("dedicatedInvoiceCreationService")
+    private final InvoiceCreationService invoiceCreationService;
+//    private final BillingService billingService;
 
     @Override
     public List<InvoiceDto> getAllInvoices() {
@@ -152,40 +163,6 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
     }
 
-    @Transactional
-    @Override
-    public InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate) {
-        Invoice invoice = new Invoice();
-        invoice.setClient(clientRepository.getReferenceById(client.id()));
-        invoice.setIssueDate(issueDate);
-        invoice.setInvoiceNumber(generateInvoiceNumber(issueDate));
-
-        List<InvoiceItem> items = timesheets.stream()
-                .map(timesheet -> createInvoiceItem(timesheet, invoice))
-                .toList();
-
-        invoice.setItemsList(items);
-        invoice.setTotalAmount(calculateTotalAmount(items));
-        invoice.setIssuedDate(LocalDateTime.now());
-
-        Invoice savedInvoice = invoiceRepository.save(invoice);
-
-        List<Timesheet> updatedTimesheets = timesheets.stream()
-                .map(timesheet -> {
-                    Timesheet ts = timesheetRepository.findById(timesheet.id()).orElseThrow();
-                    ts.setInvoiced(true);
-                    ts.setInvoice(savedInvoice);
-                    ts.setInvoiceNumber(savedInvoice.getInvoiceNumber());
-                    return ts;
-                })
-                .toList();
-
-        timesheetRepository.saveAll(updatedTimesheets);
-
-        Invoice refreshedInvoice = invoiceRepository.findById(savedInvoice.getId()).orElseThrow();
-        return invoiceDtoMapper.apply(refreshedInvoice);
-    }
-
     private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {
         InvoiceItem item = new InvoiceItem();
         item.setInvoice(invoice);
@@ -196,6 +173,15 @@ public class InvoiceServiceImpl implements InvoiceService {
         item.setDuration(timesheet.duration());
         item.setTimesheetId(timesheet.id());
         return item;
+    }
+
+    @Override
+    public InvoiceDto createAndRedirectInvoice(CreateInvoiceRequest request) {
+        return invoiceCreationService.createInvoice(
+                request.clientId(),
+                request.issueDate(),
+                request.timesheetIds()
+        );
     }
 
     private String generateInvoiceNumber(LocalDate issueDate) {
@@ -278,6 +264,31 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
     }
 
+    @Override
+    public InvoiceReportData generateReport(DateRangeRequest dateRange, Long clientId) {
+        List<InvoiceDto> invoices = searchInvoices(dateRange, clientId, null).getContent();
+
+        List<InvoiceDto> sortedInvoices = invoices.stream()
+                .sorted(Comparator.comparing(InvoiceDto::issueDate))
+                .toList();
+
+        BigDecimal totalAmount = invoices.stream()
+                .map(InvoiceDto::totalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        String period = generatePeriodLabel(dateRange);
+
+        String clientName = null;
+        if (clientId != null) {
+            Client client = clientRepository.findById(clientId).orElse(null);
+            if (client != null) {
+                clientName = client.getClientName();
+            }
+        }
+
+        return new InvoiceReportData(sortedInvoices, totalAmount, period, clientName);
+    }
+
     @Transactional
     @Override
     public InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request) {
@@ -338,6 +349,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
         return invoiceDtoMapper.apply(invoiceRepository.save(invoice));
     }
+
     @Override
     public List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month) {
         List<Invoice> invoices = invoiceRepository.findAll();
@@ -422,5 +434,18 @@ public class InvoiceServiceImpl implements InvoiceService {
         if (fromDate.isAfter(toDate)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date cannot be after end date");
         }
+    }
+
+    private String generatePeriodLabel(DateRangeRequest dateRange) {
+        Integer fromYear = dateRange.fromYear();
+        Integer fromMonth = dateRange.fromMonth();
+        Integer toYear = dateRange.toYear();
+        Integer toMonth = dateRange.toMonth();
+
+        if (fromYear == null || fromMonth == null || toYear == null || toMonth == null) {
+            return "all dates";
+        }
+
+        return Month.of(fromMonth) + " " + fromYear + " - " + Month.of(toMonth) + " " + toYear;
     }
 }

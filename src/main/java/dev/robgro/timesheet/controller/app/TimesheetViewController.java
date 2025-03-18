@@ -6,9 +6,6 @@ import dev.robgro.timesheet.service.TimesheetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -42,24 +39,8 @@ public class TimesheetViewController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        List<TimesheetDto> filteredTimesheets = timesheetService.getTimesheetsByFilters(clientId, paymentStatus);
-
-        if (sortBy != null) {
-            filteredTimesheets = timesheetService.searchAndSortTimesheets(
-                    clientId,
-                    sortBy,
-                    sortDir
-            );
-        }
-
-        int start = page * size;
-        int end = Math.min(start + size, filteredTimesheets.size());
-
-        Page<TimesheetDto> timesheets = new PageImpl<>(
-                filteredTimesheets.subList(start, end),
-                PageRequest.of(page, size),
-                filteredTimesheets.size()
-        );
+        Page<TimesheetDto> timesheets = timesheetService.getFilteredAndPaginatedTimesheets(
+                clientId, paymentStatus, sortBy, sortDir, page, size);
 
         model.addAttribute("timesheets", timesheets.getContent());
         model.addAttribute("currentPage", page);

@@ -38,8 +38,11 @@ public interface TimesheetService {
 
     List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced);
 
+    Page<TimesheetDto> getFilteredAndPaginatedTimesheets(Long clientId, String paymentStatus,
+                                                         String sortBy, String sortDir, int page, int size);
 
     Page<TimesheetDto> getAllTimesheetsPageable(Pageable pageable);
+
     Page<TimesheetDto> getTimesheetsByClientIdPageable(Long clientId, Pageable pageable);
 
     Page<TimesheetDto> getAllTimesheetsSortedByInvoiceNumber(Long clientId, Pageable pageable);

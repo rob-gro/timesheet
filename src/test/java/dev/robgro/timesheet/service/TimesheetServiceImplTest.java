@@ -11,6 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -523,5 +527,125 @@ class TimesheetServiceImplTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).id()).isEqualTo(timesheet.getId());
         assertThat(result.get(0).invoiced()).isFalse();
+    }
+
+    @Test
+    void shouldGetFilteredAndPaginatedTimesheets() {
+        // given
+        Long clientId = 1L;
+        String paymentStatus = "true";
+        String sortBy = "serviceDate";
+        String sortDir = "asc";
+        int page = 0;
+        int size = 10;
+
+        Client client = new Client();
+        client.setId(clientId);
+        client.setClientName("Test Client");
+        client.setHourlyRate(50.0);
+
+        Timesheet timesheet1 = new Timesheet();
+        timesheet1.setId(1L);
+        timesheet1.setClient(client);
+        timesheet1.setServiceDate(LocalDate.of(2024, 1, 15));
+        timesheet1.setDuration(2.0);
+        timesheet1.setPaymentDate(LocalDate.of(2024, 2, 1));
+
+        Timesheet timesheet2 = new Timesheet();
+        timesheet2.setId(2L);
+        timesheet2.setClient(client);
+        timesheet2.setServiceDate(LocalDate.of(2024, 1, 16));
+        timesheet2.setDuration(3.0);
+        timesheet2.setPaymentDate(LocalDate.of(2024, 2, 2));
+
+        TimesheetDto dto1 = new TimesheetDto(
+                1L, client.getClientName(), timesheet1.getServiceDate(),
+                2.0, false, clientId, client.getHourlyRate(), null, timesheet1.getPaymentDate()
+        );
+
+        TimesheetDto dto2 = new TimesheetDto(
+                2L, client.getClientName(), timesheet2.getServiceDate(),
+                3.0, false, clientId, client.getHourlyRate(), null, timesheet2.getPaymentDate()
+        );
+
+        PageRequest pageRequest = PageRequest.of(
+                page, size,
+                Sort.by(Sort.Direction.ASC, sortBy)
+        );
+
+        Page<Timesheet> timesheetPage = new PageImpl<>(
+                List.of(timesheet1, timesheet2),
+                pageRequest,
+                2
+        );
+
+        when(timesheetRepository.findByClientIdAndPaymentDateIsNotNull(clientId, pageRequest))
+                .thenReturn(timesheetPage);
+        when(timesheetDtoMapper.apply(timesheet1)).thenReturn(dto1);
+        when(timesheetDtoMapper.apply(timesheet2)).thenReturn(dto2);
+
+        // when
+        Page<TimesheetDto> result = timesheetService.getFilteredAndPaginatedTimesheets(
+                clientId, paymentStatus, sortBy, sortDir, page, size
+        );
+
+        // then
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent().get(0).id()).isEqualTo(1L);
+        assertThat(result.getContent().get(1).id()).isEqualTo(2L);
+        verify(timesheetRepository).findByClientIdAndPaymentDateIsNotNull(clientId, pageRequest);
+    }
+
+    @Test
+    void shouldGetFilteredAndPaginatedTimesheetsWithNoClient() {
+        // given
+        Long clientId = null;
+        String paymentStatus = null;
+        String sortBy = "serviceDate";
+        String sortDir = "desc";
+        int page = 0;
+        int size = 10;
+
+        Client client = new Client();
+        client.setId(1L);
+        client.setClientName("Test Client");
+        client.setHourlyRate(50.0);
+
+        Timesheet timesheet = new Timesheet();
+        timesheet.setId(1L);
+        timesheet.setClient(client);
+        timesheet.setServiceDate(LocalDate.of(2024, 1, 15));
+        timesheet.setDuration(2.0);
+
+        TimesheetDto dto = new TimesheetDto(
+                1L, client.getClientName(), timesheet.getServiceDate(),
+                2.0, false, client.getId(), client.getHourlyRate(), null, null
+        );
+
+        PageRequest pageRequest = PageRequest.of(
+                page, size,
+                Sort.by(Sort.Direction.DESC, sortBy)
+        );
+
+        Page<Timesheet> timesheetPage = new PageImpl<>(
+                List.of(timesheet),
+                pageRequest,
+                1
+        );
+
+        when(timesheetRepository.findAll(pageRequest)).thenReturn(timesheetPage);
+        when(timesheetDtoMapper.apply(timesheet)).thenReturn(dto);
+
+        // when
+        Page<TimesheetDto> result = timesheetService.getFilteredAndPaginatedTimesheets(
+                clientId, paymentStatus, sortBy, sortDir, page, size
+        );
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().get(0).id()).isEqualTo(1L);
+        verify(timesheetRepository).findAll(pageRequest);
     }
 }

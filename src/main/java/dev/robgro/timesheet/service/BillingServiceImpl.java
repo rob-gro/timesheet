@@ -3,7 +3,7 @@ package dev.robgro.timesheet.service;
 import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,10 +15,20 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class BillingServiceImpl implements BillingService {
+
+    public BillingServiceImpl(ClientService clientService, InvoiceService invoiceService, InvoiceCreationService invoiceCreationService, TimesheetService timesheetService) {
+        this.clientService = clientService;
+        this.invoiceService = invoiceService;
+        this.invoiceCreationService = invoiceCreationService;
+        this.timesheetService = timesheetService;
+    }
+
     private final ClientService clientService;
     private final InvoiceService invoiceService;
+
+    @Qualifier("dedicatedInvoiceCreationService")
+    private final InvoiceCreationService invoiceCreationService;
     private final TimesheetService timesheetService;
 
     public List<InvoiceDto> generateMonthlyInvoices(int year, int month) {
@@ -74,7 +84,7 @@ public class BillingServiceImpl implements BillingService {
                     HttpStatus.BAD_REQUEST, "All selected timesheets are already invoiced");
         }
 
-        return invoiceService.createInvoiceFromTimesheets(client, selectedTimesheets, issueDate);
+        return invoiceCreationService.createInvoiceFromTimesheets(client, selectedTimesheets, issueDate);
     }
 
     public List<InvoiceDto> getMonthlyInvoices(Long clientId, int year, int month) {
