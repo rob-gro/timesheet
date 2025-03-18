@@ -1,9 +1,6 @@
 package dev.robgro.timesheet.service;
 
-import dev.robgro.timesheet.model.dto.ClientDto;
-import dev.robgro.timesheet.model.dto.DateRangeRequest;
-import dev.robgro.timesheet.model.dto.InvoiceDto;
-import dev.robgro.timesheet.model.dto.TimesheetDto;
+import dev.robgro.timesheet.model.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -25,6 +22,8 @@ public interface InvoiceService {
     InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
     void savePdfAndSendInvoice(Long id);
     List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);
+
+    InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request);
     void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient);
     Page<InvoiceDto> getAllInvoicesPageable(Long clientId, Integer year, Integer month, Pageable pageable);
     Page<InvoiceDto> searchInvoices(DateRangeRequest dateRange, Long clientId, Pageable pageable);

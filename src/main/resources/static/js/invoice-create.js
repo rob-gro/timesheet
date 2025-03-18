@@ -10,7 +10,7 @@ function savePdfAndSendEmail() {
     })
         .then(response => {
             if (response.ok) {
-                alert('Invoice has been saved and sent to the client');
+                alert('😀 Invoice has been saved and sent to the client 😀');
                 setTimeout(() => {
                     window.location.href = '/';
                 }, 3000);

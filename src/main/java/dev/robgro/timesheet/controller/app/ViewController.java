@@ -1,5 +1,7 @@
 package dev.robgro.timesheet.controller.app;
 
+import dev.robgro.timesheet.config.InvoiceSeller;
+import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
 import dev.robgro.timesheet.service.ClientService;
@@ -9,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -20,9 +23,11 @@ public class ViewController {
     private final TimesheetService timesheetService;
     private final ClientService clientService;
     private final InvoiceService invoiceService;
+    private final InvoiceSeller invoiceSeller;
 
     @GetMapping("/")
     public String showIndex() {
+        System.out.println("😁😁😁😁😁😁😁😁😁DEBUG: ViewController.showIndex() called");
         return "index";
     }
 
@@ -51,6 +56,17 @@ public class ViewController {
         model.addAttribute("invoices", invoices);
         model.addAttribute("clients", clientService.getAllClients());
         return "invoice-pdf";
+    }
+
+    @GetMapping("/invoice-edit/{id}")
+    public String showEditInvoiceForm(@PathVariable Long id, Model model) {
+        InvoiceDto invoice = invoiceService.getInvoiceById(id);
+        ClientDto client = clientService.getClientById(invoice.clientId());
+        model.addAttribute("invoice", invoice);
+        model.addAttribute("clients", clientService.getAllClients());
+        model.addAttribute("seller", invoiceSeller);
+        model.addAttribute("client", client);
+        return "invoice-edit";
     }
 
     @GetMapping("/invoice-edit")

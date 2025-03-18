@@ -30,10 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static dev.robgro.timesheet.service.EmailMessageService.COPY_EMAIL;
@@ -42,8 +39,7 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public
-class InvoiceServiceImpl implements InvoiceService {
+public class InvoiceServiceImpl implements InvoiceService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -60,6 +56,7 @@ class InvoiceServiceImpl implements InvoiceService {
     private final PdfGenerator pdfGenerator;
     private final EmailMessageService emailMessageService;
     private final FtpService ftpService;
+    private final TimesheetService timesheetService;
 
     @Override
     public List<InvoiceDto> getAllInvoices() {
@@ -242,7 +239,7 @@ class InvoiceServiceImpl implements InvoiceService {
     @Transactional
     @Override
     public void savePdfAndSendInvoice(Long id) {
-        log.info("Processing invoice PDF generation and email for invoice id: {}", id);
+        log.info(" 😁 Processing invoice PDF generation and email for invoice id: {}", id);
         Invoice invoice = getInvoiceOrThrow(id);
         Client client = invoice.getClient();
         String fileName = invoice.getInvoiceNumber() + ".pdf";
@@ -281,6 +278,66 @@ class InvoiceServiceImpl implements InvoiceService {
         }
     }
 
+    @Transactional
+    @Override
+    public InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request) {
+        Invoice invoice = getInvoiceOrThrow(id);
+        Client newClient = clientRepository.findById(request.clientId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Client not found: " + request.clientId()));
+
+        if (!invoice.getInvoiceNumber().equals(request.invoiceNumber())) {
+            invoiceRepository.findByInvoiceNumber(request.invoiceNumber())
+                    .ifPresent(existing -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Invoice number already exists: " + request.invoiceNumber());
+                    });
+        }
+
+        List<Timesheet> oldTimesheets = new ArrayList<>(invoice.getTimesheets());
+
+        invoice.setIssueDate(request.issueDate());
+        invoice.setInvoiceNumber(request.invoiceNumber());
+        invoice.setClient(newClient);
+
+        oldTimesheets.forEach(timesheet -> timesheetService.detachFromInvoice(timesheet.getId()));
+
+        invoiceRepository.save(invoice);
+
+        invoiceRepository.deleteInvoiceItemsByInvoiceId(id);
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (InvoiceItemUpdateRequest itemRequest : request.items()) {
+            totalAmount = totalAmount.add(itemRequest.amount());
+
+            InvoiceItem item = new InvoiceItem();
+            item.setInvoice(invoice);
+            item.setServiceDate(itemRequest.serviceDate());
+            item.setDescription(itemRequest.description());
+            item.setDuration(itemRequest.duration());
+            item.setAmount(itemRequest.amount());
+
+            if (itemRequest.timesheetId() != null) {
+                item.setTimesheetId(itemRequest.timesheetId());
+                Timesheet timesheet = timesheetRepository.findById(itemRequest.timesheetId())
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Timesheet not found: " + itemRequest.timesheetId()));
+
+                timesheet.setInvoiced(true);
+                timesheet.setInvoice(invoice);
+                timesheet.setInvoiceNumber(invoice.getInvoiceNumber());
+                timesheetRepository.save(timesheet);
+            }
+            invoice.getItemsList().add(item);
+        }
+        invoice.setTotalAmount(totalAmount);
+
+        if (invoice.getPdfPath() != null) {
+            invoice.setPdfGeneratedAt(null);
+            invoice.setPdfPath(null);
+        }
+        return invoiceDtoMapper.apply(invoiceRepository.save(invoice));
+    }
     @Override
     public List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month) {
         List<Invoice> invoices = invoiceRepository.findAll();

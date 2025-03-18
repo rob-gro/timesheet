@@ -172,7 +172,7 @@ public class TimesheetServiceImpl implements TimesheetService {
         if (timesheet.isInvoiced()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Cannot delete timesheet that is attached to an invoice"
+                    "😂 Cannot delete timesheet that is attached to an invoice"
             );
         }
 

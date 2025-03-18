@@ -1,5 +1,6 @@
 package dev.robgro.timesheet.controller.app;
 
+import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.model.dto.CreateInvoiceRequest;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
@@ -27,6 +28,7 @@ public class InvoiceViewController {
     private final TimesheetService timesheetService;
     private final ClientService clientService;
     private final BillingService billingService;
+    private final InvoiceSeller invoiceSeller;
 
     @GetMapping
     public String showItemsForm(Model model) {

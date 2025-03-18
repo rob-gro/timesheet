@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -63,4 +64,16 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
             @Param("clientId") Long clientId,
             Pageable pageable
     );
+
+    @Modifying
+    @Query(value = "INSERT INTO invoice_items (invoice_id, service_date, description, duration, amount, timesheet_id) VALUES (:invoiceId, :serviceDate, :description, :duration, :amount, :timesheetId)", nativeQuery = true)
+    void insertInvoiceItem(
+            @Param("invoiceId") Long invoiceId,
+            @Param("serviceDate") java.sql.Date serviceDate,
+            @Param("description") String description,
+            @Param("duration") double duration,
+            @Param("amount") BigDecimal amount,
+            @Param("timesheetId") Long timesheetId
+    );
+
 }
