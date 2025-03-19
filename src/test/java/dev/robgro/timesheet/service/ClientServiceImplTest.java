@@ -102,6 +102,27 @@ class ClientServiceImplTest {
     }
 
     @Test
+    void shouldSaveNewClient() {
+        // given
+        ClientDto clientDto = new ClientDto(null, "New Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
+        Client newClient = new Client();
+        Client savedClient = new Client();
+        savedClient.setId(1L);
+
+        ClientDto expectedDto = new ClientDto(1L, "New Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
+
+        when(clientRepository.save(any(Client.class))).thenReturn(savedClient);
+        when(clientDtoMapper.apply(savedClient)).thenReturn(expectedDto);
+
+        // when
+        ClientDto result = clientService.saveClient(clientDto);
+
+        // then
+        assertThat(result).isEqualTo(expectedDto);
+        verify(clientRepository).save(any(Client.class));
+    }
+
+    @Test
     void shouldCreateClient() {
         // given
         ClientDto clientDto = new ClientDto(null, "New Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
@@ -129,6 +150,70 @@ class ClientServiceImplTest {
     }
 
     @Test
+    void shouldUpdateExistingClientViaSaveClient() {
+        // given
+        Long clientId = 1L;
+        ClientDto clientDto = new ClientDto(clientId, "Updated Client", 60.0, 1L, "Street", "City", "12345", "test@email.com", true);
+
+        Client existingClient = new Client();
+        existingClient.setId(clientId);
+
+        when(clientRepository.findById(clientId)).thenReturn(Optional.of(existingClient));
+
+        Client updatedClient = new Client();
+        updatedClient.setId(clientId);
+        updatedClient.setClientName("Updated Client");
+        updatedClient.setHourlyRate(60.0);
+
+        ClientDto expectedDto = new ClientDto(clientId, "Updated Client", 60.0, 1L, "Street", "City", "12345", "test@email.com", true);
+
+        when(clientRepository.save(any(Client.class))).thenReturn(updatedClient);
+        when(clientDtoMapper.apply(updatedClient)).thenReturn(expectedDto);
+
+        // when
+        ClientDto result = clientService.saveClient(clientDto);
+
+        // then
+        assertThat(result).isEqualTo(expectedDto);
+        verify(clientRepository).save(any(Client.class));
+    }
+
+    @Test
+    void shouldUpdateClient() {
+        // given
+        Long clientId = 1L;
+        ClientDto clientDto = new ClientDto(null, "Updated Client", 60.0, 1L, "New Street", "New City", "54321", "updated@email.com", true);
+
+        Client existingClient = new Client();
+        existingClient.setId(clientId);
+        existingClient.setClientName("Original Client");
+        existingClient.setHourlyRate(50.0);
+
+        Client updatedClient = new Client();
+        updatedClient.setId(clientId);
+        updatedClient.setClientName("Updated Client");
+        updatedClient.setHourlyRate(60.0);
+        updatedClient.setStreetName("New Street");
+        updatedClient.setCity("New City");
+        updatedClient.setPostCode("54321");
+        updatedClient.setEmail("updated@email.com");
+
+        ClientDto expectedDto = new ClientDto(clientId, "Updated Client", 60.0, 1L, "New Street", "New City", "54321", "updated@email.com", true);
+
+        when(clientRepository.findById(clientId)).thenReturn(Optional.of(existingClient));
+        when(clientRepository.save(any(Client.class))).thenReturn(updatedClient);
+        when(clientDtoMapper.apply(updatedClient)).thenReturn(expectedDto);
+
+        // when
+        ClientDto result = clientService.updateClient(clientId, clientDto);
+
+        // then
+        assertThat(result).isEqualTo(expectedDto);
+        verify(clientRepository).findById(clientId);
+        verify(clientRepository).save(any(Client.class));
+    }
+
+    @Test
     void shouldDeactivateClientWithInvoices() {
         // given
         Long clientId = 1L;
@@ -137,7 +222,6 @@ class ClientServiceImplTest {
         client.setActive(true);
 
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
-//        when(invoiceRepository.findByClientId(clientId)).thenReturn(List.of(new Invoice()));
         when(clientRepository.save(client)).thenReturn(client);
 
         // when
@@ -146,6 +230,26 @@ class ClientServiceImplTest {
         // then
         assertThat(result.success()).isTrue();
         assertThat(result.message()).contains("successfully deactivated");
+        assertThat(client.isActive()).isFalse();
+        verify(clientRepository).save(client);
+    }
+
+    @Test
+    void shouldDeleteClient() {
+        // given
+        Long clientId = 1L;
+        Client client = new Client();
+        client.setId(clientId);
+        client.setActive(true);
+
+        when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
+        // it has to be an empty list of invoices, but we have to keep them for tax reporting
+        lenient().when(invoiceRepository.findByClientId(clientId)).thenReturn(List.of());
+
+        // when
+        clientService.deleteClient(clientId);
+
+        // then
         assertThat(client.isActive()).isFalse();
         verify(clientRepository).save(client);
     }
