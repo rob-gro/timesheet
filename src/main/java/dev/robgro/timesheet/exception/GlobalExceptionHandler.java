@@ -58,7 +58,6 @@ public class GlobalExceptionHandler {
                                     .map(error -> error.getField() + ": " + error.getMessage())
                                     .collect(Collectors.joining(", ")));
         }
-
         return new ResponseEntity<>(responseBuilder.build(), ex.getStatus());
     }
 
@@ -100,7 +99,6 @@ public class GlobalExceptionHandler {
                     .map(this::convertToValidationError)
                     .collect(Collectors.toList());
         } else if (ex instanceof dev.robgro.timesheet.exception.ValidationException validationException) {
-            // Pobierz listę błędów walidacji bezpośrednio z Twojego wyjątku
             validationErrors = validationException.getValidationErrors();
         } else {
             validationErrors = Collections.emptyList();
