@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:replace="~{head :: head}"></head>
 
@@ -10,6 +11,16 @@
             <div class="card">
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">Hourly Track</h2>
+
+                    <div class="text-center mb-3" style="color: #ffc008; font-weight: bold;">
+                        <p>Current user: <span sec:authentication="name" style="color: #ffc008;"></span></p>
+                        <p>Access level:
+                            <span th:with="auth=${#authentication.authorities[0]}" style="color: #ffc008;">
+                                <span th:text="${#strings.replace(auth, 'ROLE_', '')}"></span>
+                            </span>
+                        </p>
+                    </div>
+
                     <div class="d-grid gap-3">
                         <a th:href="@{/timesheet}"
                            class="nav-button text-center text-decoration-none">
@@ -28,13 +39,23 @@
                             Invoices
                         </a>
                         <a th:href="@{/clients}"
-                           class="nav-button text-center text-decoration-none">
+                           class="nav-button text-center text-decoration-none"
+                           sec:authorize="hasRole('ADMIN')">
                             Clients
                         </a>
                         <a th:href="@{/invoice-list}"
                            class="nav-button text-center text-decoration-none">
                             Invoices PDF
                         </a>
+                        <a th:href="@{/users}"
+                           class="nav-button text-center text-decoration-none"
+                           sec:authorize="hasRole('ADMIN')">
+                            Users Management
+                        </a>
+
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="nav-button w-100">Logout</button>
+                        </form>
                     </div>
                 </div>
             </div>

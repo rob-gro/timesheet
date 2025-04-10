@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="gb" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Management</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card">
+        <div class="container my-auto mx-auto">
+            <h2 class="text-center mb-4">User Management</h2>
+
+            <div class="mb-3">
+                <button type="button" class="nav-button" onclick="showAddUserForm()">Add New User</button>
+                <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main Page</button>
+                <button type="button" class="nav-button" style="float: right;" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- User List Table -->
+            <div id="userListSection">
+                <table class="table table-striped table-dark">
+                    <colgroup>
+                        <col style="width: 20%">
+                        <col style="width: 20%">
+                        <col style="width: 20%">
+                        <col style="width: 40%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                    <!-- Users will be loaded here from API -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Add/Edit User Form -->
+            <div id="userFormSection" style="display: none;">
+                <div class="card">
+                    <h2 id="userFormTitle">Add New User</h2>
+
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+
+                        <div class="form-row">
+                            <label for="username">Username:</label>
+                            <input type="text" id="username" required class="form-control">
+                        </div>
+
+                        <div class="form-row">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" class="form-control">
+                        </div>
+
+                        <div class="form-row" id="passwordSection">
+                            <label for="password">Password:</label>
+                            <input type="password" id="password" required class="form-control">
+                        </div>
+
+                        <div class="form-row">
+                            <label for="active">Status:</label>
+                            <select id="active" class="form-select">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="button-container">
+                            <button type="button" id="saveUserBtn" class="save-button">Save User</button>
+                            <button type="button" class="nav-button" onclick="cancelUserForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Password Form -->
+            <div id="passwordFormSection" style="display: none;">
+                <div class="card">
+                    <h2>Change Password</h2>
+
+                    <form id="passwordForm">
+                        <input type="hidden" id="passwordUserId">
+
+                        <div class="form-row">
+                            <label>Current Password:</label>
+                            <input type="password" id="currentPassword" required>
+                        </div>
+
+                        <div class="form-row">
+                            <label>New Password:</label>
+                            <input type="password" id="newPassword" required>
+                        </div>
+
+                        <div class="button-container">
+                            <button type="button" id="savePasswordBtn" class="save-button">Change Password</button>
+                            <button type="button" class="nav-button" onclick="cancelPasswordForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Roles Management Form -->
+            <div id="rolesFormSection" style="display: none;">
+                <div class="card">
+                    <h2>Manage User Roles</h2>
+
+                    <form id="rolesForm">
+                        <input type="hidden" id="rolesUserId">
+                        <div class="form-row">
+                            <label>User:</label>
+                            <span id="rolesUsername" class="form-label"></span>
+                        </div>
+
+                        <div class="form-row">
+                            <label>Roles:</label>
+                            <div class="roles-container">
+                                <div class="role-checkbox">
+                                    <input type="checkbox" id="roleAdmin" value="ROLE_ADMIN">
+                                    <label for="roleAdmin">Admin</label>
+                                </div>
+                                <div class="role-checkbox">
+                                    <input type="checkbox" id="roleUser" value="ROLE_USER">
+                                    <label for="roleUser">User</label>
+                                </div>
+                                <div class="role-checkbox">
+                                    <input type="checkbox" id="roleGuest" value="ROLE_GUEST">
+                                    <label for="roleGuest">Guest</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="button-container">
+                            <button type="button" id="saveRolesBtn" class="save-button">Save Roles</button>
+                            <button type="button" class="nav-button" onclick="cancelRolesForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/users.js}"></script>
+</body>
+</html>
