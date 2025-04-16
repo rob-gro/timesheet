@@ -164,7 +164,7 @@
                             </button>
                             <!-- W archive.html -->
                             <button class="save-button"
-                                    th:onclick="'window.location.href=\'/invoices/items/edit' + ${invoice.id} + '\''">Edit
+                                    th:onclick="'window.location.href=\'/invoices/items/edit/' + ${invoice.id} + '\''">Edit
                             </button>
                             <button class="del-button"
                                     th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete
