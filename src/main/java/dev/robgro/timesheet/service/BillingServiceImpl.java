@@ -68,29 +68,15 @@ public class BillingServiceImpl implements BillingService {
 
     @Transactional
     public InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
-        if (timesheetIds.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "No timesheets selected for invoice");
-        }
-
-        ClientDto client = clientService.getClientById(clientId);
-        List<TimesheetDto> selectedTimesheets = timesheetIds.stream()
-                .map(timesheetService::getTimesheetById)
-                .filter(timesheet -> !timesheet.invoiced())
-                .toList();
-
-        if (selectedTimesheets.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "All selected timesheets are already invoiced");
-        }
-
-        return invoiceCreationService.createInvoiceFromTimesheets(client, selectedTimesheets, issueDate);
+        return invoiceCreationService.createInvoice(clientId, issueDate, timesheetIds);
     }
 
+    @Transactional(readOnly = true)
     public List<InvoiceDto> getMonthlyInvoices(Long clientId, int year, int month) {
         return invoiceService.getMonthlyInvoices(clientId, year, month);
     }
 
+    @Transactional(readOnly = true)
     public List<InvoiceDto> getYearlyInvoices(Long clientId, int year) {
         return invoiceService.getYearlyInvoices(clientId, year);
     }

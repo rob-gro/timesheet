@@ -17,7 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
 @Controller
-@RequestMapping("/invoice-create")
+@RequestMapping("/invoices/create")
 @RequiredArgsConstructor
 public class InvoiceCreateController {
     private final InvoiceService invoiceService;
@@ -36,25 +36,22 @@ public class InvoiceCreateController {
         model.addAttribute("invoice", invoice);
         model.addAttribute("seller", invoiceSeller);
         model.addAttribute("client", client);
-        return "invoice-create";
+        return "invoices/create";
     }
 
     @PostMapping("/{id}")
     public String viewInvoice(@PathVariable Long id) {
-        return "invoice-create";
+        return "invoices/create";
     }
 
     @PostMapping("/{id}/save-and-send")
     public String saveAndSendInvoice(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            invoiceService.savePdfAndSendInvoice(id);
-            log.info("Successfully saved and sent invoice with ID: {}", id);
-            redirectAttributes.addFlashAttribute("success", "Invoice has been saved and sent");
-            return "redirect:/invoice-create/" + id;
-        } catch (Exception e) {
-            log.error("Failed to generate and send PDF for invoice ID: {}", id, e);
-            redirectAttributes.addFlashAttribute("error", "Failed to generate or send invoice: " + e.getMessage());
-            return "redirect:/invoice-create/" + id;
-        }
+        log.info("Saving and sending invoice ID: {}", id);
+
+        invoiceService.savePdfAndSendInvoice(id);
+
+        log.info("Successfully saved and sent invoice with ID: {}", id);
+        redirectAttributes.addFlashAttribute("success", "Invoice has been saved and sent");
+        return "redirect:/invoices/create/" + id;
     }
 }

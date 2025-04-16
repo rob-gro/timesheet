@@ -1,6 +1,8 @@
 package dev.robgro.timesheet.repository;
 
 import dev.robgro.timesheet.model.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +24,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
     List<User> findByRoleName(@Param("roleName") String roleName);
+
+    @Query("SELECT u FROM User u WHERE " +
+            "(:active IS NULL OR u.active = :active) AND " +
+            "(:username IS NULL OR u.username LIKE %:username%)")
+    Page<User> findByActiveAndUsername(
+            @Param("active") Boolean active,
+            @Param("username") String username,
+            Pageable pageable);
 }

@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.log('JS loaded');
+    const token = document.querySelector('meta[name="_csrf"]').content;
+    const header = document.querySelector('meta[name="_csrf_header"]').content;
     const filterForm = document.getElementById('filterForm');
     const fromYear = document.getElementById('fromYear');
     const fromMonth = document.getElementById('fromMonth');
@@ -9,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function validateDateRange() {
         if (!fromYear.value || !fromMonth.value || !toYear.value || !toMonth.value) {
-            return true; // Pozwalamy na niekompletne daty
+            return true;
         }
 
         const fromDate = new Date(fromYear.value, fromMonth.value - 1);
@@ -50,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         params.set('page', 0);
-        window.location.href = '/invoice-archive?' + params.toString();
+        window.location.href = '/invoices/archive?' + params.toString();
     });
 
     window.sortTable = function (column, direction) {
@@ -68,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             sortDir: direction
         };
 
-        const newUrl = new URL('/invoice-archive', window.location.origin);
+        const newUrl = new URL('/invoices/archive', window.location.origin);
         Object.entries(params).forEach(([key, value]) => {
             if (value) newUrl.searchParams.set(key, value);
         });
@@ -110,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     const url = `/api/v1/invoices/${id}/delete?deleteTimesheets=${deleteTimesheets}&detachFromClient=${deleteTimesheets}`;
                     console.log(`Request URL: ${url}`);
 
-                    // Dodaj wskaźnik ładowania
                     Swal.fire({
                         title: 'Deleting...',
                         text: 'Please wait while the invoice is being deleted',
@@ -123,7 +124,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     fetch(url, {
                         method: 'DELETE',
                         headers: {
-                            'Accept': 'application/json'
+                            'Accept': 'application/json',
+                            [header]: token
                         }
                     })
                         .then(response => {

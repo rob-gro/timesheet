@@ -1,0 +1,55 @@
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #161b22;
+    border: 2px solid #ffc008;
+    padding: 20px;
+    z-index: 1000;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal h3 {
+    color: #ffc008;
+    margin-bottom: 20px;
+}
+
+.modal p {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.modal .password-container {
+    background-color: #233333;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 16px;
+    color: #ffc008;
+}
+
+.modal .warning {
+    color: white;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.modal .warning span {
+    color: #ff5555;
+}
+
+.modal button {
+    background-color: #233333;
+    color: #ffc008;
+    border: 1px solid #ffc008;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal button:hover {
+    background-color: #2a3b3b;
+}

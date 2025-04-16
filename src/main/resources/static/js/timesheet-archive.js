@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Odczepianie timesheet od faktury
+
     window.detachTimesheet = function(id) {
         if (confirm('Are you sure you want to detach this timesheet from invoice?')) {
             fetch(`/api/v1/timesheets/${id}/detach`, {
@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Usuwanie timesheet
     window.deleteTimesheet = function(id) {
         if (confirm('Are you sure you want to delete this timesheet?')) {
             fetch(`/api/v1/timesheets/${id}`, {

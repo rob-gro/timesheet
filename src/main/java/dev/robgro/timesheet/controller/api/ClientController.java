@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -70,19 +69,12 @@ public class ClientController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Client successfully deleted"),
             @ApiResponse(responseCode = "404", description = "Client not found"),
+            @ApiResponse(responseCode = "409", description = "Client cannot be deleted due to existing references"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
-        try {
-            clientService.deleteClient(id);
-            return ResponseEntity.ok().build();
-        } catch (ResponseStatusException e) {
-            log.error("Error deleting client with id: {}", id, e);
-            return ResponseEntity.status(e.getStatusCode()).build();
-        } catch (Exception e) {
-            log.error("Unexpected error while deleting client with id: {}", id, e);
-            return ResponseEntity.internalServerError().build();
-        }
+        clientService.deleteClient(id);
+        return ResponseEntity.noContent().build();
     }
 }

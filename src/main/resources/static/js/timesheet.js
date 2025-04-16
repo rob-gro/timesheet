@@ -37,10 +37,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             form.reset();
                         }, 3000);
                     }
+                } else {
+                    throw new Error('Failed to save timesheet');
                 }
             })
             .catch(error => {
                 console.error('Fetch error:', error);
+                alert('Something went wrong. Please try again.');
             })
             .finally(() => {
                 submitButton.disabled = false;
@@ -60,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
     const dateInput = document.getElementById('serviceDate');
 
-    // Ustawienie domyślnej daty tylko dla nowego timesheeta
     if (!document.querySelector('input[name="id"]')) {
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -69,7 +71,6 @@ document.addEventListener('DOMContentLoaded', function () {
         dateInput.value = `${yyyy}-${mm}-${dd}`;
     }
 
-    // Walidacja daty przed wysłaniem formularza
     document.getElementById('timesheet').addEventListener('submit', function (e) {
         if (!dateInput.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
             e.preventDefault();

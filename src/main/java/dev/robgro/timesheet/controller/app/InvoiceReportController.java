@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @Controller
-@RequestMapping("/invoice-reports")
+@RequestMapping("/invoices/reports")
 @RequiredArgsConstructor
 public class InvoiceReportController {
 
@@ -42,6 +42,6 @@ public class InvoiceReportController {
             model.addAttribute("clientName", reportData.clientName());
         }
 
-        return "invoice-report";
+        return "invoices/reports";
     }
 }

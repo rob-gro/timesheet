@@ -83,16 +83,13 @@ public class UserController {
             @PathVariable Long id,
             @Valid @RequestBody PasswordChangeDto passwordDto) {
         log.debug("REST request to change password for User : {}", id);
-        boolean changed = userService.changePassword(
+
+        userService.changePassword(
                 id,
                 passwordDto.currentPassword(),
                 passwordDto.newPassword()
         );
-
-        if (changed) {
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Reset user password")

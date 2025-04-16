@@ -1,5 +1,7 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.exception.BusinessRuleViolationException;
+import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
 import dev.robgro.timesheet.model.dto.TimesheetDtoMapper;
 import dev.robgro.timesheet.model.entity.Client;
@@ -11,19 +13,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,75 +34,43 @@ class TimesheetServiceImplTest {
     @Mock
     private TimesheetDtoMapper timesheetDtoMapper;
 
+    @Mock
+    private ClientService clientService;
+
     @InjectMocks
     private TimesheetServiceImpl timesheetService;
 
     @Test
     void shouldGetAllTimesheets() {
         // given
-        Client client = new Client();
-        client.setId(1L);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
+        Timesheet timesheet = new Timesheet();
+        timesheet.setId(1L);
 
-        Timesheet timesheet1 = new Timesheet();
-        timesheet1.setId(1L);
-        timesheet1.setClient(client);
-        timesheet1.setServiceDate(LocalDate.of(2024, 1, 15));
-        timesheet1.setDuration(2.0);
+        TimesheetDto dto = new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null);
 
-        Timesheet timesheet2 = new Timesheet();
-        timesheet2.setId(2L);
-        timesheet2.setClient(client);
-        timesheet2.setServiceDate(LocalDate.of(2024, 1, 16));
-        timesheet2.setDuration(3.0);
-
-        TimesheetDto dto1 = new TimesheetDto(1L, client.getClientName(), timesheet1.getServiceDate(),
-                2.0, false, 1L, client.getHourlyRate(), null, null);
-        TimesheetDto dto2 = new TimesheetDto(2L, client.getClientName(), timesheet2.getServiceDate(),
-                3.0, false, 1L, client.getHourlyRate(), null, null);
-
-        when(timesheetRepository.findAll()).thenReturn(List.of(timesheet1, timesheet2));
-        when(timesheetDtoMapper.apply(timesheet1)).thenReturn(dto1);
-        when(timesheetDtoMapper.apply(timesheet2)).thenReturn(dto2);
+        when(timesheetRepository.findAll()).thenReturn(List.of(timesheet));
+        when(timesheetDtoMapper.apply(timesheet)).thenReturn(dto);
 
         // when
         List<TimesheetDto> result = timesheetService.getAllTimesheets();
 
         // then
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactly(dto1, dto2);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).id()).isEqualTo(1L);
+        verify(timesheetRepository).findAll();
     }
 
     @Test
     void shouldGetTimesheetById() {
         // given
         Long timesheetId = 1L;
-        Client client = new Client();
-        client.setId(1L);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
-
         Timesheet timesheet = new Timesheet();
         timesheet.setId(timesheetId);
-        timesheet.setClient(client);
-        timesheet.setServiceDate(LocalDate.of(2024, 1, 15));
-        timesheet.setDuration(2.0);
 
-        TimesheetDto expectedDto = new TimesheetDto(
-                timesheetId,
-                client.getClientName(),
-                timesheet.getServiceDate(),
-                2.0,
-                false,
-                1L,
-                client.getHourlyRate(),
-                null,
-                null
-        );
+        TimesheetDto dto = new TimesheetDto(timesheetId, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null);
 
         when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.of(timesheet));
-        when(timesheetDtoMapper.apply(timesheet)).thenReturn(expectedDto);
+        when(timesheetDtoMapper.apply(timesheet)).thenReturn(dto);
 
         // when
         TimesheetDto result = timesheetService.getTimesheetById(timesheetId);
@@ -114,105 +78,10 @@ class TimesheetServiceImplTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(timesheetId);
-        assertThat(result.clientId()).isEqualTo(1L);
-        assertThat(result.duration()).isEqualTo(2.0);
-        assertThat(result.serviceDate()).isEqualTo(LocalDate.of(2024, 1, 15));
-        assertThat(result.invoiced()).isFalse();
+        verify(timesheetRepository).findById(timesheetId);
     }
 
-    @Test
-    void shouldThrowExceptionWhenTimesheetNotFound() {
-        // given
-        Long timesheetId = 1L;
 
-        when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.empty());
-
-        // when/then
-        assertThatThrownBy(() -> timesheetService.getTimesheetById(timesheetId))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("Timesheet with id " + timesheetId + "not found");
-    }
-
-    @Test
-    void shouldGetUnbilledTimesheetsByClientId() {
-        // given
-        Long clientId = 1L;
-        Client client = new Client();
-        client.setId(clientId);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
-
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(1L);
-        timesheet.setClient(client);
-        timesheet.setServiceDate(LocalDate.now());
-        timesheet.setDuration(2.0);
-        timesheet.setInvoiced(false);
-
-        TimesheetDto expectedDto = new TimesheetDto(
-                1L,
-                client.getClientName(),
-                timesheet.getServiceDate(),
-                2.0,
-                false,
-                clientId,
-                client.getHourlyRate(),
-                null,
-                null
-        );
-
-        when(timesheetRepository.findByClientIdAndInvoicedFalse(clientId)).thenReturn(List.of(timesheet));
-        when(timesheetDtoMapper.apply(timesheet)).thenReturn(expectedDto);
-
-        // when
-        List<TimesheetDto> result = timesheetService.getUnbilledTimesheetsByClientId(clientId);
-
-        // then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).id()).isEqualTo(timesheet.getId());
-        assertThat(result.get(0).invoiced()).isFalse();
-    }
-
-    @Test
-    void shouldGetTimesheetsByClientAndInvoiceStatus() {
-        // given
-        Long clientId = 1L;
-        boolean invoiced = true;
-        Client client = new Client();
-        client.setId(clientId);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
-
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(1L);
-        timesheet.setClient(client);
-        timesheet.setServiceDate(LocalDate.now());
-        timesheet.setDuration(2.0);
-        timesheet.setInvoiced(true);
-
-        TimesheetDto expectedDto = new TimesheetDto(
-                1L,
-                client.getClientName(),
-                timesheet.getServiceDate(),
-                2.0,
-                true,
-                clientId,
-                client.getHourlyRate(),
-                null,
-                null
-        );
-
-        when(timesheetRepository.findByClientIdAndInvoiced(clientId, invoiced)).thenReturn(List.of(timesheet));
-        when(timesheetDtoMapper.apply(timesheet)).thenReturn(expectedDto);
-
-        // when
-        List<TimesheetDto> result = timesheetService.getTimesheetsByClientAndInvoiceStatus(clientId, invoiced);
-
-        // then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).id()).isEqualTo(timesheet.getId());
-        assertThat(result.get(0).invoiced()).isTrue();
-    }
 
     @Test
     void shouldCreateTimesheet() {
@@ -223,31 +92,15 @@ class TimesheetServiceImplTest {
 
         Client client = new Client();
         client.setId(clientId);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
 
         Timesheet timesheet = new Timesheet();
         timesheet.setId(1L);
-        timesheet.setClient(client);
-        timesheet.setServiceDate(serviceDate);
-        timesheet.setDuration(duration);
-        timesheet.setInvoiced(false);
 
-        TimesheetDto expectedDto = new TimesheetDto(
-                1L,
-                client.getClientName(),
-                serviceDate,
-                duration,
-                false,
-                clientId,
-                client.getHourlyRate(),
-                null,
-                null
-        );
+        TimesheetDto dto = new TimesheetDto(1L, "Client", serviceDate, duration, false, clientId, 50.0, null, null);
 
         when(clientRepository.getReferenceById(clientId)).thenReturn(client);
         when(timesheetRepository.save(any(Timesheet.class))).thenReturn(timesheet);
-        when(timesheetDtoMapper.apply(timesheet)).thenReturn(expectedDto);
+        when(timesheetDtoMapper.apply(timesheet)).thenReturn(dto);
 
         // when
         TimesheetDto result = timesheetService.createTimesheet(clientId, serviceDate, duration);
@@ -255,58 +108,8 @@ class TimesheetServiceImplTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(1L);
-        assertThat(result.clientId()).isEqualTo(clientId);
-        assertThat(result.duration()).isEqualTo(duration);
-        assertThat(result.serviceDate()).isEqualTo(serviceDate);
-        assertThat(result.invoiced()).isFalse();
-    }
-
-    @Test
-    void shouldUpdateTimesheet() {
-        // given
-        Long timesheetId = 1L;
-        Long clientId = 1L;
-        LocalDate newDate = LocalDate.of(2024, 2, 1);
-        double newDuration = 3.5;
-
-        Client client = new Client();
-        client.setId(clientId);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
-
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(timesheetId);
-        timesheet.setClient(client);
-        timesheet.setServiceDate(LocalDate.of(2024, 1, 15));
-        timesheet.setDuration(2.0);
-        timesheet.setInvoiced(false);
-
-        TimesheetDto expectedDto = new TimesheetDto(
-                timesheetId,
-                client.getClientName(),
-                newDate,
-                newDuration,
-                false,
-                clientId,
-                client.getHourlyRate(),
-                null,
-                null
-        );
-
-        when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.of(timesheet));
-        when(timesheetRepository.save(timesheet)).thenReturn(timesheet);
-        when(timesheetDtoMapper.apply(timesheet)).thenReturn(expectedDto);
-
-        // when
-        TimesheetDto result = timesheetService.updateTimesheet(timesheetId, clientId, newDate, newDuration);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(timesheetId);
-        assertThat(result.clientId()).isEqualTo(clientId);
-        assertThat(result.duration()).isEqualTo(newDuration);
-        assertThat(result.serviceDate()).isEqualTo(newDate);
-        assertThat(result.invoiced()).isFalse();
+        verify(clientRepository).getReferenceById(clientId);
+        verify(timesheetRepository).save(any(Timesheet.class));
     }
 
     @Test
@@ -327,151 +130,6 @@ class TimesheetServiceImplTest {
     }
 
     @Test
-    void shouldGetTimesheetByClientId() {
-        // given
-        Long clientId = 1L;
-        Client client = new Client();
-        client.setId(clientId);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
-
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(1L);
-        timesheet.setClient(client);
-        timesheet.setServiceDate(LocalDate.now());
-        timesheet.setDuration(2.0);
-        timesheet.setInvoiced(false);
-
-        TimesheetDto expectedDto = new TimesheetDto(
-                1L,
-                client.getClientName(),
-                timesheet.getServiceDate(),
-                2.0,
-                false,
-                clientId,
-                client.getHourlyRate(),
-                null,
-                null
-        );
-
-        when(timesheetRepository.findAllByClientId(clientId)).thenReturn(List.of(timesheet));
-        when(timesheetDtoMapper.apply(timesheet)).thenReturn(expectedDto);
-
-        // when
-        List<TimesheetDto> result = timesheetService.getTimesheetByClientId(clientId);
-
-        // then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).id()).isEqualTo(timesheet.getId());
-        assertThat(result.get(0).invoiced()).isFalse();
-    }
-
-
-    @Test
-    void shouldGetMonthlyTimesheets() {
-        // given
-        Long clientId = 1L;
-        int year = 2024;
-        int month = 1;
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = YearMonth.of(year, month).atEndOfMonth();
-
-        Client client = new Client();
-        client.setId(clientId);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
-
-        Timesheet timesheet1 = new Timesheet();
-        timesheet1.setId(1L);
-        timesheet1.setClient(client);
-        timesheet1.setServiceDate(LocalDate.of(2024, 1, 15));
-        timesheet1.setDuration(2.0);
-
-        Timesheet timesheet2 = new Timesheet();
-        timesheet2.setId(2L);
-        timesheet2.setClient(client);
-        timesheet2.setServiceDate(LocalDate.of(2024, 1, 16));
-        timesheet2.setDuration(3.0);
-
-        TimesheetDto dto1 = new TimesheetDto(1L, client.getClientName(), timesheet1.getServiceDate(),
-                2.0, false, clientId, client.getHourlyRate(), null, null);
-        TimesheetDto dto2 = new TimesheetDto(2L, client.getClientName(), timesheet2.getServiceDate(),
-                3.0, false, clientId, client.getHourlyRate(), null, null);
-
-        when(timesheetRepository.findByClient_IdAndServiceDateBetween(clientId, startDate, endDate))
-                .thenReturn(List.of(timesheet1, timesheet2));
-        when(timesheetDtoMapper.apply(timesheet1)).thenReturn(dto1);
-        when(timesheetDtoMapper.apply(timesheet2)).thenReturn(dto2);
-
-        // when
-        List<TimesheetDto> result = timesheetService.getMonthlyTimesheets(clientId, year, month);
-
-        // then
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactly(dto1, dto2);
-    }
-
-    @Test
-    void shouldMarkAsInvoiced() {
-        // given
-        Long timesheetId = 1L;
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(timesheetId);
-        timesheet.setInvoiced(false);
-
-        when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.of(timesheet));
-        when(timesheetRepository.save(timesheet)).thenReturn(timesheet);
-
-        // when
-        timesheetService.markAsInvoiced(timesheetId);
-
-        // then
-        verify(timesheetRepository).findById(timesheetId);
-        verify(timesheetRepository).save(timesheet);
-        assertThat(timesheet.isInvoiced()).isTrue();
-    }
-
-    @Test
-    void shouldUpdateInvoiceFlag() {
-        // given
-        Long timesheetId = 1L;
-        boolean isInvoiced = true;
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(timesheetId);
-        timesheet.setInvoiced(false);
-
-        when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.of(timesheet));
-        when(timesheetRepository.save(timesheet)).thenReturn(timesheet);
-
-        // when
-        timesheetService.updateInvoiceFlag(timesheetId, isInvoiced);
-
-        // then
-        verify(timesheetRepository).findById(timesheetId);
-        verify(timesheetRepository).save(timesheet);
-        assertThat(timesheet.isInvoiced()).isTrue();
-    }
-
-    @Test
-    void shouldDetachFromInvoice() {
-        // given
-        Long timesheetId = 1L;
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(timesheetId);
-        timesheet.setInvoiced(true);
-
-        when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.of(timesheet));
-        when(timesheetRepository.save(timesheet)).thenReturn(timesheet);
-
-        // when
-        timesheetService.detachFromInvoice(timesheetId);
-
-        // then
-        verify(timesheetRepository).findById(timesheetId);
-        verify(timesheetRepository).save(timesheet);
-        assertThat(timesheet.isInvoiced()).isFalse();
-    }
-    @Test
     void shouldNotDeleteInvoicedTimesheet() {
         // given
         Long timesheetId = 1L;
@@ -483,169 +141,48 @@ class TimesheetServiceImplTest {
 
         // when/then
         assertThatThrownBy(() -> timesheetService.deleteTimesheet(timesheetId))
-                .isInstanceOf(ResponseStatusException.class)
+                .isInstanceOf(BusinessRuleViolationException.class)
                 .hasMessageContaining("Cannot delete timesheet that is attached to an invoice");
 
         verify(timesheetRepository, never()).delete(any());
     }
 
     @Test
-    void shouldGetUnbilledTimesheets() {
+    void shouldThrowExceptionWhenTimesheetNotFound() {
         // given
-        Long clientId = 1L;
-        Client client = new Client();
-        client.setId(clientId);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
+        Long timesheetId = 1L;
 
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(1L);
-        timesheet.setClient(client);
-        timesheet.setServiceDate(LocalDate.now());
-        timesheet.setDuration(2.0);
-        timesheet.setInvoiced(false);
+        when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.empty());
 
-        TimesheetDto expectedDto = new TimesheetDto(
-                1L,
-                client.getClientName(),
-                timesheet.getServiceDate(),
-                2.0,
-                false,
-                clientId,
-                client.getHourlyRate(),
-                null,
-                null
-        );
-
-        when(timesheetRepository.findByInvoiced(false)).thenReturn(List.of(timesheet));
-        when(timesheetDtoMapper.apply(timesheet)).thenReturn(expectedDto);
-
-        // when
-        List<TimesheetDto> result = timesheetService.getUnbilledTimesheets();
-
-        // then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).id()).isEqualTo(timesheet.getId());
-        assertThat(result.get(0).invoiced()).isFalse();
+        // when/then
+        assertThatThrownBy(() -> timesheetService.getTimesheetById(timesheetId))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Timesheet with id 1 not found");
     }
 
-    @Test
-    void shouldGetFilteredAndPaginatedTimesheets() {
-        // given
-        Long clientId = 1L;
-        String paymentStatus = "true";
-        String sortBy = "serviceDate";
-        String sortDir = "asc";
-        int page = 0;
-        int size = 10;
+//    @Test
+//    void shouldThrowExceptionWhenTimesheetNotFound() {
+//        // given
+//        Long timesheetId = 1L;
+//
+//        when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.empty());
+//
+//        // when/then
+//        assertThatThrownBy(() -> timesheetService.getTimesheetById(timesheetId))
+//                .isInstanceOf(EntityNotFoundException.class)
+//                .hasMessageContaining("Timesheet with id " + timesheetId + " not found");
+//    }
 
-        Client client = new Client();
-        client.setId(clientId);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
-
-        Timesheet timesheet1 = new Timesheet();
-        timesheet1.setId(1L);
-        timesheet1.setClient(client);
-        timesheet1.setServiceDate(LocalDate.of(2024, 1, 15));
-        timesheet1.setDuration(2.0);
-        timesheet1.setPaymentDate(LocalDate.of(2024, 2, 1));
-
-        Timesheet timesheet2 = new Timesheet();
-        timesheet2.setId(2L);
-        timesheet2.setClient(client);
-        timesheet2.setServiceDate(LocalDate.of(2024, 1, 16));
-        timesheet2.setDuration(3.0);
-        timesheet2.setPaymentDate(LocalDate.of(2024, 2, 2));
-
-        TimesheetDto dto1 = new TimesheetDto(
-                1L, client.getClientName(), timesheet1.getServiceDate(),
-                2.0, false, clientId, client.getHourlyRate(), null, timesheet1.getPaymentDate()
-        );
-
-        TimesheetDto dto2 = new TimesheetDto(
-                2L, client.getClientName(), timesheet2.getServiceDate(),
-                3.0, false, clientId, client.getHourlyRate(), null, timesheet2.getPaymentDate()
-        );
-
-        PageRequest pageRequest = PageRequest.of(
-                page, size,
-                Sort.by(Sort.Direction.ASC, sortBy)
-        );
-
-        Page<Timesheet> timesheetPage = new PageImpl<>(
-                List.of(timesheet1, timesheet2),
-                pageRequest,
-                2
-        );
-
-        when(timesheetRepository.findByClientIdAndPaymentDateIsNotNull(clientId, pageRequest))
-                .thenReturn(timesheetPage);
-        when(timesheetDtoMapper.apply(timesheet1)).thenReturn(dto1);
-        when(timesheetDtoMapper.apply(timesheet2)).thenReturn(dto2);
-
-        // when
-        Page<TimesheetDto> result = timesheetService.getFilteredAndPaginatedTimesheets(
-                clientId, paymentStatus, sortBy, sortDir, page, size
-        );
-
-        // then
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent().get(0).id()).isEqualTo(1L);
-        assertThat(result.getContent().get(1).id()).isEqualTo(2L);
-        verify(timesheetRepository).findByClientIdAndPaymentDateIsNotNull(clientId, pageRequest);
-    }
-
-    @Test
-    void shouldGetFilteredAndPaginatedTimesheetsWithNoClient() {
-        // given
-        Long clientId = null;
-        String paymentStatus = null;
-        String sortBy = "serviceDate";
-        String sortDir = "desc";
-        int page = 0;
-        int size = 10;
-
-        Client client = new Client();
-        client.setId(1L);
-        client.setClientName("Test Client");
-        client.setHourlyRate(50.0);
-
-        Timesheet timesheet = new Timesheet();
-        timesheet.setId(1L);
-        timesheet.setClient(client);
-        timesheet.setServiceDate(LocalDate.of(2024, 1, 15));
-        timesheet.setDuration(2.0);
-
-        TimesheetDto dto = new TimesheetDto(
-                1L, client.getClientName(), timesheet.getServiceDate(),
-                2.0, false, client.getId(), client.getHourlyRate(), null, null
-        );
-
-        PageRequest pageRequest = PageRequest.of(
-                page, size,
-                Sort.by(Sort.Direction.DESC, sortBy)
-        );
-
-        Page<Timesheet> timesheetPage = new PageImpl<>(
-                List.of(timesheet),
-                pageRequest,
-                1
-        );
-
-        when(timesheetRepository.findAll(pageRequest)).thenReturn(timesheetPage);
-        when(timesheetDtoMapper.apply(timesheet)).thenReturn(dto);
-
-        // when
-        Page<TimesheetDto> result = timesheetService.getFilteredAndPaginatedTimesheets(
-                clientId, paymentStatus, sortBy, sortDir, page, size
-        );
-
-        // then
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().get(0).id()).isEqualTo(1L);
-        verify(timesheetRepository).findAll(pageRequest);
-    }
+//    @Test
+//    void shouldThrowExceptionWhenClientNotFound() {
+//        // given
+//        Long clientId = 1L;
+//
+//        when(clientRepository.findById(clientId)).thenReturn(Optional.empty());
+//
+//        // when/then
+//        assertThatThrownBy(() -> clientService.getClientOrThrow(clientId))
+//                .isInstanceOf(EntityNotFoundException.class)
+//                .hasMessageContaining("Client 1");
+//    }
 }

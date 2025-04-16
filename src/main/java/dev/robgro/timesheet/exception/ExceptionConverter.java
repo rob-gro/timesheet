@@ -3,10 +3,6 @@ package dev.robgro.timesheet.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-/**
- * Utility class for converting between ResponseStatusException and application exceptions.
- * Helpful for migrating code from using ResponseStatusException to the new exceptions framework.
- */
 public final class ExceptionConverter {
 
     private ExceptionConverter() {
@@ -26,8 +22,8 @@ public final class ExceptionConverter {
         } else if (ex.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
             return new IntegrationException(ex.getReason(), ex);
         } else {
-            // Fallback - create a BaseApplicationException with the same status
-            return new BaseApplicationException(ex.getReason(), HttpStatus.valueOf(ex.getStatusCode().value()), "API_ERROR") {};
+            return new BaseApplicationException(ex.getReason(), HttpStatus.valueOf(ex.getStatusCode().value()), "API_ERROR") {
+            };
         }
     }
 
@@ -45,7 +41,7 @@ public final class ExceptionConverter {
             String entityName = parts[0];
             String idPart = parts[1].split(" not found")[0];
             try {
-                 Long id = Long.parseLong(idPart);
+                Long id = Long.parseLong(idPart);
                 return new EntityNotFoundException(entityName, id);
             } catch (NumberFormatException e) {
                 return new EntityNotFoundException(entityName, idPart);

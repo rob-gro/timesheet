@@ -1,5 +1,6 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.ClientDtoMapper;
 import dev.robgro.timesheet.model.dto.OperationResult;
@@ -7,10 +8,8 @@ import dev.robgro.timesheet.model.entity.Client;
 import dev.robgro.timesheet.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,22 +23,30 @@ public class ClientServiceImpl implements ClientService {
     private final ClientDtoMapper clientDtoMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<ClientDto> getAllClients() {
-        return clientRepository.findByActiveTrue().stream()
+        return clientRepository.findAllActiveOrderByName().stream()
                 .map(clientDtoMapper)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ClientDto getClientById(Long id) {
         return clientDtoMapper.apply(getClientOrThrow(id));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ClientDto> searchClientsByName(String name) {
+        return clientRepository.findActiveClientsByName(name).stream()
+                .map(clientDtoMapper)
+                .collect(Collectors.toList());
+    }
+
     private Client getClientOrThrow(Long id) {
         return clientRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Client with id " + id + " not found"
-                ));
+                .orElseThrow(() -> new EntityNotFoundException("Client", id));
     }
 
     @Override
@@ -79,7 +86,8 @@ public class ClientServiceImpl implements ClientService {
     @Transactional
     @Override
     public void deleteClient(Long id) {
-        Client client = getClientOrThrow(id);
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Client", id));
         client.setActive(false);
         clientRepository.save(client);
         log.info("Client with id {} has been deactivated", id);
@@ -98,5 +106,21 @@ public class ClientServiceImpl implements ClientService {
             log.error("Failed to deactivate client with id: {}", id, e);
             return new OperationResult(false, "Unable to deactivate client");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ClientDto createEmptyClientDto() {
+        return new ClientDto(
+                null,    // id
+                "",         // clientName
+                0.0,        // hourlyRate
+                0L,         // houseNo
+                "",         // streetName
+                "",         // city
+                "",         // postCode
+                "",         // email
+                true        // is active
+        );
     }
 }

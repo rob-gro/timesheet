@@ -168,7 +168,7 @@ public class FtpService {
     private FTPSClient createFtpsClient() {
         FTPSClient ftpsClient = new FTPSClient(false); // Explicit mode
 
-        ftpsClient.setEnabledProtocols(new String[] { "TLSv1.2", "TLSv1.3" });
+        ftpsClient.setEnabledProtocols(new String[]{"TLSv1.2", "TLSv1.3"});
 
         ftpsClient.setConnectTimeout(connectionTimeout);
         ftpsClient.setDefaultTimeout(connectionTimeout);
@@ -192,12 +192,16 @@ public class FtpService {
 
             int reply = ftpsClient.getReplyCode();
             if (!FTPReply.isPositiveCompletion(reply)) {
-                throw new IOException("Failed to connect to FTP server. Reply code: " + reply);
+                String errorMsg = "Failed to connect to FTP server. Reply code: " + reply;
+                log.error(errorMsg);
+                throw new IOException(errorMsg);
             }
 
             if (!ftpsClient.login(username, password)) {
                 logFtpResponse(ftpsClient, "Login");
-                throw new IOException("Failed to login to FTP server. Invalid credentials.");
+                String errorMsg = "Failed to login to FTP server. Invalid credentials.";
+                log.error(errorMsg);
+                throw new IOException(errorMsg);
             }
 
             logFtpResponse(ftpsClient, "Login");
@@ -212,7 +216,7 @@ public class FtpService {
 
             log.debug("Successfully connected to FTP server");
         } catch (IOException e) {
-            log.error("Failed to connect to FTP server: {}:{}", server, port, e);
+            log.error("Failed to connect to FTP server: {}:{} - {}", server, port, e.getMessage());
             throw new FtpException("Connection to FTP server failed: " + e.getMessage(), e);
         }
     }
@@ -250,9 +254,15 @@ public class FtpService {
 
     private TrustManager createAllTrustingManager() {
         return new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() { return null; }
-            public void checkClientTrusted(X509Certificate[] certs, String authType) { }
-            public void checkServerTrusted(X509Certificate[] certs, String authType) { }
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
         };
     }
 

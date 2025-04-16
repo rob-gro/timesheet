@@ -1,6 +1,6 @@
 let invoiceId;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     invoiceId = document.getElementById('invoiceId').value;
 });
 
@@ -13,7 +13,7 @@ function savePdfAndSendEmail() {
     button.disabled = true;
     button.textContent = 'Processing...';
 
-    fetch(`/invoice-create/${invoiceId}/save-and-send`, {
+    fetch(`/invoices/create/${invoiceId}/save-and-send`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ function savePdfAndSendEmail() {
             if (response.ok) {
                 alert('😀 Invoice has been saved and sent to the client 😀');
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.href = '/invoices/items';
                 }, 3000);
             } else {
                 throw new Error(`Status: ${response.status}`);

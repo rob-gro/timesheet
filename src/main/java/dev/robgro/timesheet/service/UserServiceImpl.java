@@ -2,6 +2,7 @@ package dev.robgro.timesheet.service;
 
 import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.exception.ResourceAlreadyExistsException;
+import dev.robgro.timesheet.exception.ValidationException;
 import dev.robgro.timesheet.model.dto.UserDto;
 import dev.robgro.timesheet.model.dto.UserDtoMapper;
 import dev.robgro.timesheet.model.entity.Role;
@@ -9,6 +10,8 @@ import dev.robgro.timesheet.model.entity.User;
 import dev.robgro.timesheet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +45,21 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .map(userDtoMapper)
                 .orElseThrow(() -> new EntityNotFoundException("User ", id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDto> getUsersByRole(String roleName) {
+        return userRepository.findByRoleName(roleName).stream()
+                .map(userDtoMapper)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserDto> searchUsers(Boolean active, String username, Pageable pageable) {
+        return userRepository.findByActiveAndUsername(active, username, pageable)
+                .map(userDtoMapper);
     }
 
     @Override
@@ -95,17 +113,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean changePassword(Long id, String currentPassword, String newPassword) {
+    public void changePassword(Long id, String currentPassword, String newPassword) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User", id));
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            return false;
+            throw new ValidationException("Current password is incorrect");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        return true;
     }
 
     private String generateRandomPassword() {
@@ -167,7 +184,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public UserDto createUserWithPassword(UserDto userDto, String rawPassword) {
 
         if (userRepository.existsByUsername(userDto.username())) {

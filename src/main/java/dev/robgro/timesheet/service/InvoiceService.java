@@ -28,7 +28,6 @@ public interface InvoiceService {
 
     byte[] getInvoicePdfContent(Long invoiceId);
 
-    //    InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
     void savePdfAndSendInvoice(Long id);
 
     List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);

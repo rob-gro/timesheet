@@ -4,4 +4,5 @@ import java.util.Set;
 
 public record RoleUpdateDto(
         Set<String> roleNames
-) {}
+) {
+}

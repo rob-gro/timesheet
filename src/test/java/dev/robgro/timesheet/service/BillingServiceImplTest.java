@@ -10,17 +10,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BillingServiceImplTest {
@@ -41,158 +37,29 @@ class BillingServiceImplTest {
     private BillingServiceImpl billingService;
 
     @Test
-    void shouldGenerateMonthlyInvoicesForAllClients() {
+    void shouldGenerateMonthlyInvoices() {
         // given
         int year = 2024;
         int month = 1;
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
 
-        ClientDto client1 = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email1@test.com", true);
-        ClientDto client2 = new ClientDto(2L, "Client 2", 60.0, 2L, "Street", "City", "12345", "email2@test.com", true);
+        ClientDto client = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
+        TimesheetDto timesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, false, 1L, 50.0, null, null);
+        InvoiceDto invoice = new InvoiceDto(1L, 1L, "Client 1", "INV-001", lastDayOfMonth, null, null, List.of(), null, null);
 
-        TimesheetDto timesheet1 = new TimesheetDto(
-                1L,
-                client1.clientName(),
-                LocalDate.of(2024, 1, 15),
-                2.0,
-                false,
-                client1.id(),
-                client1.hourlyRate(),
-                null,
-                null
-        );
-
-        TimesheetDto timesheet2 = new TimesheetDto(
-                2L,
-                client2.clientName(),
-                LocalDate.of(2024, 1, 16),
-                3.0,
-                false,
-                client2.id(),
-                client2.hourlyRate(),
-                null,
-                null
-        );
-
-        List<TimesheetDto> timesheets1 = List.of(timesheet1);
-        List<TimesheetDto> timesheets2 = List.of(timesheet2);
-
-        InvoiceDto invoice1 = new InvoiceDto(
-                1L,
-                client1.id(),
-                client1.clientName(),
-                "INV-001",
-                lastDayOfMonth,
-                BigDecimal.valueOf(100),
-                null,
-                List.of(),
-                null,
-                null
-        );
-
-        InvoiceDto invoice2 = new InvoiceDto(
-                2L,
-                client2.id(),
-                client2.clientName(),
-                "INV-002",
-                lastDayOfMonth,
-                BigDecimal.valueOf(180),
-                null,
-                List.of(),
-                null,
-                null
-        );
+        when(clientService.getAllClients()).thenReturn(List.of(client));
+        when(timesheetService.getMonthlyTimesheets(client.id(), year, month)).thenReturn(List.of(timesheet));
+        when(invoiceCreationService.createInvoice(client.id(), lastDayOfMonth, List.of(timesheet.id()))).thenReturn(invoice);
 
         // when
-        when(clientService.getAllClients()).thenReturn(List.of(client1, client2));
-        when(timesheetService.getMonthlyTimesheets(client1.id(), year, month))
-                .thenReturn(timesheets1);
-        when(timesheetService.getMonthlyTimesheets(client2.id(), year, month))
-                .thenReturn(timesheets2);
-        when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
-        when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
-        when(clientService.getClientById(client1.id())).thenReturn(client1);
-        when(clientService.getClientById(client2.id())).thenReturn(client2);
-
-        // Zmiana: teraz używamy invoiceCreationService zamiast invoiceService
-        when(invoiceCreationService.createInvoiceFromTimesheets(eq(client1), anyList(), eq(lastDayOfMonth)))
-                .thenReturn(invoice1);
-        when(invoiceCreationService.createInvoiceFromTimesheets(eq(client2), anyList(), eq(lastDayOfMonth)))
-                .thenReturn(invoice2);
-
         List<InvoiceDto> result = billingService.generateMonthlyInvoices(year, month);
 
         // then
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting(InvoiceDto::id)
-                .containsExactly(invoice1.id(), invoice2.id());
-
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).id()).isEqualTo(invoice.id());
         verify(clientService).getAllClients();
-        verify(timesheetService).getMonthlyTimesheets(client1.id(), year, month);
-        verify(timesheetService).getMonthlyTimesheets(client2.id(), year, month);
-        verify(timesheetService).getTimesheetById(1L);
-        verify(timesheetService).getTimesheetById(2L);
-    }
-
-    @Test
-    void shouldCreateMonthlyInvoice() {
-        // given
-        Long clientId = 1L;
-        int year = 2024;
-        int month = 1;
-        LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
-
-        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
-
-        TimesheetDto timesheet = new TimesheetDto(
-                1L,
-                client.clientName(),
-                LocalDate.of(2024, 1, 15),
-                2.0,
-                false,
-                client.id(),
-                client.hourlyRate(),
-                null,
-                null
-        );
-
-        InvoiceDto expectedInvoice = new InvoiceDto(
-                1L,
-                clientId,
-                client.clientName(),
-                "INV-001",
-                lastDayOfMonth,
-                BigDecimal.valueOf(100),
-                null,
-                List.of(),
-                null,
-                null
-        );
-
-        // when
-        when(clientService.getClientById(clientId)).thenReturn(client);
-        when(timesheetService.getMonthlyTimesheets(clientId, year, month))
-                .thenReturn(List.of(timesheet));
-        when(timesheetService.getTimesheetById(timesheet.id())).thenReturn(timesheet);
-
-        // Zmiana: używamy invoiceCreationService
-        when(invoiceCreationService.createInvoiceFromTimesheets(eq(client), anyList(), eq(lastDayOfMonth)))
-                .thenReturn(expectedInvoice);
-
-        InvoiceDto result = billingService.createMonthlyInvoice(clientId, year, month);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(expectedInvoice.id());
-        assertThat(result.clientId()).isEqualTo(clientId);
-        assertThat(result.invoiceNumber()).isEqualTo(expectedInvoice.invoiceNumber());
-
-        verify(clientService).getClientById(clientId);
-        verify(timesheetService).getMonthlyTimesheets(clientId, year, month);
-        verify(timesheetService).getTimesheetById(timesheet.id());
-
-        // Zmiana: weryfikujemy wywołanie invoiceCreationService
-        verify(invoiceCreationService).createInvoiceFromTimesheets(eq(client), anyList(), eq(lastDayOfMonth));
+        verify(timesheetService).getMonthlyTimesheets(client.id(), year, month);
+        verify(invoiceCreationService).createInvoice(client.id(), lastDayOfMonth, List.of(timesheet.id()));
     }
 
     @Test
@@ -202,8 +69,7 @@ class BillingServiceImplTest {
         int year = 2024;
         int month = 1;
 
-        when(timesheetService.getMonthlyTimesheets(clientId, year, month))
-                .thenReturn(List.of());
+        when(timesheetService.getMonthlyTimesheets(clientId, year, month)).thenReturn(List.of());
 
         // when/then
         assertThatThrownBy(() -> billingService.createMonthlyInvoice(clientId, year, month))
@@ -212,125 +78,115 @@ class BillingServiceImplTest {
     }
 
     @Test
-    void shouldCreateInvoiceFromSelectedTimesheets() {
+    void shouldCreateInvoice() {
         // given
         Long clientId = 1L;
         LocalDate issueDate = LocalDate.now();
         List<Long> timesheetIds = List.of(1L, 2L);
+        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", "INV-001", issueDate, null, null, List.of(), null, null);
 
-        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
-
-        TimesheetDto timesheet1 = new TimesheetDto(
-                1L,
-                client.clientName(),
-                LocalDate.of(2024, 1, 15),
-                2.0,
-                false,
-                client.id(),
-                client.hourlyRate(),
-                null,
-                null
-        );
-
-        TimesheetDto timesheet2 = new TimesheetDto(
-                2L,
-                client.clientName(),
-                LocalDate.of(2024, 1, 16),
-                3.0,
-                false,
-                client.id(),
-                client.hourlyRate(),
-                null,
-                null
-        );
-
-        InvoiceDto expectedInvoice = new InvoiceDto(
-                1L,
-                clientId,
-                client.clientName(),
-                "INV-001",
-                issueDate,
-                BigDecimal.valueOf(250),
-                null,
-                List.of(),
-                null,
-                null
-        );
-
-        when(clientService.getClientById(clientId)).thenReturn(client);
-        when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
-        when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
-
-        // Zmiana: używamy invoiceCreationService
-        when(invoiceCreationService.createInvoiceFromTimesheets(eq(client), anyList(), eq(issueDate)))
-                .thenReturn(expectedInvoice);
+        when(invoiceCreationService.createInvoice(clientId, issueDate, timesheetIds)).thenReturn(invoice);
 
         // when
         InvoiceDto result = billingService.createInvoice(clientId, issueDate, timesheetIds);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(expectedInvoice.id());
-        verify(timesheetService).getTimesheetById(1L);
-        verify(timesheetService).getTimesheetById(2L);
-
-        // Zmiana: weryfikujemy wywołanie invoiceCreationService
-        verify(invoiceCreationService).createInvoiceFromTimesheets(eq(client), anyList(), eq(issueDate));
+        assertThat(result.id()).isEqualTo(invoice.id());
+        verify(invoiceCreationService).createInvoice(clientId, issueDate, timesheetIds);
     }
 
     @Test
-    void shouldThrowExceptionWhenNoTimesheetsSelectedForInvoice() {
+    void shouldGetMonthlyInvoices() {
         // given
         Long clientId = 1L;
-        LocalDate issueDate = LocalDate.now();
-        List<Long> timesheetIds = List.of();
+        int year = 2024;
+        int month = 1;
+        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", "INV-001", LocalDate.now(), null, null, List.of(), null, null);
 
-        // when/then
-        assertThatThrownBy(() -> billingService.createInvoice(clientId, issueDate, timesheetIds))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("No timesheets selected for invoice");
+        when(invoiceService.getMonthlyInvoices(clientId, year, month)).thenReturn(List.of(invoice));
+
+        // when
+        List<InvoiceDto> result = billingService.getMonthlyInvoices(clientId, year, month);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).id()).isEqualTo(invoice.id());
+        verify(invoiceService).getMonthlyInvoices(clientId, year, month);
     }
 
     @Test
-    void shouldThrowExceptionWhenAllSelectedTimesheetsAreAlreadyInvoiced() {
+    void shouldGetYearlyInvoices() {
         // given
         Long clientId = 1L;
-        LocalDate issueDate = LocalDate.now();
-        List<Long> timesheetIds = List.of(1L, 2L);
+        int year = 2024;
+        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", "INV-001", LocalDate.now(), null, null, List.of(), null, null);
 
-        ClientDto client = new ClientDto(clientId, "Test Client", 50.0, 1L, "Street", "City", "12345", "test@email.com", true);
+        when(invoiceService.getYearlyInvoices(clientId, year)).thenReturn(List.of(invoice));
 
-        TimesheetDto timesheet1 = new TimesheetDto(
-                1L,
-                client.clientName(),
-                LocalDate.of(2024, 1, 15),
-                2.0,
-                true, // already invoiced
-                client.id(),
-                client.hourlyRate(),
-                "001-01-2024",
-                null
-        );
+        // when
+        List<InvoiceDto> result = billingService.getYearlyInvoices(clientId, year);
 
-        TimesheetDto timesheet2 = new TimesheetDto(
-                2L,
-                client.clientName(),
-                LocalDate.of(2024, 1, 16),
-                3.0,
-                true, // already invoiced
-                client.id(),
-                client.hourlyRate(),
-                "001-01-2024",
-                null
-        );
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).id()).isEqualTo(invoice.id());
+        verify(invoiceService).getYearlyInvoices(clientId, year);
+    }
 
-        when(clientService.getClientById(clientId)).thenReturn(client);
-        when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
-        when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+    @Test
+    void shouldReturnEmptyListWhenNoClients() {
+        // given
+        int year = 2024;
+        int month = 1;
+
+        when(clientService.getAllClients()).thenReturn(List.of());
+
+        // when
+        List<InvoiceDto> result = billingService.generateMonthlyInvoices(year, month);
+
+        // then
+        assertThat(result).isEmpty();
+        verify(clientService).getAllClients();
+        verifyNoInteractions(timesheetService, invoiceCreationService);
+    }
+
+    @Test
+    void shouldNotGenerateInvoiceForClientWithoutUnbilledTimesheets() {
+        // given
+        int year = 2024;
+        int month = 1;
+        LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
+
+        ClientDto client = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
+
+        when(clientService.getAllClients()).thenReturn(List.of(client));
+        when(timesheetService.getMonthlyTimesheets(client.id(), year, month)).thenReturn(List.of());
+
+        // when
+        List<InvoiceDto> result = billingService.generateMonthlyInvoices(year, month);
+
+        // then
+        assertThat(result).isEmpty();
+        verify(clientService).getAllClients();
+        verify(timesheetService).getMonthlyTimesheets(client.id(), year, month);
+        verifyNoInteractions(invoiceCreationService);
+    }
+
+    @Test
+    void shouldHandleExceptionFromClientService() {
+        // given
+        int year = 2024;
+        int month = 1;
+
+        when(clientService.getAllClients()).thenThrow(new RuntimeException("Database error"));
 
         // when/then
-        assertThatThrownBy(() -> billingService.createInvoice(clientId, issueDate, timesheetIds))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("All selected timesheets are already invoiced");
+        assertThatThrownBy(() -> billingService.generateMonthlyInvoices(year, month))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Database error");
+
+        verify(clientService).getAllClients();
+        verifyNoInteractions(timesheetService, invoiceCreationService);
     }
+
 }

@@ -139,7 +139,6 @@ input[type="number"]::-webkit-inner-spin-button {
     .card {
         width: 100% !important;
         min-width: 100%;
-        /*max-width: 100%;*/
         max-width: none !important;
         margin: 0 !important;
         border-radius: 0;

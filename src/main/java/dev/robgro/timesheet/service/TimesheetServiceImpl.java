@@ -1,5 +1,7 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.exception.BusinessRuleViolationException;
+import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
 import dev.robgro.timesheet.model.dto.TimesheetDtoMapper;
 import dev.robgro.timesheet.model.entity.Client;
@@ -8,16 +10,13 @@ import dev.robgro.timesheet.model.entity.InvoiceItem;
 import dev.robgro.timesheet.model.entity.Timesheet;
 import dev.robgro.timesheet.repository.ClientRepository;
 import dev.robgro.timesheet.repository.TimesheetRepository;
+import dev.robgro.timesheet.utils.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,6 +37,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     private final TimesheetDtoMapper timesheetDtoMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<TimesheetDto> getAllTimesheets() {
         return timesheetRepository.findAll().stream()
                 .map(timesheetDtoMapper)
@@ -45,19 +45,22 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TimesheetDto getTimesheetById(Long id) {
         return timesheetDtoMapper.apply(getTimesheetOrThrow(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TimesheetDto> getUnbilledTimesheetsByClientId(Long clientId) {
-        return timesheetRepository.findByClientIdAndInvoicedFalse(clientId)
-                .stream()
+//        return timesheetRepository.findByClientIdAndInvoicedFalse(clientId)
+        return timesheetRepository.findUnbilledTimesheetsByClientId(clientId).stream()
                 .map(timesheetDtoMapper)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced) {
         return timesheetRepository.findByClientIdAndInvoiced(clientId, invoiced).stream()
                 .map(timesheetDtoMapper)
@@ -77,6 +80,8 @@ public class TimesheetServiceImpl implements TimesheetService {
         return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<TimesheetDto> getTimesheetsByFilters(Long clientId, String paymentStatus) {
         List<Timesheet> timesheets;
 
@@ -98,6 +103,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir) {
         List<Timesheet> timesheets;
         if (clientId != null) {
@@ -152,6 +158,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<TimesheetDto> getFilteredAndPaginatedTimesheets(
             Long clientId,
             String paymentStatus,
@@ -160,24 +167,26 @@ public class TimesheetServiceImpl implements TimesheetService {
             int page,
             int size) {
 
-        Sort sort = Sort.by(sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
+        sortBy = (sortBy == null || sortBy.isEmpty()) ? "serviceDate" : sortBy;
+        sortDir = (sortDir == null || sortDir.isEmpty()) ? "desc" : sortDir;
 
-        Page<Timesheet> timesheetPage;
-
-        if (clientId != null && paymentStatus != null) {
-            if (paymentStatus.equals("true")) {
-                timesheetPage = timesheetRepository.findByClientIdAndPaymentDateIsNotNull(clientId, pageRequest);
-            } else {
-                timesheetPage = timesheetRepository.findByClientIdAndPaymentDateIsNull(clientId, pageRequest);
-            }
-        } else if (clientId != null) {
-            timesheetPage = timesheetRepository.findByClientId(clientId, pageRequest);
-        } else {
-            timesheetPage = timesheetRepository.findAll(pageRequest);
+        if (paymentStatus != null && paymentStatus.isEmpty()) {
+            paymentStatus = null;
         }
 
-        return timesheetPage.map(timesheetDtoMapper);
+        log.debug("Retrieving paginated timesheets with params: clientId={}, paymentStatus={}, sortBy={}, sortDir={}, page={}, size={}",
+                clientId, paymentStatus, sortBy, sortDir, page, size);
+
+        Pageable pageable = PaginationUtils.createPageable(sortBy, sortDir, page, size);
+
+        Page<Timesheet> timesheetsPage = timesheetRepository.findByClientIdAndPaymentStatus(clientId, paymentStatus, pageable);
+
+        log.debug("Found {} timesheets in page {} of {}",
+                timesheetsPage.getNumberOfElements(),
+                timesheetsPage.getNumber(),
+                timesheetsPage.getTotalPages());
+
+        return timesheetsPage.map(timesheetDtoMapper);
     }
 
     @Override
@@ -201,10 +210,7 @@ public class TimesheetServiceImpl implements TimesheetService {
         Timesheet timesheet = getTimesheetOrThrow(id);
 
         if (timesheet.isInvoiced()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "😂 Cannot delete timesheet that is attached to an invoice"
-            );
+            throw new BusinessRuleViolationException("Cannot delete timesheet that is attached to an invoice");
         }
 
         if (timesheet.getInvoice() != null) {
@@ -224,6 +230,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TimesheetDto> getTimesheetByClientId(Long clientId) {
         return timesheetRepository.findAllByClientId(clientId).stream()
                 .map(timesheetDtoMapper)
@@ -231,6 +238,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TimesheetDto> getUnbilledTimesheets() {
         return timesheetRepository.findByInvoiced(false)
                 .stream()
@@ -239,6 +247,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TimesheetDto> getMonthlyTimesheets(Long clientId, int year, int month) {
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startDate = yearMonth.atDay(1);
@@ -253,7 +262,7 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     private Timesheet getTimesheetOrThrow(Long id) {
         return timesheetRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Timesheet with id " + id + "not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Timesheet", id));
     }
 
     @Override
@@ -266,10 +275,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Transactional
     @Override
     public void updateInvoiceFlag(Long id, boolean isInvoiced) {
-        Timesheet timesheet = timesheetRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Timesheet with id: " + id + " not found"));
-
+        Timesheet timesheet = getTimesheetOrThrow(id);
         timesheet.setInvoiced(isInvoiced);
         timesheetRepository.save(timesheet);
     }
@@ -284,24 +290,28 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<TimesheetDto> getAllTimesheetsPageable(Pageable pageable) {
         return timesheetRepository.findAll(pageable)
                 .map(timesheetDtoMapper);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<TimesheetDto> getTimesheetsByClientIdPageable(Long clientId, Pageable pageable) {
         return timesheetRepository.findAllByClientId(clientId, pageable)
                 .map(timesheetDtoMapper);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<TimesheetDto> getAllTimesheetsSortedByInvoiceNumber(Long clientId, Pageable pageable) {
         return timesheetRepository.findAllSortedByInvoiceNumber(clientId, pageable)
                 .map(timesheetDtoMapper);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<TimesheetDto> getAllTimesheetsPageable(Long clientId, Pageable pageable) {
         if (clientId != null) {
             return timesheetRepository.findAllByClientId(clientId, pageable)
@@ -317,5 +327,11 @@ public class TimesheetServiceImpl implements TimesheetService {
         Timesheet timesheet = getTimesheetOrThrow(id);
         timesheet.setPaymentDate(paymentDate);
         timesheetRepository.save(timesheet);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TimesheetDto createEmptyTimesheetDto() {
+        return new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null, null);
     }
 }

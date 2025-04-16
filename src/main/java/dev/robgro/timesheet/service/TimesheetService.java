@@ -50,4 +50,6 @@ public interface TimesheetService {
     Page<TimesheetDto> getAllTimesheetsPageable(Long clientId, Pageable pageable);
 
     void updatePaymentDate(Long id, LocalDate paymentDate);
+
+    TimesheetDto createEmptyTimesheetDto();
 }

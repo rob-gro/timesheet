@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Invoice</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container my-3">
+    <div class="row justify-content-center">
+        <div class="col-9">
+            <div class="card">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">Edit Invoice</h2>
+
+                    <form id="editInvoiceForm" th:data-id="${invoice.id}">
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <label>Invoice for:</label>
+                                <select class="form-control" id="clientId" name="clientId" required>
+                                    <option value="">Select client</option>
+                                    <option th:each="client : ${clients}"
+                                            th:value="${client.id}"
+                                            th:text="${client.clientName}"
+                                            th:selected="${client.id == invoice.clientId}"
+                                            th:data-rate="${client.hourlyRate}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Invoice date:</label>
+                                <input type="date" class="form-control"
+                                       name="issueDate" required
+                                       th:value="${#temporals.format(invoice.issueDate, 'yyyy-MM-dd')}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label>Invoice number:</label>
+                                <input type="text" class="form-control"
+                                       name="invoiceNumber" required
+                                       th:value="${invoice.invoiceNumber}">
+                            </div>
+                        </div>
+
+                        <div class="table-responsive mb-4">
+                            <table class="table" id="invoiceItemsTable">
+                                <thead>
+                                <tr>
+                                    <th>Service Date</th>
+                                    <th>Description</th>
+                                    <th>Duration</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item, itemStat : ${invoice.itemsList}" th:data-item-id="${item.id}">
+                                    <td>
+                                        <input type="date" class="form-control item-date"
+                                               th:value="${#temporals.format(item.serviceDate, 'yyyy-MM-dd')}" required>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control item-description"
+                                               th:value="${item.description}" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.5" min="0.5" class="form-control item-duration"
+                                               th:value="${item.duration}" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" min="0" class="form-control item-amount"
+                                               th:value="${item.amount}" required>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="del-button remove-item">Remove</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-right"><strong>Total Amount:</strong></td>
+                                    <td id="totalAmount" th:text="${invoice.totalAmount}"></td>
+                                    <td>
+                                        <button type="button" class="save-button" id="addItemButton">Add Item</button>
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="nav-button">Save Invoice</button>
+                            <button type="button" class="nav-button" id="cancelButton">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/invoice-edit.js}"></script>
+</body>
+</html>

@@ -8,10 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Exception thrown when input validation fails.
- * Contains validation error details and maps to HTTP 400 Bad Request.
- */
 @Getter
 public class ValidationException extends BaseApplicationException {
 

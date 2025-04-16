@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedClient = clientSelect.options[clientSelect.selectedIndex];
         const rate = selectedClient ? parseFloat(selectedClient.dataset.rate) || 0 : 0;
 
-        // Update rate display
         document.querySelectorAll('.hourly-rate').forEach(el => {
             el.textContent = !isNaN(rate) ? rate.toFixed(2) : '0.00';
         });
@@ -52,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function () {
         checkbox.addEventListener('change', updateAmounts);
     });
 
-    // Wywołaj inicjalnie na starcie
     filterRowsByClient();
     updateAmounts();
 });

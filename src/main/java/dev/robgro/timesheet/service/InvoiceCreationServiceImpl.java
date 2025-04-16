@@ -1,5 +1,7 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.exception.BusinessRuleViolationException;
+import dev.robgro.timesheet.exception.ValidationException;
 import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.InvoiceDtoMapper;
@@ -11,10 +13,8 @@ import dev.robgro.timesheet.repository.ClientRepository;
 import dev.robgro.timesheet.repository.InvoiceRepository;
 import dev.robgro.timesheet.repository.TimesheetRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -33,6 +33,7 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
     private final TimesheetRepository timesheetRepository;
     private final InvoiceDtoMapper invoiceDtoMapper;
     private final ClientRepository clientRepository;
+    private final InvoiceNumberGenerator invoiceNumberGenerator;
 
     @Transactional
     @Override
@@ -40,7 +41,7 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
         Invoice invoice = new Invoice();
         invoice.setClient(clientRepository.getReferenceById(client.id()));
         invoice.setIssueDate(issueDate);
-        invoice.setInvoiceNumber(generateInvoiceNumber(issueDate));
+        invoice.setInvoiceNumber(invoiceNumberGenerator.generateInvoiceNumber(issueDate));
 
         List<InvoiceItem> items = timesheets.stream()
                 .map(timesheet -> createInvoiceItem(timesheet, invoice))
@@ -71,8 +72,7 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
     @Transactional
     public InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
         if (timesheetIds.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "No timesheets selected for invoice");
+            throw new ValidationException("No timesheets selected for invoice");
         }
 
         ClientDto client = clientService.getClientById(clientId);
@@ -82,32 +82,10 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
                 .toList();
 
         if (selectedTimesheets.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "All selected timesheets are already invoiced");
+            throw new BusinessRuleViolationException("All selected timesheets are already invoiced");
         }
 
         return createInvoiceFromTimesheets(client, selectedTimesheets, issueDate);
-    }
-
-    private String generateInvoiceNumber(LocalDate issueDate) {
-        int year = issueDate.getYear();
-        int month = issueDate.getMonthValue();
-        String yearMonth = String.format("%02d-%d", month, year);
-
-        List<Integer> existingNumbers = invoiceRepository.findByInvoiceNumberEndingWith(yearMonth)
-                .stream()
-                .map(invoice -> Integer.parseInt(invoice.getInvoiceNumber().substring(0, 3)))
-                .sorted()
-                .toList();
-
-        int nextNumber = 1;
-        for (Integer existingNumber : existingNumbers) {
-            if (existingNumber != nextNumber) {
-                break;
-            }
-            nextNumber++;
-        }
-        return String.format("%03d-%s", nextNumber, yearMonth);
     }
 
     private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {

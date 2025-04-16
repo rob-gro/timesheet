@@ -75,7 +75,6 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/api/**")
                         .ignoringRequestMatchers("/login"))
 
-//                .cors(Customizer.withDefaults())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth

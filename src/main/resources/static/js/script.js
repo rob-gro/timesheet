@@ -3,10 +3,9 @@ document.getElementById('timesheet-form').addEventListener('submit', function (e
     const successAlert = document.getElementById('success');
     successAlert.style.display = 'block';
 
-    // Ukryj alert po 3 sekundach
     setTimeout(() => {
         successAlert.style.display = 'none';
-        this.reset(); // Resetuj formularz
+        this.reset();
     }, 3000);
 });
 
@@ -27,11 +26,9 @@ function decrementHours() {
     }
 }
 
-// Dodatkowa walidacja przy ręcznym wpisywaniu
-document.querySelector('input[name="hours"]').addEventListener('change', function() {
+document.querySelector('input[name="hours"]').addEventListener('change', function () {
     let value = parseFloat(this.value);
     if (value < 0.5) value = 0.5;
     if (value > 12) value = 12;
-    this.value = Math.round(value * 2) / 2; // Zaokrąglanie do 0.5
+    this.value = Math.round(value * 2) / 2;
 });
-

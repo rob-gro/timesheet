@@ -12,6 +12,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -21,12 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Global exception handler that intercepts all exceptions thrown from controllers
- * and converts them into standardized API responses.
- */
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(annotations = RestController.class)
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
@@ -127,6 +124,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAllExceptions(
             Exception ex, HttpServletRequest request) {
 
+        String path = request.getRequestURI();
+        if (isStaticResource(path)) {
+            return null;
+        }
+
         log.error("Unhandled exception: {}", ex.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -138,5 +140,19 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private boolean isStaticResource(String path) {
+        return path.endsWith(".js") ||
+                path.endsWith(".css") ||
+                path.endsWith(".html") ||
+                path.endsWith(".png") ||
+                path.endsWith(".jpg") ||
+                path.endsWith(".gif") ||
+                path.endsWith(".ico") ||
+                path.endsWith(".woff") ||
+                path.endsWith(".map") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/webjars");
     }
 }

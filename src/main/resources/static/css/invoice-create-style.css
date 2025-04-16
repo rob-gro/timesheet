@@ -1,4 +1,3 @@
-/* invoice-create-style.css */
 :root {
     --bg-color: #f1f5f9;
     --text-color: #404040;
@@ -55,12 +54,10 @@ body {
 .invoice-info {
     display: flex;
     gap: 2rem;
-    margin-left: auto; /* to przesunie na prawą stronę */
-    text-align: right; /* tekst wyrównany do prawej */
-    /*color: #5c6ac4;*/
+    margin-left: auto;
+    text-align: right;
 }
 
-/* Zmiana koloru dla etykiet i wartości */
 .invoice-info .label {
     color: var(--my-grey);
 }
@@ -186,14 +183,14 @@ body {
 }
 
 .save-button {
-    display: inline-block; /* Dla pełnej szerokości */
-    padding: 1rem 2rem; /* Większe wymiary przycisku */
-    font-size: 1.7rem; /* Większy tekst */
+    display: inline-block;
+    padding: 1rem 2rem;
+    font-size: 1.7rem;
     font-weight: bold;
-    background-color: #161b22; /* Główny kolor */
+    background-color: #161b22;
     color: #ffc008;
     border: none;
-    border-radius: 5px; /* Lekko zaokrąglone rogi */
+    border-radius: 5px;
     text-align: center;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -201,9 +198,9 @@ body {
 }
 
 .save-button:hover {
-        color: black;
-        background-color: #ffc008;
-        box-shadow: 0px 4px 15px rgba(255, 192, 8, 0.5);
+    color: black;
+    background-color: #ffc008;
+    box-shadow: 0px 4px 15px rgba(255, 192, 8, 0.5);
 }
 
 .save-button:active {
@@ -212,7 +209,6 @@ body {
     box-shadow: 0px 4px 15px rgb(113, 232, 54);
 }
 
-/* Drukowanie */
 @media print {
     body {
         -webkit-print-color-adjust: exact;
@@ -223,7 +219,6 @@ body {
         padding: 0;
     }
 
-    /* ukryj przyciski i elementy nawigacji */
     .save-button {
         display: none;
     }
@@ -233,7 +228,7 @@ body {
         print-color-adjust: exact;
     }
 
-    /* możemy dodać styl dla oznaczenia ORIGINAL/COPY */
+    /* ORIGINAL/COPY  style */
     .document-type {
         position: absolute;
         top: 20px;
@@ -247,7 +242,6 @@ body {
     }
 }
 
-/* Responsywność */
 @media (max-width: 768px) {
     .header, .addresses, .items, .payment-details, .notes, .footer {
         padding-left: 1rem;
@@ -255,15 +249,14 @@ body {
     }
 
     .save-button {
-        width: 100%; /* Pełna szerokość na małych ekranach */
-        font-size: 1rem; /* Nieco mniejszy tekst */
+        width: 100%;
+        font-size: 1rem;
     }
 
     .addresses {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        /*gap: 1.5rem;*/
     }
 
     .address {
@@ -272,5 +265,33 @@ body {
 
     .total-section {
         width: 100%;
+    }
+
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 4px;
+        color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        transform: translateY(-20px);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        z-index: 1000;
+        max-width: 300px;
+    }
+
+    .notification.success {
+        background-color: #4CAF50;
+    }
+
+    .notification.error {
+        background-color: #F44336;
+    }
+
+    .notification.show {
+        transform: translateY(0);
+        opacity: 1;
     }
 }

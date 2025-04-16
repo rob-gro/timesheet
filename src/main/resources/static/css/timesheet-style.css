@@ -1,7 +1,6 @@
-
 .table-responsive {
     margin-bottom: 1rem;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     background-color: var(--my-bg);
     width: 100%;
@@ -33,8 +32,6 @@
     color: black;
 }
 
-
-/* Podstawowe style dla formularza na urządzeniach mobilnych */
 @media (max-width: 768px) {
     .card {
         margin: 10px;
@@ -51,7 +48,6 @@
         max-width: 100%;
     }
 
-    /* Powiększone pola formularza */
     .form-control,
     .form-select {
         font-size: 1.3rem !important;
@@ -60,20 +56,17 @@
         margin-bottom: 1.2rem;
     }
 
-    /* Powiększone etykiety */
     .form-label {
         font-size: 1.3rem !important;
         margin-bottom: 1rem !important;
         display: block;
     }
 
-    /* Powiększony nagłówek */
     h2 {
         font-size: 2.2rem !important;
         margin-bottom: 2rem !important;
     }
 
-    /* Dostosowanie przycisku czasu */
     .time-btn {
         width: 70px !important;
         height: 50px !important;
@@ -89,7 +82,6 @@
         margin-bottom: 1.5rem;
     }
 
-    /* Powiększone przyciski nawigacyjne */
     .nav-button {
         width: 100% !important;
         padding: 18px !important;
@@ -97,14 +89,12 @@
         margin: 0.5rem 0 !important;
     }
 
-    /* Dostosowanie komunikatu sukcesu */
     .alert {
         font-size: 1.3rem !important;
         padding: 1rem !important;
         margin-bottom: 1.5rem !important;
     }
 
-    /* Dostosowanie kalendarza */
     input[type="date"] {
         min-height: 50px !important;
     }
@@ -116,7 +106,6 @@
     }
 }
 
-/* Zachowanie oryginalnych stylów dla większych ekranów */
 .view-btn, .edit-btn, .delete-btn {
     padding: 6px 12px;
     border-radius: 10px;

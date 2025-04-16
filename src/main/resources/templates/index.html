@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="pl" xmlns:th="http://www.thymeleaf.org"
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:replace="~{head :: head}"></head>
+<title>Timesheets & Invoices App</title>
 
 <body>
 <div class="container mt-5">
@@ -22,11 +23,11 @@
                     </div>
 
                     <div class="d-grid gap-3">
-                        <a th:href="@{/timesheet}"
+                        <a th:href="@{/timesheets/new}"
                            class="nav-button text-center text-decoration-none">
                             New Timesheet
                         </a>
-                        <a th:href="@{/invoice-items}"
+                        <a th:href="@{/invoices/items}"
                            class="nav-button text-center text-decoration-none">
                             Create Invoice
                         </a>
@@ -34,7 +35,7 @@
                            class="nav-button text-center text-decoration-none">
                             Timesheets
                         </a>
-                        <a th:href="@{/invoice-archive}"
+                        <a th:href="@{/invoices/archive}"
                            class="nav-button text-center text-decoration-none">
                             Invoices
                         </a>
@@ -43,7 +44,7 @@
                            sec:authorize="hasRole('ADMIN')">
                             Clients
                         </a>
-                        <a th:href="@{/invoice-list}"
+                        <a th:href="@{/invoices/archive/pdf}"
                            class="nav-button text-center text-decoration-none">
                             Invoices PDF
                         </a>

@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const addItemButton = document.getElementById('addItemButton');
     const cancelButton = document.getElementById('cancelButton');
 
-    // Recalculate total amount
     function calculateTotal() {
         let total = 0;
         document.querySelectorAll('.item-amount').forEach(input => {
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
         totalAmountElement.textContent = total.toFixed(2);
     }
 
-    // Update amount based on duration and rate
     function updateAmount(row) {
         const durationInput = row.querySelector('.item-duration');
         const amountInput = row.querySelector('.item-amount');
@@ -29,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
         calculateTotal();
     }
 
-    // Add new item row
     addItemButton.addEventListener('click', function() {
         const tbody = document.querySelector('#invoiceItemsTable tbody');
         const newRow = document.createElement('tr');
@@ -56,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         tbody.appendChild(newRow);
 
-        // Set default date to today
         const dateInput = newRow.querySelector('.item-date');
         const today = new Date();
         dateInput.value = today.toISOString().split('T')[0];
@@ -68,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
         updateAmount(newRow);
     });
 
-    // Attach event listeners to a row
     function attachRowEventListeners(row) {
         const durationInput = row.querySelector('.item-duration');
         const removeButton = row.querySelector('.remove-item');
@@ -83,12 +78,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Attach event listeners to existing rows
     document.querySelectorAll('#invoiceItemsTable tbody tr').forEach(row => {
         attachRowEventListeners(row);
     });
 
-    // Update amounts when client changes
     clientSelect.addEventListener('change', function() {
         console.log('Selected client index:', this.selectedIndex);
         console.log('Selected client value:', this.value);
@@ -98,11 +91,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Handle form submission
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Collect form data
         const formData = {
             clientId: parseInt(clientSelect.value),
             issueDate: document.querySelector('input[name="issueDate"]').value,
@@ -110,7 +102,6 @@ document.addEventListener('DOMContentLoaded', function () {
             items: []
         };
 
-        // Collect items
         document.querySelectorAll('#invoiceItemsTable tbody tr').forEach(row => {
             const itemId = row.getAttribute('data-item-id') || null;
             const itemData = {
@@ -123,7 +114,6 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.items.push(itemData);
         });
 
-        // Submit data
         fetch(`/api/v1/invoices/${invoiceId}`, {
             method: 'PUT',
             headers: {
@@ -139,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 alert('Invoice updated successfully');
-                window.location.href = '/invoice-archive';
+                window.location.href = '/invoices/archive';
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -147,11 +137,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 
-    // Handle cancel button
     cancelButton.addEventListener('click', function() {
-        window.location.href = '/invoice-archive';
+        window.location.href = '/invoices/archive';
     });
 
-    // Calculate initial total
     calculateTotal();
 });

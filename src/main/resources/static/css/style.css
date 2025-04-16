@@ -1,4 +1,3 @@
-
 :root {
     --my-yellow: #ffc008;
     --my-grey: #6c757d;
@@ -7,7 +6,6 @@
 }
 
 body {
-    /*background-color: #10151c;*/
     background-color: #0d1117;
     color: #8b8c8d;
     font-family: Calibri, sans-serif;
@@ -22,7 +20,7 @@ body {
 }
 
 .table th {
-    color: var(--my-grey); /* nagłówki w szarym kolorze */
+    color: var(--my-grey);
     padding: 15px;
     border-bottom: 1px solid var(--my-yellow);
 }
@@ -33,7 +31,6 @@ body {
     horiz-align: center;
 }
 
-/* Wyrównanie tekstu w kolumnach */
 .table td:nth-child(1) { /* checkbox */
     width: 10%;
     text-align: center;
@@ -50,7 +47,6 @@ body {
     text-align: center;
 }
 
-/* Style dla etykiet */
 label {
     color: var(--my-yellow);
 }
@@ -100,13 +96,11 @@ label {
     transform: scale(1.5);
 }
 
-
 .nav-button {
     color: #ffc008;
     border-radius: 10px;
     border-color: #ffc008;
     padding: 10px;
-    /*margin: 1.2%;*/
     background-color: rgb(45, 48, 50);
     transition-duration: 0.4s;
 }
@@ -169,29 +163,34 @@ h2.text-center {
     margin-bottom: 0.5rem;
 }
 
-/* Stylizacja dla pola daty */
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(70%) sepia(74%) saturate(1000%) hue-rotate(360deg);
     cursor: pointer;
 }
 
-/* Stylizacja dla textarea */
 textarea.form-control {
     resize: vertical;
     min-height: 100px;
 }
 
 .text-right {
-    text-align: right !important; /* Wymuszenie wyrównania do prawej */
-    font-size: 1rem; /* Rozmiar czcionki */
-    font-weight: bold; /* Pogrubienie tekstu */
+    text-align: right !important;
+    font-size: 1rem;
+    font-weight: bold;
 }
 
 .total-amount {
     text-align: right;
-    font-size: 1.2rem; /* Zwiększenie rozmiaru czcionki */
-    font-weight: bold; /* Pogrubienie tekstu */
-    color: #e16b1a; /* Kolor tekstu (opcjonalnie) */
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e16b1a;
+}
+
+.alert-info {
+    color: #ffc008;
+    border-color: #ffc008;
+    background-color: transparent;
+    display: block;
 }
 
 .alert-success {
@@ -203,7 +202,19 @@ textarea.form-control {
     margin-bottom: 1rem;
 }
 
-/* Stylizacja dla number input */
+.alert-danger {
+    color: #ffffff;
+    background-color: #f40720;
+    border: 1px solid #dc3545;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    display: block;
+}
+
 input[type="number"] {
     -moz-appearance: textfield;
 }
@@ -326,13 +337,9 @@ input[type="number"]::-webkit-inner-spin-button {
     transform: scale(130%);
 }
 
-/* M E D I A */
-
 @media (max-width: 768px) {
     .card {
         width: 100%;
-        /*margin: 10px;*/
-        /*width: calc(100% - 20px);*/
     }
 
     .container {
@@ -429,7 +436,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 }
 
-/* Stylowanie dla iOS */
+/* IOS */
 @supports (-webkit-touch-callout: none) {
     .modern-time-input {
         -webkit-appearance: none;
@@ -545,7 +552,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     padding: 0 10px;
 }
 
-/* Style dla sekcji filtrów */
 #filterForm {
     background-color: var(--my-bg);
     padding: 1rem;
@@ -554,22 +560,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 #filterForm .form-select {
-    height: 50px;             /* Zmniejszona wysokość */
-    padding: 0.375rem 1rem;   /* Mniejszy padding */
+    height: 50px;
+    padding: 0.375rem 1rem;
 }
 
 #filterForm .save-button {
-    height: 50px;             /* Dopasowanie wysokości przycisku */
+    height: 50px;
     padding: 0 1.5rem;
-    margin: 0;                /* Usunięcie marginesów */
+    margin: 0;
 }
 
-/* Dopasowanie gap między elementami */
 #filterForm .d-flex.gap-3 {
     gap: 1rem !important;
 }
 
-/* Style dla mobile */
 @media (max-width: 768px) {
     #filterForm .d-flex {
         flex-direction: column;
@@ -590,8 +594,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 }
 
-
-/*  PAGINATION*/
 .pagination {
     margin: 20px 0;
 }
@@ -621,7 +623,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border-color: var(--my-grey);
 }
 
-/* Responsywność paginacji */
 @media (max-width: 768px) {
     .pagination .page-link {
         padding: 12px 16px;
@@ -631,4 +632,91 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     .pagination {
         margin: 30px 0;
     }
+}
+
+.form-row {
+    margin-bottom: 25px;
+}
+
+.form-row label {
+    display: block;
+    font-size: 1.0rem;
+    margin-bottom: 12px;
+}
+
+.form-row input,
+.form-row select {
+    height: 40px;
+    padding: 7px 10px;
+    font-size: 1.1rem;
+    width: 100%;
+}
+
+.button-container {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.button-container button {
+    padding: 12px 20px;
+    font-size: 1.1rem;
+}
+
+#userForm, #passwordForm, #rolesForm {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.user-action-btn {
+    display: inline-block;
+    margin-right: 5px;
+    padding: 5px 10px;
+}
+
+.actions-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    flex-direction: row;
+}
+
+.action-button {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    min-width: 80px;
+    text-align: center;
+    margin-right: 5px;
+}
+
+@media (max-width: 768px) {
+    .actions-cell {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .action-button {
+        margin-bottom: 5px;
+        width: 100%;
+    }
+}
+
+#filterForm .form-select {
+    margin-left: 0;
+    margin-bottom: 0;
+    background-color: transparent;
+    border-color: var(--my-yellow);
+}
+
+#filterForm label {
+    margin-left: 0;
+    display: inline-block;
+}
+
+#filterForm .row {
+    margin: 0;
 }

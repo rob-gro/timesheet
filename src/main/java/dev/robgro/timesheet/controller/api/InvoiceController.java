@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -32,14 +31,13 @@ public class InvoiceController {
     private final TimesheetService timesheetService;
     private final BillingService billingService;
 
-
     @Operation(summary = "Create invoice for selected timesheets")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Invoice created successfully"),
             @ApiResponse(responseCode = "400", description = "Input invalid data"),
             @ApiResponse(responseCode = "404", description = "Client or timesheets not found")
     })
-    @GetMapping("/invoices")
+    @PostMapping("/clients{clientId}/create")
     public ResponseEntity<InvoiceDto> createInvoice(
             @PathVariable Long clientId,
             @RequestBody CreateInvoiceRequest request) {
@@ -56,7 +54,7 @@ public class InvoiceController {
             @ApiResponse(responseCode = "400", description = "Input invalid data or no timesheets to invoice"),
             @ApiResponse(responseCode = "404", description = "Client not found")
     })
-    @PostMapping("/monthly")
+    @PostMapping("/clients/{clientId}/monthly")
     public ResponseEntity<InvoiceDto> createMonthlyInvoice(
             @PathVariable Long clientId,
             @RequestParam int year,
@@ -82,7 +80,7 @@ public class InvoiceController {
             @ApiResponse(responseCode = "400", description = "Invalid date parameters"),
             @ApiResponse(responseCode = "404", description = "Client not found")
     })
-    @GetMapping("/monthly/timesheets")
+    @GetMapping("/monthly/timesheets/{clientId}")
     public ResponseEntity<List<TimesheetDto>> getMonthlyTimesheets(
             @PathVariable Long clientId,
             @RequestParam int year,
@@ -113,12 +111,7 @@ public class InvoiceController {
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> getInvoicePdf(@PathVariable Long id) {
         InvoiceDto invoice = invoiceService.getInvoiceById(id);
-        if (invoice.pdfPath() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PDF not found for this invoice");
-        }
-
         byte[] pdfContent = invoiceService.getInvoicePdfContent(id);
-
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + invoice.invoiceNumber() + ".pdf\"")
@@ -130,7 +123,7 @@ public class InvoiceController {
             @ApiResponse(responseCode = "200", description = "List of invoices retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Client not found")
     })
-    @GetMapping("/yearly")
+    @GetMapping("/yearly/{clientId}/year")
     public ResponseEntity<List<InvoiceDto>> getYearlyInvoices(
             @PathVariable Long clientId,
             @RequestParam int year) {
@@ -150,13 +143,7 @@ public class InvoiceController {
             @RequestParam(defaultValue = "false") boolean detachFromClient) {
 
         log.info("Received request to delete invoice ID: {}", id);
-
-        try {
-            invoiceService.deleteInvoice(id, deleteTimesheets, detachFromClient);
-            log.info("Successfully deleted invoice ID: {}", id);
-        } catch (Exception e) {
-            log.error("Error deleting invoice ID {}: {}", id, e.getMessage(), e);
-            throw e;
-        }
+        invoiceService.deleteInvoice(id, deleteTimesheets, detachFromClient);
+        log.info("Successfully deleted invoice ID: {}", id);
     }
 }

@@ -3,6 +3,7 @@ package dev.robgro.timesheet.repository;
 import dev.robgro.timesheet.model.entity.Invoice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -39,31 +40,44 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     @Query(value = "DELETE FROM invoice_items WHERE invoice_id = :invoiceId", nativeQuery = true)
     void deleteInvoiceItemsByInvoiceId(@Param("invoiceId") Long invoiceId);
 
-    @Query(value = """
-            SELECT i FROM Invoice i
-            WHERE (:clientId IS NULL OR i.client.id = :clientId)
-            AND (:year IS NULL OR YEAR(i.issueDate) = :year)
-            AND (:month IS NULL OR MONTH(i.issueDate) = :month)
-            """)
-    Page<Invoice> findFilteredInvoices(
-            @Param("clientId") Long clientId,
-            @Param("year") Integer year,
-            @Param("month") Integer month,
-            Pageable pageable
-    );
-
-    @Query("""
-                SELECT i FROM Invoice i 
-                WHERE (:clientId IS NULL OR i.client.id = :clientId) 
-                AND (:fromDate IS NULL OR i.issueDate >= :fromDate) 
-                AND (:toDate IS NULL OR i.issueDate <= :toDate)
-            """)
+    @Query("SELECT i FROM Invoice i WHERE " +
+            "(:fromDate IS NULL OR i.issueDate >= :fromDate) AND " +
+            "(:toDate IS NULL OR i.issueDate <= :toDate) AND " +
+            "(:clientId IS NULL OR i.client.id = :clientId)")
     Page<Invoice> findByDateRangeAndClient(
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
             @Param("clientId") Long clientId,
-            Pageable pageable
-    );
+            Pageable pageable);
+
+    @Query("SELECT i FROM Invoice i WHERE " +
+            "(:clientId IS NULL OR i.client.id = :clientId) AND " +
+            "(:year IS NULL OR YEAR(i.issueDate) = :year) AND " +
+            "(:month IS NULL OR MONTH(i.issueDate) = :month)")
+    List<Invoice> findFilteredInvoices(
+            @Param("clientId") Long clientId,
+            @Param("year") Integer year,
+            @Param("month") Integer month);
+
+    @Query("SELECT i FROM Invoice i WHERE " +
+            "(:clientId IS NULL OR i.client.id = :clientId) AND " +
+            "(:year IS NULL OR YEAR(i.issueDate) = :year) AND " +
+            "(:month IS NULL OR MONTH(i.issueDate) = :month)")
+    Page<Invoice> findFilteredInvoices(
+            @Param("clientId") Long clientId,
+            @Param("year") Integer year,
+            @Param("month") Integer month,
+            Pageable pageable);
+
+    @Query("SELECT i FROM Invoice i WHERE " +
+            "(:clientId IS NULL OR i.client.id = :clientId) AND " +
+            "(:fromDate IS NULL OR i.issueDate >= :fromDate) AND " +
+            "(:toDate IS NULL OR i.issueDate <= :toDate)")
+    List<Invoice> findForReporting(
+            @Param("clientId") Long clientId,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate,
+            Sort sort);
 
     @Modifying
     @Query(value = "INSERT INTO invoice_items (invoice_id, service_date, description, duration, amount, timesheet_id) VALUES (:invoiceId, :serviceDate, :description, :duration, :amount, :timesheetId)", nativeQuery = true)
@@ -75,5 +89,4 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
             @Param("amount") BigDecimal amount,
             @Param("timesheetId") Long timesheetId
     );
-
 }
