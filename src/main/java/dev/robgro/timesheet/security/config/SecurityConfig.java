@@ -93,7 +93,7 @@ public class SecurityConfig {
 
                         // Web UI endpoints
                         .requestMatchers("/clients/**").hasRole("ADMIN")
-                        .requestMatchers("/invoice-**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/invoices/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/timesheets/**").hasAnyRole("ADMIN", "USER", "GUEST")
 
                         .anyRequest().authenticated()
