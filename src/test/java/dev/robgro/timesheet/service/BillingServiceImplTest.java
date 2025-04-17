@@ -1,5 +1,6 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.exception.BusinessRuleViolationException;
 import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
@@ -73,8 +74,100 @@ class BillingServiceImplTest {
 
         // when/then
         assertThatThrownBy(() -> billingService.createMonthlyInvoice(clientId, year, month))
-                .isInstanceOf(ResponseStatusException.class)
+                .isInstanceOf(BusinessRuleViolationException.class)
                 .hasMessageContaining("No uninvoiced timesheets found for this period");
+    }
+
+    @Test
+    void shouldFilterInvoicedTimesheetsWhenGeneratingInvoice() {
+        // given
+        int year = 2024;
+        int month = 1;
+        LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
+
+        ClientDto client = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
+        TimesheetDto invoicedTimesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null);
+        TimesheetDto uninvoicedTimesheet = new TimesheetDto(2L, "Client 1", LocalDate.of(2024, 1, 16), 3.0, false, 1L, 50.0, null, null);
+        InvoiceDto invoice = new InvoiceDto(1L, 1L, "Client 1", "INV-001", lastDayOfMonth, null, null, List.of(), null, null);
+
+        when(clientService.getAllClients()).thenReturn(List.of(client));
+        when(timesheetService.getMonthlyTimesheets(client.id(), year, month)).thenReturn(List.of(invoicedTimesheet, uninvoicedTimesheet));
+        when(invoiceCreationService.createInvoice(client.id(), lastDayOfMonth, List.of(uninvoicedTimesheet.id()))).thenReturn(invoice);
+
+        // when
+        List<InvoiceDto> result = billingService.generateMonthlyInvoices(year, month);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).id()).isEqualTo(invoice.id());
+        verify(invoiceCreationService).createInvoice(client.id(), lastDayOfMonth, List.of(uninvoicedTimesheet.id()));
+    }
+
+    @Test
+    void shouldNotGenerateInvoiceWhenAllTimesheetsAreInvoiced() {
+        // given
+        int year = 2024;
+        int month = 1;
+        LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
+
+        ClientDto client = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
+        TimesheetDto invoicedTimesheet1 = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null);
+        TimesheetDto invoicedTimesheet2 = new TimesheetDto(2L, "Client 1", LocalDate.of(2024, 1, 16), 3.0, true, 1L, 50.0, null, null);
+
+        when(clientService.getAllClients()).thenReturn(List.of(client));
+        when(timesheetService.getMonthlyTimesheets(client.id(), year, month)).thenReturn(List.of(invoicedTimesheet1, invoicedTimesheet2));
+
+        // when
+        List<InvoiceDto> result = billingService.generateMonthlyInvoices(year, month);
+
+        // then
+        assertThat(result).isEmpty();
+        verify(timesheetService).getMonthlyTimesheets(client.id(), year, month);
+        verifyNoInteractions(invoiceCreationService);
+    }
+
+    @Test
+    void shouldCreateMonthlyInvoiceForClient() {
+        // given
+        Long clientId = 1L;
+        int year = 2024;
+        int month = 1;
+        LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
+
+        TimesheetDto timesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, false, 1L, 50.0, null, null);
+        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", "INV-001", lastDayOfMonth, null, null, List.of(), null, null);
+
+        when(timesheetService.getMonthlyTimesheets(clientId, year, month)).thenReturn(List.of(timesheet));
+        when(invoiceCreationService.createInvoice(clientId, lastDayOfMonth, List.of(timesheet.id()))).thenReturn(invoice);
+
+        // when
+        InvoiceDto result = billingService.createMonthlyInvoice(clientId, year, month);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(invoice.id());
+        verify(timesheetService).getMonthlyTimesheets(clientId, year, month);
+        verify(invoiceCreationService).createInvoice(clientId, lastDayOfMonth, List.of(timesheet.id()));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAllTimesheetsAreInvoicedForMonthlyInvoice() {
+        // given
+        Long clientId = 1L;
+        int year = 2024;
+        int month = 1;
+
+        TimesheetDto invoicedTimesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null);
+
+        when(timesheetService.getMonthlyTimesheets(clientId, year, month)).thenReturn(List.of(invoicedTimesheet));
+
+        // when/then
+        assertThatThrownBy(() -> billingService.createMonthlyInvoice(clientId, year, month))
+                .isInstanceOf(BusinessRuleViolationException.class)
+                .hasMessageContaining("No uninvoiced timesheets found for this period");
+
+        verify(timesheetService).getMonthlyTimesheets(clientId, year, month);
+        verifyNoInteractions(invoiceCreationService);
     }
 
     @Test

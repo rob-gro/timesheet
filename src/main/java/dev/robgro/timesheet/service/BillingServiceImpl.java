@@ -1,13 +1,12 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.exception.BusinessRuleViolationException;
 import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.InvoiceDto;
 import dev.robgro.timesheet.model.dto.TimesheetDto;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -45,8 +44,7 @@ public class BillingServiceImpl implements BillingService {
     public InvoiceDto createMonthlyInvoice(Long clientId, int year, int month) {
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
         return generateMonthlyInvoiceForClient(clientId, year, month, lastDayOfMonth)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "No uninvoiced timesheets found for this period"));
+                .orElseThrow(() -> new BusinessRuleViolationException("No uninvoiced timesheets found for this period"));
     }
 
     private Optional<InvoiceDto> generateMonthlyInvoiceForClient(Long clientId, int year, int month, LocalDate issueDate) {
