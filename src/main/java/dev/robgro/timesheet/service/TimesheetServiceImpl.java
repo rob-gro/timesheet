@@ -53,7 +53,6 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     @Transactional(readOnly = true)
     public List<TimesheetDto> getUnbilledTimesheetsByClientId(Long clientId) {
-//        return timesheetRepository.findByClientIdAndInvoicedFalse(clientId)
         return timesheetRepository.findUnbilledTimesheetsByClientId(clientId).stream()
                 .map(timesheetDtoMapper)
                 .collect(Collectors.toList());
