@@ -8,6 +8,7 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import dev.robgro.timesheet.config.InvoiceSeller;
+import dev.robgro.timesheet.exception.ServiceOperationException;
 import dev.robgro.timesheet.model.entity.Invoice;
 import dev.robgro.timesheet.model.entity.InvoiceItem;
 import lombok.RequiredArgsConstructor;
@@ -133,11 +134,11 @@ public class PdfGenerator {
 // table head
             String[] headers = {"#", "Description", "Duration (h)", "Rate (£)", "Amount (£)"};
             PdfPCell[] headerCells = {
-                    createHeaderCell(headers[0], Element.ALIGN_CENTER),    // kolumna numeracji
-                    createHeaderCell(headers[1], Element.ALIGN_LEFT),      // kolumna opisu
-                    createHeaderCell(headers[2], Element.ALIGN_RIGHT),     // kolumna czasu
-                    createHeaderCell(headers[3], Element.ALIGN_RIGHT),     // kolumna stawki
-                    createHeaderCell(headers[4], Element.ALIGN_RIGHT)      // kolumna kwoty
+                    createHeaderCell(headers[0], Element.ALIGN_CENTER),    // number
+                    createHeaderCell(headers[1], Element.ALIGN_LEFT),      // description
+                    createHeaderCell(headers[2], Element.ALIGN_RIGHT),     // duration
+                    createHeaderCell(headers[3], Element.ALIGN_RIGHT),     // hourly rate
+                    createHeaderCell(headers[4], Element.ALIGN_RIGHT)      // amount
             };
             for (PdfPCell cell : headerCells) {
                 itemsTable.addCell(cell);
@@ -320,7 +321,7 @@ public class PdfGenerator {
 
             document.close();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate PDF", e);
+            throw new ServiceOperationException("Failed to generate PDF", e);
         }
     }
 

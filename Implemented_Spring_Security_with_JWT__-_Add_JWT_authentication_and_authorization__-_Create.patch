@@ -1,0 +1,3415 @@
+Subject: [PATCH] Implemented Spring Security with JWT
+
+- Add JWT authentication and authorization 
+- Create user and role management system
+- Implement secure password hashing (BCrypt)
+- Configure CORS and HTTP security headers
+- Add admin panel for user management
+---
+Index: src/main/java/dev/robgro/timesheet/config/FtpConfig.java
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/config/FtpConfig.java b/src/main/java/dev/robgro/timesheet/config/FtpConfig.java
+deleted file mode 100644
+--- a/src/main/java/dev/robgro/timesheet/config/FtpConfig.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ /dev/null	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
+@@ -1,14 +0,0 @@
+-package dev.robgro.timesheet.config;
+-
+-import org.apache.commons.net.ftp.FTPClient;
+-import org.springframework.context.annotation.Bean;
+-import org.springframework.context.annotation.Configuration;
+-
+-@Configuration
+-public class FtpConfig {
+-
+-    @Bean
+-    public FTPClient ftpClient() {
+-        return new FTPClient();
+-    }
+-}
+Index: src/main/java/dev/robgro/timesheet/controller/app/ReportViewController.java
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/app/ReportViewController.java b/src/main/java/dev/robgro/timesheet/controller/app/ReportViewController.java
+deleted file mode 100644
+--- a/src/main/java/dev/robgro/timesheet/controller/app/ReportViewController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ /dev/null	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
+@@ -1,10 +0,0 @@
+-package dev.robgro.timesheet.controller.app;
+-
+-import org.springframework.stereotype.Controller;
+-import org.springframework.web.bind.annotation.RequestMapping;
+-
+-@Controller
+-@RequestMapping("/reports")
+-public class ReportViewController {
+-
+-}
+Index: src/main/resources/templates/timesheet-archive.html
+===================================================================
+diff --git a/src/main/resources/templates/timesheet-archive.html b/src/main/resources/templates/timesheet-archive.html
+deleted file mode 100644
+--- a/src/main/resources/templates/timesheet-archive.html	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ /dev/null	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
+@@ -1,82 +0,0 @@
+-<!DOCTYPE html>
+-<html lang="gb" xmlns:th="http://www.thymeleaf.org">
+-<head>
+-    <meta charset="UTF-8">
+-    <title>Timesheet Archive</title>
+-    <link rel="stylesheet" th:href="@{/css/style.css}">
+-</head>
+-<body>
+-<div class="container mt-5">
+-    <div class="card">
+-        <div class="card-body p-4">
+-            <h2 class="text-center mb-4">Timesheet Archive</h2>
+-
+-            <form id="filterForm" class="mb-4">
+-                <div class="row">
+-                    <div class="col-md-4">
+-                        <select name="clientId" class="form-select">
+-                            <option value="">All Clients</option>
+-                            <option th:each="client : ${clients}"
+-                                    th:value="${client.id}"
+-                                    th:text="${client.clientName}"
+-                                    th:selected="${client.id == param.clientId}">
+-                            </option>
+-                        </select>
+-                    </div>
+-                    <div class="col-md-2">
+-                        <select name="invoiced" class="form-select">
+-                            <option value="">All Status</option>
+-                            <option value="true">Invoiced</option>
+-                            <option value="false">Not Invoiced</option>
+-                        </select>
+-                    </div>
+-                    <div class="col-md-2">
+-                        <button type="submit" class="nav-button">Filter</button>
+-                    </div>
+-                </div>
+-            </form>
+-
+-            <div class="table-container">
+-                <table class="table">
+-                    <thead>
+-                    <tr>
+-                        <th>Date</th>
+-                        <th>Client</th>
+-                        <th>Duration</th>
+-                        <th>Status</th>
+-                        <th>Actions</th>
+-                    </tr>
+-                    </thead>
+-                    <tbody>
+-                    <tr th:each="timesheet : ${timesheets}">
+-                        <td th:text="${#temporals.format(timesheet.serviceDate, 'dd.MM.yyyy')}"></td>
+-                        <td th:text="${timesheet.clientName}"></td>
+-                        <td class="text-end" th:text="${timesheet.duration}"></td>
+-                        <td th:text="${timesheet.isInvoice ? 'Invoiced' : 'Not Invoiced'}"></td>
+-                        <td>
+-                            <button th:if="${timesheet.isInvoice}"
+-                                    class="edit-button"
+-                                    th:onclick="'detachTimesheet(' + ${timesheet.id} + ')'">
+-                                Detach
+-                            </button>
+-                            <button th:unless="${timesheet.isInvoice}"
+-                                    class="del-button"
+-                                    th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">
+-                                Delete
+-                            </button>
+-                        </td>
+-                    </tr>
+-                    </tbody>
+-                </table>
+-            </div>
+-
+-            <div class="mt-4">
+-                <a href="/" class="nav-button">Back to Main Page</a>
+-            </div>
+-        </div>
+-    </div>
+-</div>
+-
+-<script th:src="@{/js/timesheet-archive.js}"></script>
+-</body>
+-</html>
+Index: src/main/java/dev/robgro/timesheet/exception/GlobalExceptionHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/exception/GlobalExceptionHandler.java b/src/main/java/dev/robgro/timesheet/exception/GlobalExceptionHandler.java
+--- a/src/main/java/dev/robgro/timesheet/exception/GlobalExceptionHandler.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/exception/GlobalExceptionHandler.java	(date 1744669893849)
+@@ -12,6 +12,7 @@
+ import org.springframework.validation.FieldError;
+ import org.springframework.web.bind.MethodArgumentNotValidException;
+ import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.web.bind.annotation.RestController;
+ import org.springframework.web.bind.annotation.RestControllerAdvice;
+ import org.springframework.web.server.ResponseStatusException;
+ 
+@@ -22,11 +23,11 @@
+ import java.util.stream.Collectors;
+ 
+ /**
+- * Global exception handler that intercepts all exceptions thrown from controllers
++ * Global exception handler for REST controllers that intercepts all exceptions
+  * and converts them into standardized API responses.
+  */
+ @Slf4j
+-@RestControllerAdvice
++@RestControllerAdvice(annotations = RestController.class)
+ @RequiredArgsConstructor
+ public class GlobalExceptionHandler {
+ 
+@@ -127,6 +128,11 @@
+     public ResponseEntity<ErrorResponse> handleAllExceptions(
+             Exception ex, HttpServletRequest request) {
+ 
++        String path = request.getRequestURI();
++        if (isStaticResource(path)) {
++            return null;
++        }
++
+         log.error("Unhandled exception: {}", ex.getMessage(), ex);
+ 
+         ErrorResponse errorResponse = ErrorResponse.builder()
+@@ -139,4 +145,198 @@
+ 
+         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+     }
++
++    private boolean isStaticResource(String path) {
++        return path.endsWith(".js") ||
++                path.endsWith(".css") ||
++                path.endsWith(".html") ||
++                path.endsWith(".png") ||
++                path.endsWith(".jpg") ||
++                path.endsWith(".gif") ||
++                path.endsWith(".ico") ||
++                path.endsWith(".woff") ||
++                path.endsWith(".map") ||
++                path.startsWith("/swagger-ui") ||
++                path.startsWith("/webjars");
++    }
+ }
++
++//package dev.robgro.timesheet.exception;
++//
++//import dev.robgro.timesheet.exception.model.ErrorResponse;
++//import dev.robgro.timesheet.exception.model.ValidationError;
++//import jakarta.servlet.http.HttpServletRequest;
++//import lombok.RequiredArgsConstructor;
++//import lombok.extern.slf4j.Slf4j;
++//import org.springframework.core.env.Environment;
++//import org.springframework.http.HttpStatus;
++//import org.springframework.http.ResponseEntity;
++//import org.springframework.validation.BindException;
++//import org.springframework.validation.FieldError;
++//import org.springframework.web.bind.MethodArgumentNotValidException;
++//import org.springframework.web.bind.annotation.ExceptionHandler;
++//import org.springframework.web.bind.annotation.RestControllerAdvice;
++//import org.springframework.web.server.ResponseStatusException;
++//import org.springframework.web.servlet.mvc.support.RedirectAttributes;
++//
++//import java.time.LocalDateTime;
++//import java.util.Arrays;
++//import java.util.Collections;
++//import java.util.List;
++//import java.util.stream.Collectors;
++//
++///**
++// * Global exception handler that intercepts all exceptions thrown from controllers
++// * and converts them into standardized API responses.
++// */
++//@Slf4j
++//@RestControllerAdvice
++//@RequiredArgsConstructor
++//public class GlobalExceptionHandler {
++//
++//    private final Environment environment;
++//
++//    private boolean isProductionEnvironment() {
++//        return Arrays.asList(environment.getActiveProfiles()).contains("prod");
++//    }
++//
++////    @ExceptionHandler(BaseApplicationException.class)
++////    public ResponseEntity<ErrorResponse> handleBaseApplicationException(
++////            BaseApplicationException ex, HttpServletRequest request) {
++////
++////        log.error("Application exception: {}", ex.getMessage(), ex);
++////
++////        ErrorResponse.ErrorResponseBuilder responseBuilder = ErrorResponse.builder()
++////                .code(ex.getErrorCode())
++////                .message(ex.getMessage())
++////                .details(isProductionEnvironment() ? null : ex.toString())
++////                .path(request.getRequestURI())
++////                .timestamp(LocalDateTime.now());
++////
++////        if (ex instanceof ValidationException) {
++////            ValidationException validationEx = (ValidationException) ex;
++////            responseBuilder
++////                    .message("Validation failed: " + validationEx.getMessage())
++////                    .details(isProductionEnvironment() ? null :
++////                            validationEx.getValidationErrors().stream()
++////                                    .map(error -> error.getField() + ": " + error.getMessage())
++////                                    .collect(Collectors.joining(", ")));
++////        }
++////        return new ResponseEntity<>(responseBuilder.build(), ex.getStatus());
++////    }
++//
++//    @ExceptionHandler(ResponseStatusException.class)
++//    public ResponseEntity<ErrorResponse> handleResponseStatusException(
++//            ResponseStatusException ex, HttpServletRequest request) {
++//
++//        log.error("Status exception: {}", ex.getReason(), ex);
++//
++//        ErrorResponse errorResponse = ErrorResponse.builder()
++//                .code("API_ERROR")
++//                .message(ex.getReason())
++//                .details(isProductionEnvironment() ? null : ex.toString())
++//                .path(request.getRequestURI())
++//                .timestamp(LocalDateTime.now())
++//                .build();
++//
++//        return new ResponseEntity<>(errorResponse, ex.getStatusCode());
++//    }
++//
++//    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
++//    public ResponseEntity<ErrorResponse> handleValidationExceptions(
++//            Exception ex, HttpServletRequest request) {
++//
++//        log.error("Validation exception: {}", ex.getMessage(), ex);
++//
++//        List<ValidationError> validationErrors;
++//
++//        if (ex instanceof MethodArgumentNotValidException validationEx) {
++//            validationErrors = validationEx.getBindingResult()
++//                    .getFieldErrors()
++//                    .stream()
++//                    .map(this::convertToValidationError)
++//                    .collect(Collectors.toList());
++//        } else if (ex instanceof BindException bindException) {
++//            validationErrors = bindException.getBindingResult()
++//                    .getFieldErrors()
++//                    .stream()
++//                    .map(this::convertToValidationError)
++//                    .collect(Collectors.toList());
++//        } else if (ex instanceof dev.robgro.timesheet.exception.ValidationException validationException) {
++//            validationErrors = validationException.getValidationErrors();
++//        } else {
++//            validationErrors = Collections.emptyList();
++//        }
++//
++//        ErrorResponse errorResponse = ErrorResponse.builder()
++//                .code("VALIDATION_ERROR")
++//                .message("Validation failed")
++//                .details(isProductionEnvironment() ? null : ex.getMessage())
++//                .path(request.getRequestURI())
++//                .timestamp(LocalDateTime.now())
++//                .validationErrors(validationErrors)
++//                .build();
++//
++//        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
++//    }
++//
++//    private ValidationError convertToValidationError(FieldError fieldError) {
++//        return ValidationError.builder()
++//                .field(fieldError.getField())
++//                .message(fieldError.getDefaultMessage())
++//                .build();
++//    }
++//
++//    @ExceptionHandler(Exception.class)
++//    public ResponseEntity<ErrorResponse> handleAllExceptions(
++//            Exception ex, HttpServletRequest request) {
++//
++//        String path = request.getRequestURI();
++//        if (isStaticResource(path)) {
++//            return null;
++//        }
++//
++//        log.error("Unhandled exception: {}", ex.getMessage(), ex);
++//
++//        ErrorResponse errorResponse = ErrorResponse.builder()
++//                .code("INTERNAL_SERVER_ERROR")
++//                .message("An unexpected error occurred")
++//                .details(isProductionEnvironment() ? null : ex.toString())
++//                .path(request.getRequestURI())
++//                .timestamp(LocalDateTime.now())
++//                .build();
++//
++//        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
++//    }
++//
++////    @ExceptionHandler(BaseApplicationException.class)
++////    public String handleViewException(BaseApplicationException ex,
++////                                      HttpServletRequest request,
++////                                      RedirectAttributes redirectAttributes) {
++////        log.error("Application exception in view: {}", ex.getMessage(), ex);
++////
++////        if (request.getHeader("X-Requested-With") != null &&
++////                request.getHeader("X-Requested-With").equals("XMLHttpRequest")) {
++////            return null;
++////        }
++////
++////        redirectAttributes.addFlashAttribute("error", ex.getMessage());
++////
++////        String referer = request.getHeader("Referer");
++////        return "redirect:" + (referer != null ? referer : "/");
++////    }
++//
++//    private boolean isStaticResource(String path) {
++//        return path.endsWith(".js") ||
++//                path.endsWith(".css") ||
++//                path.endsWith(".html") ||
++//                path.endsWith(".png") ||
++//                path.endsWith(".jpg") ||
++//                path.endsWith(".gif") ||
++//                path.endsWith(".ico") ||
++//                path.endsWith(".woff") ||
++//                path.endsWith(".map") ||
++//                path.startsWith("/swagger-ui") ||
++//                path.startsWith("/webjars");
++//    }
++//}
+Index: src/main/resources/static/js/timesheet-archive.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/js/timesheet-archive.js b/src/main/resources/static/js/timesheet-archive.js
+--- a/src/main/resources/static/js/timesheet-archive.js	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/js/timesheet-archive.js	(date 1744672515347)
+@@ -1,5 +1,5 @@
+ document.addEventListener('DOMContentLoaded', function() {
+-    // Odczepianie timesheet od faktury
++
+     window.detachTimesheet = function(id) {
+         if (confirm('Are you sure you want to detach this timesheet from invoice?')) {
+             fetch(`/api/v1/timesheets/${id}/detach`, {
+@@ -19,7 +19,6 @@
+         }
+     };
+ 
+-    // Usuwanie timesheet
+     window.deleteTimesheet = function(id) {
+         if (confirm('Are you sure you want to delete this timesheet?')) {
+             fetch(`/api/v1/timesheets/${id}`, {
+Index: src/main/resources/static/js/invoice-archive.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/js/invoice-archive.js b/src/main/resources/static/js/invoice-archive.js
+--- a/src/main/resources/static/js/invoice-archive.js	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/js/invoice-archive.js	(date 1744672515339)
+@@ -9,7 +9,7 @@
+ 
+     function validateDateRange() {
+         if (!fromYear.value || !fromMonth.value || !toYear.value || !toMonth.value) {
+-            return true; // Pozwalamy na niekompletne daty
++            return true;
+         }
+ 
+         const fromDate = new Date(fromYear.value, fromMonth.value - 1);
+@@ -50,7 +50,7 @@
+             }
+         }
+         params.set('page', 0);
+-        window.location.href = '/invoice-archive?' + params.toString();
++        window.location.href = '/invoices/archive?' + params.toString();
+     });
+ 
+     window.sortTable = function (column, direction) {
+@@ -68,7 +68,7 @@
+             sortDir: direction
+         };
+ 
+-        const newUrl = new URL('/invoice-archive', window.location.origin);
++        const newUrl = new URL('/invoices/archive', window.location.origin);
+         Object.entries(params).forEach(([key, value]) => {
+             if (value) newUrl.searchParams.set(key, value);
+         });
+Index: src/main/java/dev/robgro/timesheet/controller/app/InvoiceReportController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/app/InvoiceReportController.java b/src/main/java/dev/robgro/timesheet/controller/app/InvoiceReportController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/app/InvoiceReportController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/app/InvoiceReportController.java	(date 1744746803452)
+@@ -13,7 +13,7 @@
+ 
+ @Slf4j
+ @Controller
+-@RequestMapping("/invoice-reports")
++@RequestMapping("/invoices/reports")
+ @RequiredArgsConstructor
+ public class InvoiceReportController {
+ 
+@@ -42,6 +42,6 @@
+             model.addAttribute("clientName", reportData.clientName());
+         }
+ 
+-        return "invoice-report";
++        return "invoices/reports";
+     }
+ }
+Index: src/main/resources/templates/invoice-archive.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/templates/invoice-archive.html b/src/main/resources/templates/invoices/archive.html
+rename from src/main/resources/templates/invoice-archive.html
+rename to src/main/resources/templates/invoices/archive.html
+--- a/src/main/resources/templates/invoice-archive.html	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/templates/invoices/archive.html	(date 1744747543416)
+@@ -158,11 +158,11 @@
+                         <td class="text-end" th:text="${'£ ' + invoice.totalAmount}"></td>
+                         <td class="text-center">
+                             <button class="save-button"
+-                                    th:onclick="'window.location.href=\'/invoice-create/' + ${invoice.id} + '\''">View
++                                    th:onclick="'window.location.href=\'/invoices/create/' + ${invoice.id} + '\''">View
+                             </button>
+-                            <!-- W invoice-archive.html -->
++                            <!-- W archive.html -->
+                             <button class="save-button"
+-                                    th:onclick="'window.location.href=\'/invoice-edit/' + ${invoice.id} + '\''">Edit
++                                    th:onclick="'window.location.href=\'/invoices/items/edit' + ${invoice.id} + '\''">Edit
+                             </button>
+                             <button class="del-button"
+                                     th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete
+@@ -177,12 +177,12 @@
+                         <ul class="pagination" th:if="${totalPages > 1}">
+                             <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
+                                 <a class="page-link"
+-                                   th:href="@{/invoice-archive(page=${currentPage - 1},size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}">&laquo;</a>
++                                   th:href="@{/invoices/archive(page=${currentPage - 1},size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}">&laquo;</a>
+                             </li>
+ 
+                             <li class="page-item" th:if="${currentPage > 3}">
+                                 <a class="page-link"
+-                                   th:href="@{/invoice-archive(page=0,size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}">1</a>
++                                   th:href="@{/invoices/archive(page=0,size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}">1</a>
+                             </li>
+ 
+                             <li class="page-item disabled" th:if="${currentPage > 3}">
+@@ -193,7 +193,7 @@
+                                 th:each="i : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 0, currentPage + 2 < totalPages - 1 ? currentPage + 2 : totalPages - 1)}"
+                                 th:classappend="${currentPage == i} ? active">
+                                 <a class="page-link"
+-                                   th:href="@{/invoice-archive(page=${i},size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}"
++                                   th:href="@{/invoices/archive(page=${i},size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}"
+                                    th:text="${i + 1}"></a>
+                             </li>
+ 
+@@ -203,13 +203,13 @@
+ 
+                             <li class="page-item" th:if="${currentPage < totalPages - 3}">
+                                 <a class="page-link"
+-                                   th:href="@{/invoice-archive(page=${totalPages - 1},size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}"
++                                   th:href="@{/invoices/archive(page=${totalPages - 1},size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}"
+                                    th:text="${totalPages}"></a>
+                             </li>
+ 
+                             <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? disabled">
+                                 <a class="page-link"
+-                                   th:href="@{/invoice-archive(page=${currentPage + 1},size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}">&raquo;</a>
++                                   th:href="@{/invoices/archive(page=${currentPage + 1},size=${size},clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth},sortBy=${param.sortBy},sortDir=${param.sortDir})}">&raquo;</a>
+                             </li>
+                         </ul>
+                     </nav>
+@@ -219,7 +219,7 @@
+             <div class="card-body p-4">
+                 <button th:if="${invoices != null && !invoices.isEmpty()}"
+                         onclick="window.location.href = this.getAttribute('data-url')"
+-                        th:data-url="@{/invoice-reports/generate(clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth})}"
++                        th:data-url="@{/invoices/reports/generate(clientId=${param.clientId},fromYear=${param.fromYear},fromMonth=${param.fromMonth},toYear=${param.toYear},toMonth=${param.toMonth})}"
+                         class="save-button">Generate Report</button>
+                 <button type="button" class="nav-button" onclick="window.location.href='/'">Back to Main Page</button>
+             </div>
+Index: src/main/java/dev/robgro/timesheet/service/BillingServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/BillingServiceImpl.java b/src/main/java/dev/robgro/timesheet/service/BillingServiceImpl.java
+--- a/src/main/java/dev/robgro/timesheet/service/BillingServiceImpl.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/BillingServiceImpl.java	(date 1744669079786)
+@@ -68,29 +68,15 @@
+ 
+     @Transactional
+     public InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
+-        if (timesheetIds.isEmpty()) {
+-            throw new ResponseStatusException(
+-                    HttpStatus.BAD_REQUEST, "No timesheets selected for invoice");
+-        }
++        return invoiceCreationService.createInvoice(clientId, issueDate, timesheetIds);
++    }
+ 
+-        ClientDto client = clientService.getClientById(clientId);
+-        List<TimesheetDto> selectedTimesheets = timesheetIds.stream()
+-                .map(timesheetService::getTimesheetById)
+-                .filter(timesheet -> !timesheet.invoiced())
+-                .toList();
+-
+-        if (selectedTimesheets.isEmpty()) {
+-            throw new ResponseStatusException(
+-                    HttpStatus.BAD_REQUEST, "All selected timesheets are already invoiced");
+-        }
+-
+-        return invoiceCreationService.createInvoiceFromTimesheets(client, selectedTimesheets, issueDate);
+-    }
+-
++    @Transactional(readOnly = true)
+     public List<InvoiceDto> getMonthlyInvoices(Long clientId, int year, int month) {
+         return invoiceService.getMonthlyInvoices(clientId, year, month);
+     }
+ 
++    @Transactional(readOnly = true)
+     public List<InvoiceDto> getYearlyInvoices(Long clientId, int year) {
+         return invoiceService.getYearlyInvoices(clientId, year);
+     }
+Index: src/main/java/dev/robgro/timesheet/controller/api/InvoiceController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/api/InvoiceController.java b/src/main/java/dev/robgro/timesheet/controller/api/InvoiceController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/api/InvoiceController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/api/InvoiceController.java	(date 1744228811941)
+@@ -17,7 +17,6 @@
+ import org.springframework.http.MediaType;
+ import org.springframework.http.ResponseEntity;
+ import org.springframework.web.bind.annotation.*;
+-import org.springframework.web.server.ResponseStatusException;
+ 
+ import java.util.List;
+ 
+@@ -39,7 +38,7 @@
+             @ApiResponse(responseCode = "400", description = "Input invalid data"),
+             @ApiResponse(responseCode = "404", description = "Client or timesheets not found")
+     })
+-    @GetMapping("/invoices")
++    @PostMapping("/clients{clientId}/create")
+     public ResponseEntity<InvoiceDto> createInvoice(
+             @PathVariable Long clientId,
+             @RequestBody CreateInvoiceRequest request) {
+@@ -56,7 +55,7 @@
+             @ApiResponse(responseCode = "400", description = "Input invalid data or no timesheets to invoice"),
+             @ApiResponse(responseCode = "404", description = "Client not found")
+     })
+-    @PostMapping("/monthly")
++    @PostMapping("/clients/{clientId}/monthly")
+     public ResponseEntity<InvoiceDto> createMonthlyInvoice(
+             @PathVariable Long clientId,
+             @RequestParam int year,
+@@ -82,7 +81,7 @@
+             @ApiResponse(responseCode = "400", description = "Invalid date parameters"),
+             @ApiResponse(responseCode = "404", description = "Client not found")
+     })
+-    @GetMapping("/monthly/timesheets")
++    @GetMapping("/monthly/timesheets/{clientId}")
+     public ResponseEntity<List<TimesheetDto>> getMonthlyTimesheets(
+             @PathVariable Long clientId,
+             @RequestParam int year,
+@@ -113,12 +112,7 @@
+     @GetMapping("/{id}/pdf")
+     public ResponseEntity<byte[]> getInvoicePdf(@PathVariable Long id) {
+         InvoiceDto invoice = invoiceService.getInvoiceById(id);
+-        if (invoice.pdfPath() == null) {
+-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PDF not found for this invoice");
+-        }
+-
+         byte[] pdfContent = invoiceService.getInvoicePdfContent(id);
+-
+         return ResponseEntity.ok()
+                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + invoice.invoiceNumber() + ".pdf\"")
+@@ -130,7 +124,7 @@
+             @ApiResponse(responseCode = "200", description = "List of invoices retrieved successfully"),
+             @ApiResponse(responseCode = "404", description = "Client not found")
+     })
+-    @GetMapping("/yearly")
++    @GetMapping("/yearly/{clientId}/year")
+     public ResponseEntity<List<InvoiceDto>> getYearlyInvoices(
+             @PathVariable Long clientId,
+             @RequestParam int year) {
+@@ -150,13 +144,7 @@
+             @RequestParam(defaultValue = "false") boolean detachFromClient) {
+ 
+         log.info("Received request to delete invoice ID: {}", id);
+-
+-        try {
+-            invoiceService.deleteInvoice(id, deleteTimesheets, detachFromClient);
+-            log.info("Successfully deleted invoice ID: {}", id);
+-        } catch (Exception e) {
+-            log.error("Error deleting invoice ID {}: {}", id, e.getMessage(), e);
+-            throw e;
+-        }
++        invoiceService.deleteInvoice(id, deleteTimesheets, detachFromClient);
++        log.info("Successfully deleted invoice ID: {}", id);
+     }
+ }
+Index: src/main/resources/static/css/style.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/css/style.css b/src/main/resources/static/css/style.css
+--- a/src/main/resources/static/css/style.css	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/css/style.css	(date 1744310541025)
+@@ -22,7 +22,7 @@
+ }
+ 
+ .table th {
+-    color: var(--my-grey); /* nagłówki w szarym kolorze */
++    color: var(--my-grey);
+     padding: 15px;
+     border-bottom: 1px solid var(--my-yellow);
+ }
+@@ -33,7 +33,6 @@
+     horiz-align: center;
+ }
+ 
+-/* Wyrównanie tekstu w kolumnach */
+ .table td:nth-child(1) { /* checkbox */
+     width: 10%;
+     text-align: center;
+@@ -50,7 +49,6 @@
+     text-align: center;
+ }
+ 
+-/* Style dla etykiet */
+ label {
+     color: var(--my-yellow);
+ }
+@@ -100,13 +98,11 @@
+     transform: scale(1.5);
+ }
+ 
+-
+ .nav-button {
+     color: #ffc008;
+     border-radius: 10px;
+     border-color: #ffc008;
+     padding: 10px;
+-    /*margin: 1.2%;*/
+     background-color: rgb(45, 48, 50);
+     transition-duration: 0.4s;
+ }
+@@ -169,29 +165,34 @@
+     margin-bottom: 0.5rem;
+ }
+ 
+-/* Stylizacja dla pola daty */
+ input[type="date"]::-webkit-calendar-picker-indicator {
+     filter: invert(70%) sepia(74%) saturate(1000%) hue-rotate(360deg);
+     cursor: pointer;
+ }
+ 
+-/* Stylizacja dla textarea */
+ textarea.form-control {
+     resize: vertical;
+     min-height: 100px;
+ }
+ 
+ .text-right {
+-    text-align: right !important; /* Wymuszenie wyrównania do prawej */
+-    font-size: 1rem; /* Rozmiar czcionki */
+-    font-weight: bold; /* Pogrubienie tekstu */
++    text-align: right !important;
++    font-size: 1rem;
++    font-weight: bold;
+ }
+ 
+ .total-amount {
+     text-align: right;
+-    font-size: 1.2rem; /* Zwiększenie rozmiaru czcionki */
+-    font-weight: bold; /* Pogrubienie tekstu */
+-    color: #e16b1a; /* Kolor tekstu (opcjonalnie) */
++    font-size: 1.2rem;
++    font-weight: bold;
++    color: #e16b1a;
++}
++
++.alert-info {
++    color: #ffc008;
++    border-color: #ffc008;
++    background-color: transparent;
++    display: block;
+ }
+ 
+ .alert-success {
+@@ -203,7 +204,19 @@
+     margin-bottom: 1rem;
+ }
+ 
+-/* Stylizacja dla number input */
++.alert-danger {
++    color: #ffffff;
++    background-color: #f40720;
++    border: 1px solid #dc3545;
++    border-radius: 10px;
++    padding: 15px;
++    text-align: center;
++    font-size: 1.5rem;
++    font-weight: bold;
++    margin-bottom: 20px;
++    display: block;
++}
++
+ input[type="number"] {
+     -moz-appearance: textfield;
+ }
+@@ -331,8 +344,6 @@
+ @media (max-width: 768px) {
+     .card {
+         width: 100%;
+-        /*margin: 10px;*/
+-        /*width: calc(100% - 20px);*/
+     }
+ 
+     .container {
+@@ -429,7 +440,7 @@
+     }
+ }
+ 
+-/* Stylowanie dla iOS */
++/* IOS */
+ @supports (-webkit-touch-callout: none) {
+     .modern-time-input {
+         -webkit-appearance: none;
+@@ -545,7 +556,6 @@
+     padding: 0 10px;
+ }
+ 
+-/* Style dla sekcji filtrów */
+ #filterForm {
+     background-color: var(--my-bg);
+     padding: 1rem;
+@@ -554,22 +564,20 @@
+ }
+ 
+ #filterForm .form-select {
+-    height: 50px;             /* Zmniejszona wysokość */
+-    padding: 0.375rem 1rem;   /* Mniejszy padding */
++    height: 50px;
++    padding: 0.375rem 1rem;
+ }
+ 
+ #filterForm .save-button {
+-    height: 50px;             /* Dopasowanie wysokości przycisku */
++    height: 50px;
+     padding: 0 1.5rem;
+-    margin: 0;                /* Usunięcie marginesów */
++    margin: 0;
+ }
+ 
+-/* Dopasowanie gap między elementami */
+ #filterForm .d-flex.gap-3 {
+     gap: 1rem !important;
+ }
+ 
+-/* Style dla mobile */
+ @media (max-width: 768px) {
+     #filterForm .d-flex {
+         flex-direction: column;
+@@ -590,7 +598,6 @@
+     }
+ }
+ 
+-
+ /*  PAGINATION*/
+ .pagination {
+     margin: 20px 0;
+@@ -621,7 +628,6 @@
+     border-color: var(--my-grey);
+ }
+ 
+-/* Responsywność paginacji */
+ @media (max-width: 768px) {
+     .pagination .page-link {
+         padding: 12px 16px;
+@@ -632,3 +638,90 @@
+         margin: 30px 0;
+     }
+ }
++
++.form-row {
++    margin-bottom: 25px;
++}
++
++.form-row label {
++    display: block;
++    font-size: 1.0rem;
++    margin-bottom: 12px;
++}
++
++.form-row input,
++.form-row select {
++    height: 40px;
++    padding: 7px 10px;
++    font-size: 1.1rem;
++    width: 100%;
++}
++
++.button-container {
++    margin-top: 30px;
++    display: flex;
++    gap: 15px;
++}
++
++.button-container button {
++    padding: 12px 20px;
++    font-size: 1.1rem;
++}
++
++#userForm, #passwordForm, #rolesForm {
++    max-width: 500px;
++    margin: 0 auto;
++    padding: 20px;
++}
++
++.user-action-btn {
++    display: inline-block;
++    margin-right: 5px;
++    padding: 5px 10px;
++}
++
++.actions-cell {
++    display: flex;
++    flex-wrap: wrap;
++    gap: 5px;
++    flex-direction: row;
++}
++
++.action-button {
++    display: inline-block;
++    padding: 6px 12px;
++    border-radius: 5px;
++    text-decoration: none;
++    cursor: pointer;
++    min-width: 80px;
++    text-align: center;
++    margin-right: 5px;
++}
++
++@media (max-width: 768px) {
++    .actions-cell {
++        flex-direction: column;
++        align-items: stretch;
++    }
++
++    .action-button {
++        margin-bottom: 5px;
++        width: 100%;
++    }
++}
++
++#filterForm .form-select {
++    margin-left: 0;
++    margin-bottom: 0;
++    background-color: transparent;
++    border-color: var(--my-yellow);
++}
++
++#filterForm label {
++    margin-left: 0;
++    display: inline-block;
++}
++
++#filterForm .row {
++    margin: 0;
++}
+Index: src/main/java/dev/robgro/timesheet/controller/app/ViewController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/app/ViewController.java b/src/main/java/dev/robgro/timesheet/controller/app/ViewController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/app/ViewController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/app/ViewController.java	(date 1744746803430)
+@@ -1,33 +1,21 @@
+ package dev.robgro.timesheet.controller.app;
+ 
+-import dev.robgro.timesheet.config.InvoiceSeller;
+-import dev.robgro.timesheet.model.dto.ClientDto;
+-import dev.robgro.timesheet.model.dto.InvoiceDto;
+-import dev.robgro.timesheet.model.dto.TimesheetDto;
+ import dev.robgro.timesheet.service.ClientService;
+-import dev.robgro.timesheet.service.InvoiceService;
+ import dev.robgro.timesheet.service.TimesheetService;
+ import lombok.RequiredArgsConstructor;
+ import lombok.extern.slf4j.Slf4j;
+ import org.springframework.security.core.Authentication;
+ import org.springframework.security.core.context.SecurityContextHolder;
+ import org.springframework.stereotype.Controller;
+-import org.springframework.ui.Model;
+ import org.springframework.web.bind.annotation.GetMapping;
+-import org.springframework.web.bind.annotation.PathVariable;
+-import org.springframework.web.bind.annotation.RequestParam;
+-
+-import java.util.List;
+ 
+ @Slf4j
+ @Controller
+ @RequiredArgsConstructor
+ public class ViewController {
+ 
+-    private final TimesheetService timesheetService;
+     private final ClientService clientService;
+-    private final InvoiceService invoiceService;
+-    private final InvoiceSeller invoiceSeller;
++    private final TimesheetService timesheetService;
+ 
+     @GetMapping("/")
+     public String showIndex() {
+@@ -39,47 +27,10 @@
+         return "index";
+     }
+ 
+-    @GetMapping("/timesheet")
+-    public String showTimesheet(Model model) {
+-        model.addAttribute("clients", clientService.getAllClients());
+-        model.addAttribute("timesheet", new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null, null));
+-        return "timesheet";
+-    }
+-
+-    @GetMapping("/timesheet-list")
+-    public String showTimesheetArchive(Model model) {
+-        model.addAttribute("timesheets", timesheetService.getAllTimesheets());
+-        return "timesheet-list";
+-    }
+-
+-    @GetMapping("/invoice-list")
+-    public String showInvoices(Model model,
+-                               @RequestParam(required = false) Long clientId,
+-                               @RequestParam(required = false) Integer year,
+-                               @RequestParam(required = false) Integer month,
+-                               @RequestParam(required = false, defaultValue = "invoiceNumber") String sortBy,
+-                               @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+-
+-        List<InvoiceDto> invoices = invoiceService.searchAndSortInvoices(clientId, year, month, sortBy, sortDir);
+-        model.addAttribute("invoices", invoices);
+-        model.addAttribute("clients", clientService.getAllClients());
+-        return "invoice-pdf";
+-    }
+-
+-    @GetMapping("/invoice-edit/{id}")
+-    public String showEditInvoiceForm(@PathVariable Long id, Model model) {
+-        InvoiceDto invoice = invoiceService.getInvoiceById(id);
+-        ClientDto client = clientService.getClientById(invoice.clientId());
+-        model.addAttribute("invoice", invoice);
+-        model.addAttribute("clients", clientService.getAllClients());
+-        model.addAttribute("seller", invoiceSeller);
+-        model.addAttribute("client", client);
+-        return "invoice-edit";
+-    }
+-
+-    @GetMapping("/invoice-edit")
+-    public String showEditInvoices(Model model) {
+-        model.addAttribute("invoices", invoiceService.getAllInvoices());
+-        return "invoice-edit";
+-    }
++//    @GetMapping("/timesheet")
++//    public String showTimesheet(Model model) {
++//        model.addAttribute("clients", clientService.getAllClients());
++//        model.addAttribute("timesheet", timesheetService.createEmptyTimesheetDto());
++//        return "timesheet";
++//    }
+ }
+Index: src/main/resources/static/js/invoice-edit.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/js/invoice-edit.js b/src/main/resources/static/js/invoice-edit.js
+--- a/src/main/resources/static/js/invoice-edit.js	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/js/invoice-edit.js	(date 1744672515289)
+@@ -139,7 +139,7 @@
+             })
+             .then(data => {
+                 alert('Invoice updated successfully');
+-                window.location.href = '/invoice-archive';
++                window.location.href = '/invoices/archive';
+             })
+             .catch(error => {
+                 console.error('Error:', error);
+@@ -149,7 +149,7 @@
+ 
+     // Handle cancel button
+     cancelButton.addEventListener('click', function() {
+-        window.location.href = '/invoice-archive';
++        window.location.href = '/invoices/archive';
+     });
+ 
+     // Calculate initial total
+Index: src/main/java/dev/robgro/timesheet/repository/UserRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/repository/UserRepository.java b/src/main/java/dev/robgro/timesheet/repository/UserRepository.java
+--- a/src/main/java/dev/robgro/timesheet/repository/UserRepository.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/repository/UserRepository.java	(date 1744752532862)
+@@ -1,6 +1,8 @@
+ package dev.robgro.timesheet.repository;
+ 
+ import dev.robgro.timesheet.model.entity.User;
++import org.springframework.data.domain.Page;
++import org.springframework.data.domain.Pageable;
+ import org.springframework.data.jpa.repository.JpaRepository;
+ import org.springframework.data.jpa.repository.Query;
+ import org.springframework.data.repository.query.Param;
+@@ -22,4 +24,12 @@
+ 
+     @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
+     List<User> findByRoleName(@Param("roleName") String roleName);
++
++    @Query("SELECT u FROM User u WHERE " +
++            "(:active IS NULL OR u.active = :active) AND " +
++            "(:username IS NULL OR u.username LIKE %:username%)")
++    Page<User> findByActiveAndUsername(
++            @Param("active") Boolean active,
++            @Param("username") String username,
++            Pageable pageable);
+ }
+Index: src/main/resources/templates/index.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/templates/index.html b/src/main/resources/templates/index.html
+--- a/src/main/resources/templates/index.html	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/templates/index.html	(date 1744747543406)
+@@ -22,11 +22,11 @@
+                     </div>
+ 
+                     <div class="d-grid gap-3">
+-                        <a th:href="@{/timesheet}"
++                        <a th:href="@{/timesheets/new}"
+                            class="nav-button text-center text-decoration-none">
+                             New Timesheet
+                         </a>
+-                        <a th:href="@{/invoice-items}"
++                        <a th:href="@{/invoices/items}"
+                            class="nav-button text-center text-decoration-none">
+                             Create Invoice
+                         </a>
+@@ -34,7 +34,7 @@
+                            class="nav-button text-center text-decoration-none">
+                             Timesheets
+                         </a>
+-                        <a th:href="@{/invoice-archive}"
++                        <a th:href="@{/invoices/archive}"
+                            class="nav-button text-center text-decoration-none">
+                             Invoices
+                         </a>
+@@ -43,7 +43,7 @@
+                            sec:authorize="hasRole('ADMIN')">
+                             Clients
+                         </a>
+-                        <a th:href="@{/invoice-list}"
++                        <a th:href="@{/invoices/archive/pdf}"
+                            class="nav-button text-center text-decoration-none">
+                             Invoices PDF
+                         </a>
+Index: src/main/java/dev/robgro/timesheet/exception/ExceptionConverter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/exception/ExceptionConverter.java b/src/main/java/dev/robgro/timesheet/exception/ExceptionConverter.java
+--- a/src/main/java/dev/robgro/timesheet/exception/ExceptionConverter.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/exception/ExceptionConverter.java	(date 1744630956703)
+@@ -26,7 +26,6 @@
+         } else if (ex.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+             return new IntegrationException(ex.getReason(), ex);
+         } else {
+-            // Fallback - create a BaseApplicationException with the same status
+             return new BaseApplicationException(ex.getReason(), HttpStatus.valueOf(ex.getStatusCode().value()), "API_ERROR") {};
+         }
+     }
+Index: src/main/resources/static/js/script.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/js/script.js b/src/main/resources/static/js/script.js
+--- a/src/main/resources/static/js/script.js	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/js/script.js	(date 1744672515320)
+@@ -3,10 +3,9 @@
+     const successAlert = document.getElementById('success');
+     successAlert.style.display = 'block';
+ 
+-    // Ukryj alert po 3 sekundach
+     setTimeout(() => {
+         successAlert.style.display = 'none';
+-        this.reset(); // Resetuj formularz
++        this.reset();
+     }, 3000);
+ });
+ 
+@@ -27,11 +26,9 @@
+     }
+ }
+ 
+-// Dodatkowa walidacja przy ręcznym wpisywaniu
+ document.querySelector('input[name="hours"]').addEventListener('change', function() {
+     let value = parseFloat(this.value);
+     if (value < 0.5) value = 0.5;
+     if (value > 12) value = 12;
+-    this.value = Math.round(value * 2) / 2; // Zaokrąglanie do 0.5
++    this.value = Math.round(value * 2) / 2;
+ });
+-
+Index: src/main/java/dev/robgro/timesheet/service/ClientService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/ClientService.java b/src/main/java/dev/robgro/timesheet/service/ClientService.java
+--- a/src/main/java/dev/robgro/timesheet/service/ClientService.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/ClientService.java	(date 1744753427691)
+@@ -10,6 +10,8 @@
+ 
+     ClientDto getClientById(Long id);
+ 
++    List<ClientDto> searchClientsByName(String name);
++
+     ClientDto createClient(ClientDto clientDto);
+ 
+     ClientDto updateClient(Long id, ClientDto clientDto);
+@@ -19,4 +21,6 @@
+     ClientDto saveClient(ClientDto clientDto);
+ 
+     OperationResult deactivateClient(Long id);
++
++    ClientDto createEmptyClientDto();
+ }
+Index: src/main/java/dev/robgro/timesheet/service/ClientServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/ClientServiceImpl.java b/src/main/java/dev/robgro/timesheet/service/ClientServiceImpl.java
+--- a/src/main/java/dev/robgro/timesheet/service/ClientServiceImpl.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/ClientServiceImpl.java	(date 1744753427698)
+@@ -1,5 +1,6 @@
+ package dev.robgro.timesheet.service;
+ 
++import dev.robgro.timesheet.exception.EntityNotFoundException;
+ import dev.robgro.timesheet.model.dto.ClientDto;
+ import dev.robgro.timesheet.model.dto.ClientDtoMapper;
+ import dev.robgro.timesheet.model.dto.OperationResult;
+@@ -24,22 +25,30 @@
+     private final ClientDtoMapper clientDtoMapper;
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<ClientDto> getAllClients() {
+-        return clientRepository.findByActiveTrue().stream()
++        return clientRepository.findAllActiveOrderByName().stream()
+                 .map(clientDtoMapper)
+                 .collect(Collectors.toList());
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public ClientDto getClientById(Long id) {
+         return clientDtoMapper.apply(getClientOrThrow(id));
+     }
+ 
++    @Override
++    @Transactional(readOnly = true)
++    public List<ClientDto> searchClientsByName(String name) {
++        return clientRepository.findActiveClientsByName(name).stream()
++                .map(clientDtoMapper)
++                .collect(Collectors.toList());
++    }
++
+     private Client getClientOrThrow(Long id) {
+         return clientRepository.findById(id)
+-                .orElseThrow(() -> new ResponseStatusException(
+-                        HttpStatus.NOT_FOUND, "Client with id " + id + " not found"
+-                ));
++                .orElseThrow(() -> new EntityNotFoundException("Client ", id));
+     }
+ 
+     @Override
+@@ -79,7 +88,8 @@
+     @Transactional
+     @Override
+     public void deleteClient(Long id) {
+-        Client client = getClientOrThrow(id);
++        Client client = clientRepository.findById(id)
++                .orElseThrow(() -> new EntityNotFoundException("Client ", id));
+         client.setActive(false);
+         clientRepository.save(client);
+         log.info("Client with id {} has been deactivated", id);
+@@ -99,4 +109,20 @@
+             return new OperationResult(false, "Unable to deactivate client");
+         }
+     }
++
++    @Override
++    @Transactional(readOnly = true)
++    public ClientDto createEmptyClientDto() {
++        return new ClientDto(
++                null,    // id
++                "",         // clientName
++                0.0,        // hourlyRate
++                0L,         // houseNo
++                "",         // streetName
++                "",         // city
++                "",         // postCode
++                "",         // email
++                true        // is active
++        );
++    }
+ }
+Index: src/main/resources/templates/head.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/templates/head.html b/src/main/resources/templates/head.html
+--- a/src/main/resources/templates/head.html	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/templates/head.html	(date 1743699133581)
+@@ -11,7 +11,7 @@
+   <meta name="apple-mobile-web-app-title" content="TimeSheet">
+   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+   <meta name="theme-color" content="#ffc008">
+-  <link rel="manifest" href="/manifest/manifest.json">
++  <link rel="manifest" th:href="@{/manifest/manifest.json}">
+   <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+   <link rel="shortcut icon" type="image/svg+xml" href="/icons/icon.svg">
+   <link rel="apple-touch-icon" href="/icons/icon.svg">
+Index: src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+--- a/src/main/resources/application.properties	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/application.properties	(date 1744753603209)
+@@ -1,7 +1,7 @@
+ 
+ # MySQL for clients, invoices, timesheets
+-spring.datasource.url=jdbc:mariadb://mysql-robgro.alwaysdata.net:3306/robgro_aga_invoices
+-#spring.datasource.url=jdbc:mariadb://mysql-robgro.alwaysdata.net:3306/robgro_test_invoices
++spring.datasource.url=jdbc:mariadb://mysql-robgro.alwaysdata.net:3306/robgro_aga_invoices?sslMode=REQUIRED&requireSSL=true&verifyServerCertificate=true
++#spring.datasource.url=jdbc:mariadb://mysql-robgro.alwaysdata.net:3306/robgro_test_invoices?sslMode=REQUIRED&requireSSL=true&verifyServerCertificate=true
+ spring.datasource.username=${DB_USERNAME}
+ spring.datasource.password=${DB_PASSWORD}
+ spring.datasource.driver-class-name=org.mariadb.jdbc.Driver
+@@ -13,6 +13,12 @@
+ ftp.password=${DB_PASSWORD}
+ ftp.invoices.directory=/files/invoices
+ 
++# FTP with SSL
++ftp.connection.timeout=10000
++ftp.data.timeout=60000
++ftp.security.accept-all-certificates=false
++# "true" in develop mode, "false" on production
++
+ logging.level.web=DEBUG
+ logging.level.dev.robgro.timesheet.service=DEBUG
+ logging.level.org.hibernate.SQL=DEBUG
+@@ -27,15 +33,28 @@
+ spring.jpa.properties.hibernate.globally_quoted_identifiers=true
+ spring.jpa.properties.hibernate.globally_quoted_identifiers_skip_column_definitions=true
+ 
+-# CORS problem
+-#cors.allowed-origins=https://timesheet.robgro.dev,http://localhost:3000,http://localhost:8080
+-#cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS
+-#cors.allowed-headers=*
+-#cors.allow-credentials=true
++# CORS #$%^&*((*&^%$#$%^&*() !!!!!!
++cors.allowed-origins=https://timesheet.robgro.dev,http://localhost:8080,http://localhost:3000,null
++cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS,HEAD
++cors.allowed-headers=Authorization,Content-Type,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers
++cors.allow-credentials=true
++cors.max-age=3600
+ 
+-springdoc.api-docs.enabled=false
+-springdoc.swagger-ui.enabled=false
++#app.jwt.secret=TimesheetSecuritySecretKey123456789
++#app.jwt.expiration=86400000
++app.jwt.secret=${JWT_SECRET}
++app.jwt.expiration=${JWT_EXPIRATION}
++logging.level.org.springframework.security=DEBUG
++logging.level.dev.robgro.timesheet.security.service=DEBUG
+ 
++# Swagger OFF
++springdoc.api-docs.enabled=true
++springdoc.swagger-ui.enabled=true
++
++# Swagger UI
++springdoc.swagger-ui.disable-swagger-default-url=true
++springdoc.swagger-ui.config-url=/api-docs/swagger-config
++springdoc.swagger-ui.try-it-out-enabled=true
+ springdoc.api-docs.path=/api-docs
+ springdoc.swagger-ui.path=/swagger-ui.html
+ springdoc.swagger-ui.url=/api-docs
+Index: src/main/java/dev/robgro/timesheet/service/FtpService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/FtpService.java b/src/main/java/dev/robgro/timesheet/service/FtpService.java
+--- a/src/main/java/dev/robgro/timesheet/service/FtpService.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/FtpService.java	(date 1744666588789)
+@@ -192,12 +192,16 @@
+ 
+             int reply = ftpsClient.getReplyCode();
+             if (!FTPReply.isPositiveCompletion(reply)) {
+-                throw new IOException("Failed to connect to FTP server. Reply code: " + reply);
++                String errorMsg = "Failed to connect to FTP server. Reply code: " + reply;
++                log.error(errorMsg);
++                throw new IOException(errorMsg);
+             }
+ 
+             if (!ftpsClient.login(username, password)) {
+                 logFtpResponse(ftpsClient, "Login");
+-                throw new IOException("Failed to login to FTP server. Invalid credentials.");
++                String errorMsg = "Failed to login to FTP server. Invalid credentials.";
++                log.error(errorMsg);
++                throw new IOException(errorMsg);
+             }
+ 
+             logFtpResponse(ftpsClient, "Login");
+@@ -212,7 +216,7 @@
+ 
+             log.debug("Successfully connected to FTP server");
+         } catch (IOException e) {
+-            log.error("Failed to connect to FTP server: {}:{}", server, port, e);
++            log.error("Failed to connect to FTP server: {}:{} - {}", server, port, e.getMessage());
+             throw new FtpException("Connection to FTP server failed: " + e.getMessage(), e);
+         }
+     }
+Index: src/main/java/dev/robgro/timesheet/exception/ServiceOperationException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/exception/ServiceOperationException.java b/src/main/java/dev/robgro/timesheet/exception/ServiceOperationException.java
+new file mode 100644
+--- /dev/null	(date 1744666009086)
++++ b/src/main/java/dev/robgro/timesheet/exception/ServiceOperationException.java	(date 1744666009086)
+@@ -0,0 +1,18 @@
++package dev.robgro.timesheet.exception;
++
++import org.springframework.http.HttpStatus;
++
++/**
++ * Exception thrown when a service operation fails.
++ * Maps to HTTP 500 Internal Server Error response.
++ */
++public class ServiceOperationException extends BaseApplicationException {
++
++    public ServiceOperationException(String message, Throwable cause) {
++        super(message, HttpStatus.INTERNAL_SERVER_ERROR, "SERVICE_OPERATION_ERROR", cause);
++    }
++
++    public ServiceOperationException(String message) {
++        super(message, HttpStatus.INTERNAL_SERVER_ERROR, "SERVICE_OPERATION_ERROR");
++    }
++}
+Index: src/main/java/dev/robgro/timesheet/repository/TimesheetRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/repository/TimesheetRepository.java b/src/main/java/dev/robgro/timesheet/repository/TimesheetRepository.java
+--- a/src/main/java/dev/robgro/timesheet/repository/TimesheetRepository.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/repository/TimesheetRepository.java	(date 1744752144365)
+@@ -25,15 +25,27 @@
+ 
+     List<Timesheet> findByClientIdAndPaymentDateIsNotNull(Long clientId);
+ 
+-    List<Timesheet> findByClientIdAndPaymentDateIsNull(Long clientId);
++    @Query("SELECT t FROM Timesheet t WHERE t.client.id = :clientId AND t.paymentDate IS NULL")
++    List<Timesheet> findByClientIdAndPaymentDateIsNull(@Param("clientId") Long clientId);
+ 
+-    // W TimesheetRepository.java
++    @RestResource(path = "byClientIdAndPaymentDateIsNotNullPaged")
+     Page<Timesheet> findByClientIdAndPaymentDateIsNotNull(Long clientId, Pageable pageable);
+ 
+-    Page<Timesheet> findByClientIdAndPaymentDateIsNull(Long clientId, Pageable pageable);
++    @RestResource(path = "byClientIdAndPaymentDateIsNullPaged")
++    @Query("SELECT t FROM Timesheet t WHERE t.client.id = :clientId AND t.paymentDate IS NULL")
++    Page<Timesheet> findByClientIdAndPaymentDateIsNull(@Param("clientId") Long clientId, Pageable pageable);
+ 
+     Page<Timesheet> findByClientId(Long clientId, Pageable pageable);
+ 
++    // Metoda do pobierania nieprzetworzonych arkuszy czasu pracy pogrupowanych po kliencie
++    @Query("SELECT t FROM Timesheet t WHERE t.invoiced = false AND " +
++            "(:clientId IS NULL OR t.client.id = :clientId)")
++    List<Timesheet> findUnbilledTimesheetsByClientId(@Param("clientId") Long clientId);
++
++
++
++
++
+     @Query(value = "SELECT t.* FROM timesheets t " +
+             "LEFT JOIN invoices i ON t.invoice_id = i.id " +
+             "WHERE (:clientId IS NULL OR t.client_id = :clientId) " +
+@@ -56,4 +68,8 @@
+             @Param("clientId") Long clientId,
+             @Param("paymentStatus") String paymentStatus,
+             Pageable pageable);
++
++
++
++
+ }
+Index: src/main/java/dev/robgro/timesheet/exception/ViewExceptionHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/exception/ViewExceptionHandler.java b/src/main/java/dev/robgro/timesheet/exception/ViewExceptionHandler.java
+new file mode 100644
+--- /dev/null	(date 1744669923420)
++++ b/src/main/java/dev/robgro/timesheet/exception/ViewExceptionHandler.java	(date 1744669923420)
+@@ -0,0 +1,57 @@
++package dev.robgro.timesheet.exception;
++
++import jakarta.servlet.http.HttpServletRequest;
++import lombok.RequiredArgsConstructor;
++import lombok.extern.slf4j.Slf4j;
++import org.springframework.stereotype.Controller;
++import org.springframework.validation.BindException;
++import org.springframework.web.bind.MethodArgumentNotValidException;
++import org.springframework.web.bind.annotation.ControllerAdvice;
++import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.web.servlet.mvc.support.RedirectAttributes;
++
++/**
++ * Exception handler for MVC controllers that redirects to appropriate view
++ * with error messages as flash attributes.
++ */
++@Slf4j
++@ControllerAdvice(annotations = Controller.class)
++@RequiredArgsConstructor
++public class ViewExceptionHandler {
++
++    @ExceptionHandler(BaseApplicationException.class)
++    public String handleViewException(BaseApplicationException ex,
++                                      HttpServletRequest request,
++                                      RedirectAttributes redirectAttributes) {
++        log.error("Application exception in view: {}", ex.getMessage(), ex);
++
++        redirectAttributes.addFlashAttribute("error", ex.getMessage());
++
++        String referer = request.getHeader("Referer");
++        return "redirect:" + (referer != null ? referer : "/");
++    }
++
++    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
++    public String handleValidationException(Exception ex,
++                                            HttpServletRequest request,
++                                            RedirectAttributes redirectAttributes) {
++        log.error("Validation exception in view: {}", ex.getMessage(), ex);
++
++        redirectAttributes.addFlashAttribute("error", "Validation failed. Please check your input.");
++
++        String referer = request.getHeader("Referer");
++        return "redirect:" + (referer != null ? referer : "/");
++    }
++
++    @ExceptionHandler(Exception.class)
++    public String handleGenericException(Exception ex,
++                                         HttpServletRequest request,
++                                         RedirectAttributes redirectAttributes) {
++        log.error("Unhandled exception in view: {}", ex.getMessage(), ex);
++
++        redirectAttributes.addFlashAttribute("error", "An unexpected error occurred. Please try again later.");
++
++        String referer = request.getHeader("Referer");
++        return "redirect:" + (referer != null ? referer : "/");
++    }
++}
+Index: src/main/java/dev/robgro/timesheet/controller/app/TimesheetViewController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/app/TimesheetViewController.java b/src/main/java/dev/robgro/timesheet/controller/app/TimesheetViewController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/app/TimesheetViewController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/app/TimesheetViewController.java	(date 1744746803446)
+@@ -3,14 +3,17 @@
+ import dev.robgro.timesheet.model.dto.TimesheetDto;
+ import dev.robgro.timesheet.service.ClientService;
+ import dev.robgro.timesheet.service.TimesheetService;
++import dev.robgro.timesheet.utils.PaginationUtils;
+ import lombok.RequiredArgsConstructor;
+ import lombok.extern.slf4j.Slf4j;
+ import org.springframework.data.domain.Page;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.Model;
++import org.springframework.validation.BindingResult;
+ import org.springframework.web.bind.annotation.*;
+ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+ 
++import jakarta.validation.Valid;
+ import java.util.List;
+ 
+ @Slf4j
+@@ -24,8 +27,9 @@
+ 
+     @GetMapping("/new")
+     public String showTimesheetForm(Model model) {
++        log.debug("Showing timesheet form");
+         model.addAttribute("clients", clientService.getAllClients());
+-        model.addAttribute("timesheet", new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null, null));
++        model.addAttribute("timesheet", timesheetService.createEmptyTimesheetDto());
+         return "timesheet";
+     }
+ 
+@@ -39,39 +43,56 @@
+             @RequestParam(defaultValue = "0") int page,
+             @RequestParam(defaultValue = "10") int size) {
+ 
++        log.debug("Showing timesheets list with filters: clientId={}, paymentStatus={}, sortBy={}, sortDir={}, page={}, size={}",
++                clientId, paymentStatus, sortBy, sortDir, page, size);
++
+         Page<TimesheetDto> timesheets = timesheetService.getFilteredAndPaginatedTimesheets(
+                 clientId, paymentStatus, sortBy, sortDir, page, size);
+ 
+         model.addAttribute("timesheets", timesheets.getContent());
+-        model.addAttribute("currentPage", page);
+-        model.addAttribute("totalPages", timesheets.getTotalPages());
+-        model.addAttribute("totalItems", timesheets.getTotalElements());
+-        model.addAttribute("size", size);
++        PaginationUtils.setPaginationAttributesWithSort(model, timesheets, page, size, sortBy, sortDir);
+         model.addAttribute("clients", clientService.getAllClients());
++        model.addAttribute("clientId", clientId);
++        model.addAttribute("paymentStatus", paymentStatus);
+ 
+-        return "timesheet-list";
++        return "timesheets-list";
+     }
+ 
+     @GetMapping("/filter/{clientId}")
++    @ResponseBody
++
++    /*
++    *
++    * dlaczego ResponseBody ????????????????
++    *
++    * */
+     public List<TimesheetDto> getFilteredTimesheets(@PathVariable Long clientId) {
++        log.debug("Getting filtered timesheets for client ID: {}", clientId);
+         return timesheetService.getTimesheetByClientId(clientId);
+     }
+ 
+     @PostMapping("/new")
+     public String handleTimesheetSubmit(
+-            @ModelAttribute TimesheetDto timesheet,
++            @Valid @ModelAttribute TimesheetDto timesheet,
++            BindingResult result,
+             RedirectAttributes redirectAttributes) {
++
++        if (result.hasErrors()) {
++            return "timesheet";
++        }
++
+         timesheetService.createTimesheet(
+                 timesheet.clientId(),
+                 timesheet.serviceDate(),
+                 timesheet.duration());
+ 
+         redirectAttributes.addFlashAttribute("success", true);
+-        return "redirect:/timesheets";
++        return "redirect:/timesheet";
+     }
+ 
+     @GetMapping("/view/{id}")
+     public String viewTimesheet(@PathVariable Long id, Model model) {
++        log.debug("Viewing timesheet ID: {}", id);
+         model.addAttribute("timesheet", timesheetService.getTimesheetById(id));
+         model.addAttribute("clients", clientService.getAllClients());
+         model.addAttribute("readOnly", true);
+@@ -80,8 +101,30 @@
+ 
+     @GetMapping("/edit/{id}")
+     public String editTimesheet(@PathVariable Long id, Model model) {
++        log.debug("Editing timesheet ID: {}", id);
+         model.addAttribute("timesheet", timesheetService.getTimesheetById(id));
+         model.addAttribute("clients", clientService.getAllClients());
+         return "timesheet";
+     }
++
++    @PostMapping("/edit/{id}")
++    public String updateTimesheet(
++            @PathVariable Long id,
++            @Valid @ModelAttribute TimesheetDto timesheet,
++            BindingResult result,
++            RedirectAttributes redirectAttributes) {
++
++        if (result.hasErrors()) {
++            return "timesheet";
++        }
++
++        timesheetService.updateTimesheet(
++                id,
++                timesheet.clientId(),
++                timesheet.serviceDate(),
++                timesheet.duration());
++
++        redirectAttributes.addFlashAttribute("success", "Timesheet updated successfully");
++        return "redirect:/timesheets-list";
++    }
+ }
+Index: src/main/java/dev/robgro/timesheet/utils/PaginationUtils.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/utils/PaginationUtils.java b/src/main/java/dev/robgro/timesheet/utils/PaginationUtils.java
+new file mode 100644
+--- /dev/null	(date 1744321047600)
++++ b/src/main/java/dev/robgro/timesheet/utils/PaginationUtils.java	(date 1744321047600)
+@@ -0,0 +1,26 @@
++package dev.robgro.timesheet.utils;
++
++import org.springframework.data.domain.Page;
++import org.springframework.ui.Model;
++
++public final class PaginationUtils {
++
++    private PaginationUtils() {
++    }
++
++    public static void setPaginationAttributes(Model model, Page<?> page, int currentPage, int size) {
++        model.addAttribute("currentPage", currentPage);
++        model.addAttribute("totalPages", page.getTotalPages());
++        model.addAttribute("totalItems", page.getTotalElements());
++        model.addAttribute("size", size);
++    }
++
++    public static void setPaginationAttributesWithSort(Model model, Page<?> page,
++                                                       int currentPage, int size,
++                                                       String sortBy, String sortDir) {
++        setPaginationAttributes(model, page, currentPage, size);
++        model.addAttribute("sortBy", sortBy);
++        model.addAttribute("sortDir", sortDir);
++        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
++    }
++}
+Index: src/main/java/dev/robgro/timesheet/controller/app/InvoiceViewController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/app/InvoiceViewController.java b/src/main/java/dev/robgro/timesheet/controller/app/InvoiceViewController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/app/InvoiceViewController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/app/InvoiceViewController.java	(date 1744672658919)
+@@ -1,58 +1,80 @@
+ package dev.robgro.timesheet.controller.app;
+ 
++import dev.robgro.timesheet.config.InvoiceSeller;
++import dev.robgro.timesheet.model.dto.ClientDto;
+ import dev.robgro.timesheet.model.dto.CreateInvoiceRequest;
+ import dev.robgro.timesheet.model.dto.InvoiceDto;
+ import dev.robgro.timesheet.model.dto.TimesheetDto;
+ import dev.robgro.timesheet.service.ClientService;
+ import dev.robgro.timesheet.service.InvoiceService;
+ import dev.robgro.timesheet.service.TimesheetService;
++import jakarta.validation.Valid;
+ import lombok.RequiredArgsConstructor;
++import lombok.extern.slf4j.Slf4j;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.Model;
+ import org.springframework.validation.BindingResult;
+-import org.springframework.web.bind.annotation.GetMapping;
+-import org.springframework.web.bind.annotation.ModelAttribute;
+-import org.springframework.web.bind.annotation.PostMapping;
+-import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.*;
+ 
+ import java.util.List;
+ 
++@Slf4j
+ @Controller
+-@RequestMapping("/invoice-items")
++@RequestMapping("/invoices/items")
+ @RequiredArgsConstructor
+ public class InvoiceViewController {
+ 
+     private final InvoiceService invoiceService;
+     private final TimesheetService timesheetService;
+     private final ClientService clientService;
++    private final InvoiceSeller invoiceSeller;
+ 
+     @GetMapping
+     public String showItemsForm(Model model) {
++        log.debug("Showing invoice items form");
+         model.addAttribute("timesheets", getUnbilledTimesheets());
+         model.addAttribute("clients", clientService.getAllClients());
+         model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, List.of(), null));
+-        return "invoice-items";
++        return "invoices/items";
+     }
+ 
+     @PostMapping
+-    public String processItems(@ModelAttribute("createInvoiceRequest") CreateInvoiceRequest request,
+-                               BindingResult result,
+-                               Model model) {
++    public String processItems(
++            @Valid @ModelAttribute("createInvoiceRequest") CreateInvoiceRequest request,
++            BindingResult result,
++            Model model) {
++
+         if (result.hasErrors()) {
++            log.warn("Validation errors in invoice creation: {}", result.getAllErrors());
+             model.addAttribute("timesheets", getUnbilledTimesheets());
+             model.addAttribute("clients", clientService.getAllClients());
+-            return "invoice-items";
++            return "invoices/items";
+         }
+ 
+-        try {
+-            InvoiceDto invoice = invoiceService.createAndRedirectInvoice(request);
+-            return "redirect:/invoice-create/" + invoice.id();
+-        } catch (Exception e) {
+-            model.addAttribute("error", "There is an issue: " + e.getMessage());
+-            model.addAttribute("timesheets", getUnbilledTimesheets());
+-            model.addAttribute("clients", clientService.getAllClients());
+-            return "invoice-items";
+-        }
++        log.info("Creating new invoice for client ID: {}, with {} timesheet(s)",
++                request.clientId(), request.timesheetIds().size());
++
++        InvoiceDto invoice = invoiceService.createAndRedirectInvoice(request);
++        return "redirect:/invoices/create/" + invoice.id();
++    }
++
++    @GetMapping("/edit/{id}")
++    public String showEditInvoiceForm(@PathVariable Long id, Model model) {
++        log.debug("Showing edit form for invoice ID: {}", id);
++        InvoiceDto invoice = invoiceService.getInvoiceById(id);
++        ClientDto client = clientService.getClientById(invoice.clientId());
++        model.addAttribute("invoice", invoice);
++        model.addAttribute("clients", clientService.getAllClients());
++        model.addAttribute("seller", invoiceSeller);
++        model.addAttribute("client", client);
++        return "invoices/edit";
++    }
++
++    @GetMapping("/edit")
++    public String showEditInvoices(Model model) {
++        log.debug("Showing invoice edit list");
++        model.addAttribute("invoices", invoiceService.getAllInvoices());
++        return "invoices/edit";
+     }
+ 
+     private List<TimesheetDto> getUnbilledTimesheets() {
+Index: src/main/java/dev/robgro/timesheet/repository/ClientRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/repository/ClientRepository.java b/src/main/java/dev/robgro/timesheet/repository/ClientRepository.java
+--- a/src/main/java/dev/robgro/timesheet/repository/ClientRepository.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/repository/ClientRepository.java	(date 1744752544282)
+@@ -2,9 +2,19 @@
+ 
+ import dev.robgro.timesheet.model.entity.Client;
+ import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.data.jpa.repository.Query;
++import org.springframework.data.repository.query.Param;
+ 
+ import java.util.List;
+ 
+ public interface ClientRepository extends JpaRepository<Client, Long> {
+     List<Client> findByActiveTrue();
++
++    @Query("SELECT c FROM Client c WHERE " +
++            "c.active = true AND " +
++            "(:name IS NULL OR LOWER(c.clientName) LIKE LOWER(CONCAT('%', :name, '%')))")
++    List<Client> findActiveClientsByName(@Param("name") String name);
++
++    @Query("SELECT c FROM Client c WHERE c.active = true ORDER BY c.clientName ASC")
++    List<Client> findAllActiveOrderByName();
+ }
+Index: src/main/java/dev/robgro/timesheet/service/InvoiceCreationServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/InvoiceCreationServiceImpl.java b/src/main/java/dev/robgro/timesheet/service/InvoiceCreationServiceImpl.java
+--- a/src/main/java/dev/robgro/timesheet/service/InvoiceCreationServiceImpl.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/InvoiceCreationServiceImpl.java	(date 1744229373125)
+@@ -1,5 +1,7 @@
+ package dev.robgro.timesheet.service;
+ 
++import dev.robgro.timesheet.exception.BusinessRuleViolationException;
++import dev.robgro.timesheet.exception.ValidationException;
+ import dev.robgro.timesheet.model.dto.ClientDto;
+ import dev.robgro.timesheet.model.dto.InvoiceDto;
+ import dev.robgro.timesheet.model.dto.InvoiceDtoMapper;
+@@ -11,10 +13,8 @@
+ import dev.robgro.timesheet.repository.InvoiceRepository;
+ import dev.robgro.timesheet.repository.TimesheetRepository;
+ import lombok.RequiredArgsConstructor;
+-import org.springframework.http.HttpStatus;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+-import org.springframework.web.server.ResponseStatusException;
+ 
+ import java.math.BigDecimal;
+ import java.math.RoundingMode;
+@@ -33,6 +33,7 @@
+     private final TimesheetRepository timesheetRepository;
+     private final InvoiceDtoMapper invoiceDtoMapper;
+     private final ClientRepository clientRepository;
++    private final InvoiceNumberGenerator invoiceNumberGenerator;
+ 
+     @Transactional
+     @Override
+@@ -40,7 +41,7 @@
+         Invoice invoice = new Invoice();
+         invoice.setClient(clientRepository.getReferenceById(client.id()));
+         invoice.setIssueDate(issueDate);
+-        invoice.setInvoiceNumber(generateInvoiceNumber(issueDate));
++        invoice.setInvoiceNumber(invoiceNumberGenerator.generateInvoiceNumber(issueDate));
+ 
+         List<InvoiceItem> items = timesheets.stream()
+                 .map(timesheet -> createInvoiceItem(timesheet, invoice))
+@@ -71,8 +72,7 @@
+     @Transactional
+     public InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
+         if (timesheetIds.isEmpty()) {
+-            throw new ResponseStatusException(
+-                    HttpStatus.BAD_REQUEST, "No timesheets selected for invoice");
++            throw new ValidationException("No timesheets selected for invoice");
+         }
+ 
+         ClientDto client = clientService.getClientById(clientId);
+@@ -82,34 +82,12 @@
+                 .toList();
+ 
+         if (selectedTimesheets.isEmpty()) {
+-            throw new ResponseStatusException(
+-                    HttpStatus.BAD_REQUEST, "All selected timesheets are already invoiced");
++            throw new BusinessRuleViolationException("All selected timesheets are already invoiced");
+         }
+ 
+         return createInvoiceFromTimesheets(client, selectedTimesheets, issueDate);
+     }
+ 
+-    private String generateInvoiceNumber(LocalDate issueDate) {
+-        int year = issueDate.getYear();
+-        int month = issueDate.getMonthValue();
+-        String yearMonth = String.format("%02d-%d", month, year);
+-
+-        List<Integer> existingNumbers = invoiceRepository.findByInvoiceNumberEndingWith(yearMonth)
+-                .stream()
+-                .map(invoice -> Integer.parseInt(invoice.getInvoiceNumber().substring(0, 3)))
+-                .sorted()
+-                .toList();
+-
+-        int nextNumber = 1;
+-        for (Integer existingNumber : existingNumbers) {
+-            if (existingNumber != nextNumber) {
+-                break;
+-            }
+-            nextNumber++;
+-        }
+-        return String.format("%03d-%s", nextNumber, yearMonth);
+-    }
+-
+     private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {
+         InvoiceItem item = new InvoiceItem();
+         item.setInvoice(invoice);
+Index: src/main/resources/templates/login.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/templates/login.html b/src/main/resources/templates/login.html
+--- a/src/main/resources/templates/login.html	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/templates/login.html	(date 1744310840127)
+@@ -1,5 +1,5 @@
+ <!DOCTYPE html>
+-<html xmlns:th="http://www.thymeleaf.org">
++<html lang="en" xmlns:th="http://www.thymeleaf.org">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+Index: src/main/resources/static/manifest/manifest.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/manifest/manifest.json b/src/main/resources/static/manifest/manifest.json
+--- a/src/main/resources/static/manifest/manifest.json	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/manifest/manifest.json	(date 1743699355118)
+@@ -7,19 +7,19 @@
+   "theme_color": "#ffc008",
+   "icons": [
+     {
+-      "src": "/timesheet/icon.svg",
++      "src": "/icons/icon.svg",
+       "sizes": "any",
+       "type": "image/svg+xml",
+       "purpose": "any"
+     },
+     {
+-      "src": "/timesheet/icon.svg",
++      "src": "/icons/icon.svg",
+       "sizes": "192x192",
+       "type": "image/svg+xml",
+       "purpose": "maskable"
+     },
+     {
+-      "src": "/timesheet/icon.svg",
++      "src": "/icons/icon.svg",
+       "sizes": "512x512",
+       "type": "image/svg+xml",
+       "purpose": "any"
+Index: src/main/resources/templates/invoice-create.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/templates/invoice-create.html b/src/main/resources/templates/invoices/create.html
+rename from src/main/resources/templates/invoice-create.html
+rename to src/main/resources/templates/invoices/create.html
+--- a/src/main/resources/templates/invoice-create.html	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/templates/invoices/create.html	(date 1744747543397)
+@@ -102,7 +102,6 @@
+             <span class="separator">|</span>
+             <span>contact@robgro.dev</span>
+             <span class="separator">|</span>
+-    <!--        <span th:text="${client.email}">email</span>-->
+         </div>
+ 
+     </div>
+Index: src/main/resources/static/js/invoice-pdf.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/js/invoice-pdf.js b/src/main/resources/static/js/invoice-pdf.js
+--- a/src/main/resources/static/js/invoice-pdf.js	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/js/invoice-pdf.js	(date 1744672515268)
+@@ -11,7 +11,7 @@
+                 params.append(key, value);
+             }
+         }
+-        window.location.href = '/invoice-list?' + params.toString();
++        window.location.href = '/invoices/archive/pdf?' + params.toString();
+     });
+ 
+     window.sortTable = function (column, direction) {
+Index: src/main/java/dev/robgro/timesheet/controller/app/InvoiceCreateController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/app/InvoiceCreateController.java b/src/main/java/dev/robgro/timesheet/controller/app/InvoiceCreateController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/app/InvoiceCreateController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/app/InvoiceCreateController.java	(date 1744742156560)
+@@ -17,7 +17,7 @@
+ 
+ @Slf4j
+ @Controller
+-@RequestMapping("/invoice-create")
++@RequestMapping("/invoices/create")
+ @RequiredArgsConstructor
+ public class InvoiceCreateController {
+     private final InvoiceService invoiceService;
+@@ -36,25 +36,22 @@
+         model.addAttribute("invoice", invoice);
+         model.addAttribute("seller", invoiceSeller);
+         model.addAttribute("client", client);
+-        return "invoice-create";
++        return "invoices/create";
+     }
+ 
+     @PostMapping("/{id}")
+     public String viewInvoice(@PathVariable Long id) {
+-        return "invoice-create";
++        return "invoices/create";
+     }
+ 
+     @PostMapping("/{id}/save-and-send")
+     public String saveAndSendInvoice(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+-        try {
+-            invoiceService.savePdfAndSendInvoice(id);
+-            log.info("Successfully saved and sent invoice with ID: {}", id);
+-            redirectAttributes.addFlashAttribute("success", "Invoice has been saved and sent");
+-            return "redirect:/invoice-create/" + id;
+-        } catch (Exception e) {
+-            log.error("Failed to generate and send PDF for invoice ID: {}", id, e);
+-            redirectAttributes.addFlashAttribute("error", "Failed to generate or send invoice: " + e.getMessage());
+-            return "redirect:/invoice-create/" + id;
+-        }
++        log.info("Saving and sending invoice ID: {}", id);
++
++        invoiceService.savePdfAndSendInvoice(id);
++
++        log.info("Successfully saved and sent invoice with ID: {}", id);
++        redirectAttributes.addFlashAttribute("success", "Invoice has been saved and sent");
++        return "redirect:/invoices/create/" + id;
+     }
+ }
+Index: src/main/java/dev/robgro/timesheet/service/UserServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/UserServiceImpl.java b/src/main/java/dev/robgro/timesheet/service/UserServiceImpl.java
+--- a/src/main/java/dev/robgro/timesheet/service/UserServiceImpl.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/UserServiceImpl.java	(date 1744753254100)
+@@ -9,6 +9,8 @@
+ import dev.robgro.timesheet.repository.UserRepository;
+ import lombok.RequiredArgsConstructor;
+ import lombok.extern.slf4j.Slf4j;
++import org.springframework.data.domain.Page;
++import org.springframework.data.domain.Pageable;
+ import org.springframework.security.crypto.password.PasswordEncoder;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+@@ -44,6 +46,21 @@
+                 .orElseThrow(() -> new EntityNotFoundException("User ", id));
+     }
+ 
++    @Override
++    @Transactional(readOnly = true)
++    public List<UserDto> getUsersByRole(String roleName) {
++        return userRepository.findByRoleName(roleName).stream()
++                .map(userDtoMapper)
++                .collect(Collectors.toList());
++    }
++
++    @Override
++    @Transactional(readOnly = true)
++    public Page<UserDto> searchUsers(Boolean active, String username, Pageable pageable) {
++        return userRepository.findByActiveAndUsername(active, username, pageable)
++                .map(userDtoMapper);
++    }
++
+     @Override
+     @Transactional
+     public UserDto createUser(UserDto userDto) {
+@@ -167,7 +184,7 @@
+     }
+ 
+     @Override
+-    @Transactional
++    @Transactional(readOnly = true)
+     public UserDto createUserWithPassword(UserDto userDto, String rawPassword) {
+ 
+         if (userRepository.existsByUsername(userDto.username())) {
+Index: src/main/java/dev/robgro/timesheet/repository/InvoiceRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/repository/InvoiceRepository.java b/src/main/java/dev/robgro/timesheet/repository/InvoiceRepository.java
+--- a/src/main/java/dev/robgro/timesheet/repository/InvoiceRepository.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/repository/InvoiceRepository.java	(date 1744752450537)
+@@ -3,6 +3,7 @@
+ import dev.robgro.timesheet.model.entity.Invoice;
+ import org.springframework.data.domain.Page;
+ import org.springframework.data.domain.Pageable;
++import org.springframework.data.domain.Sort;
+ import org.springframework.data.jpa.repository.JpaRepository;
+ import org.springframework.data.jpa.repository.Modifying;
+ import org.springframework.data.jpa.repository.Query;
+@@ -39,31 +40,50 @@
+     @Query(value = "DELETE FROM invoice_items WHERE invoice_id = :invoiceId", nativeQuery = true)
+     void deleteInvoiceItemsByInvoiceId(@Param("invoiceId") Long invoiceId);
+ 
+-    @Query(value = """
+-            SELECT i FROM Invoice i
+-            WHERE (:clientId IS NULL OR i.client.id = :clientId)
+-            AND (:year IS NULL OR YEAR(i.issueDate) = :year)
+-            AND (:month IS NULL OR MONTH(i.issueDate) = :month)
+-            """)
++
++
++    // Metoda do wyszukiwania według zakresu dat
++    @Query("SELECT i FROM Invoice i WHERE " +
++            "(:fromDate IS NULL OR i.issueDate >= :fromDate) AND " +
++            "(:toDate IS NULL OR i.issueDate <= :toDate) AND " +
++            "(:clientId IS NULL OR i.client.id = :clientId)")
++    Page<Invoice> findByDateRangeAndClient(
++            @Param("fromDate") LocalDate fromDate,
++            @Param("toDate") LocalDate toDate,
++            @Param("clientId") Long clientId,
++            Pageable pageable);
++
++    @Query("SELECT i FROM Invoice i WHERE " +
++            "(:clientId IS NULL OR i.client.id = :clientId) AND " +
++            "(:year IS NULL OR YEAR(i.issueDate) = :year) AND " +
++            "(:month IS NULL OR MONTH(i.issueDate) = :month)")
++    List<Invoice> findFilteredInvoices(
++            @Param("clientId") Long clientId,
++            @Param("year") Integer year,
++            @Param("month") Integer month);
++
++
++    // Metoda z paginacją
++    @Query("SELECT i FROM Invoice i WHERE " +
++            "(:clientId IS NULL OR i.client.id = :clientId) AND " +
++            "(:year IS NULL OR YEAR(i.issueDate) = :year) AND " +
++            "(:month IS NULL OR MONTH(i.issueDate) = :month)")
+     Page<Invoice> findFilteredInvoices(
+             @Param("clientId") Long clientId,
+             @Param("year") Integer year,
+             @Param("month") Integer month,
+-            Pageable pageable
+-    );
++            Pageable pageable);
+ 
+-    @Query("""
+-                SELECT i FROM Invoice i 
+-                WHERE (:clientId IS NULL OR i.client.id = :clientId) 
+-                AND (:fromDate IS NULL OR i.issueDate >= :fromDate) 
+-                AND (:toDate IS NULL OR i.issueDate <= :toDate)
+-            """)
+-    Page<Invoice> findByDateRangeAndClient(
++    // Metoda do raportowania z dynamicznym sortowaniem
++    @Query("SELECT i FROM Invoice i WHERE " +
++            "(:clientId IS NULL OR i.client.id = :clientId) AND " +
++            "(:fromDate IS NULL OR i.issueDate >= :fromDate) AND " +
++            "(:toDate IS NULL OR i.issueDate <= :toDate)")
++    List<Invoice> findForReporting(
++            @Param("clientId") Long clientId,
+             @Param("fromDate") LocalDate fromDate,
+             @Param("toDate") LocalDate toDate,
+-            @Param("clientId") Long clientId,
+-            Pageable pageable
+-    );
++            Sort sort);
+ 
+     @Modifying
+     @Query(value = "INSERT INTO invoice_items (invoice_id, service_date, description, duration, amount, timesheet_id) VALUES (:invoiceId, :serviceDate, :description, :duration, :amount, :timesheetId)", nativeQuery = true)
+Index: src/main/resources/static/js/invoice-items.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/js/invoice-items.js b/src/main/resources/static/js/invoice-items.js
+--- a/src/main/resources/static/js/invoice-items.js	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/js/invoice-items.js	(date 1744672515329)
+@@ -8,7 +8,6 @@
+         const selectedClient = clientSelect.options[clientSelect.selectedIndex];
+         const rate = selectedClient ? parseFloat(selectedClient.dataset.rate) || 0 : 0;
+ 
+-        // Update rate display
+         document.querySelectorAll('.hourly-rate').forEach(el => {
+             el.textContent = !isNaN(rate) ? rate.toFixed(2) : '0.00';
+         });
+@@ -52,7 +51,6 @@
+         checkbox.addEventListener('change', updateAmounts);
+     });
+ 
+-    // Wywołaj inicjalnie na starcie
+     filterRowsByClient();
+     updateAmounts();
+ });
+Index: src/main/java/dev/robgro/timesheet/service/UserService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/UserService.java b/src/main/java/dev/robgro/timesheet/service/UserService.java
+--- a/src/main/java/dev/robgro/timesheet/service/UserService.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/UserService.java	(date 1744753254090)
+@@ -1,6 +1,8 @@
+ package dev.robgro.timesheet.service;
+ 
+ import dev.robgro.timesheet.model.dto.UserDto;
++import org.springframework.data.domain.Page;
++import org.springframework.data.domain.Pageable;
+ import org.springframework.transaction.annotation.Transactional;
+ 
+ import java.util.List;
+@@ -25,6 +27,9 @@
+ 
+     UserDto updateUserRoles(Long id, Set<String> roleNames);
+ 
++    List<UserDto> getUsersByRole(String roleName);
++
++    Page<UserDto> searchUsers(Boolean active, String username, Pageable pageable);
+ 
+     @Transactional
+     String resetPassword(Long id);
+Index: src/main/java/dev/robgro/timesheet/service/InvoiceService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/InvoiceService.java b/src/main/java/dev/robgro/timesheet/service/InvoiceService.java
+--- a/src/main/java/dev/robgro/timesheet/service/InvoiceService.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/InvoiceService.java	(date 1743784940755)
+@@ -28,7 +28,6 @@
+ 
+     byte[] getInvoicePdfContent(Long invoiceId);
+ 
+-    //    InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
+     void savePdfAndSendInvoice(Long id);
+ 
+     List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);
+Index: src/main/java/dev/robgro/timesheet/service/InvoiceServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/InvoiceServiceImpl.java b/src/main/java/dev/robgro/timesheet/service/InvoiceServiceImpl.java
+--- a/src/main/java/dev/robgro/timesheet/service/InvoiceServiceImpl.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/InvoiceServiceImpl.java	(date 1744752908397)
+@@ -1,6 +1,10 @@
+ package dev.robgro.timesheet.service;
+ 
+ import dev.robgro.timesheet.config.InvoiceSeller;
++import dev.robgro.timesheet.exception.EntityNotFoundException;
++import dev.robgro.timesheet.exception.IntegrationException;
++import dev.robgro.timesheet.exception.ResourceAlreadyExistsException;
++import dev.robgro.timesheet.exception.ValidationException;
+ import dev.robgro.timesheet.model.dto.*;
+ import dev.robgro.timesheet.model.entity.Client;
+ import dev.robgro.timesheet.model.entity.Invoice;
+@@ -19,6 +23,7 @@
+ import org.springframework.context.annotation.Primary;
+ import org.springframework.data.domain.Page;
+ import org.springframework.data.domain.Pageable;
++import org.springframework.data.domain.Sort;
+ import org.springframework.http.HttpStatus;
+ import org.springframework.jdbc.core.JdbcTemplate;
+ import org.springframework.stereotype.Service;
+@@ -64,12 +69,15 @@
+     private final EmailMessageService emailMessageService;
+     private final FtpService ftpService;
+     private final TimesheetService timesheetService;
++    private final InvoiceDocumentService invoiceDocumentService;
++    private final InvoiceNumberGenerator invoiceNumberGenerator;
+ 
+     @Qualifier("dedicatedInvoiceCreationService")
+     private final InvoiceCreationService invoiceCreationService;
+-//    private final BillingService billingService;
++
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<InvoiceDto> getAllInvoices() {
+         return invoiceRepository.findAll().stream()
+                 .map(invoiceDtoMapper)
+@@ -77,6 +85,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<InvoiceDto> getAllInvoicesOrderByDateDesc() {
+         return invoiceRepository.findAllByOrderByIssueDateDesc()
+                 .stream()
+@@ -85,6 +94,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<InvoiceDto> getInvoicesByDateRange(LocalDate startDate, LocalDate endDate) {
+         return invoiceRepository.findByIssueDateBetweenOrderByIssueDateDesc(startDate, endDate)
+                 .stream()
+@@ -93,11 +103,13 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public InvoiceDto getInvoiceById(long id) {
+         return invoiceDtoMapper.apply(getInvoiceOrThrow(id));
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public Optional<InvoiceDto> findByInvoiceNumber(String invoiceNumber) {
+         return invoiceRepository.findByInvoiceNumber(invoiceNumber)
+                 .map(invoiceDtoMapper);
+@@ -126,6 +138,37 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
++    public byte[] getInvoicePdfContent(Long invoiceId) {
++
++        Invoice invoice = invoiceRepository.findById(invoiceId)
++                .orElseThrow(() -> new EntityNotFoundException("Invoice", invoiceId));
++
++        if (invoice.getPdfPath() == null) {
++            throw new EntityNotFoundException("PDF for invoice", invoiceId);
++        }
++
++        try {
++            String fileName = invoice.getInvoiceNumber() + ".pdf";
++            return ftpService.downloadPdfInvoice(fileName);
++        } catch (Exception e) {
++            log.error("Error downloading PDF for invoice: {}", invoiceId, e);
++            throw new IntegrationException("Could not download PDF for invoice " + invoiceId, e);
++        }
++    }
++
++    @Transactional
++    @Override
++    public void savePdfAndSendInvoice(Long id) {
++        invoiceDocumentService.savePdfAndSendInvoice(id);
++    }
++
++    private String generateInvoiceNumber(LocalDate issueDate) {
++        return invoiceNumberGenerator.generateInvoiceNumber(issueDate);
++    }
++
++    @Override
++    @Transactional(readOnly = true)
+     public List<InvoiceDto> getMonthlyInvoices(Long clientId, int year, int month) {
+         YearMonth yearMonth = YearMonth.of(year, month);
+         LocalDate startDate = yearMonth.atDay(1);
+@@ -137,6 +180,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<InvoiceDto> getYearlyInvoices(Long clientId, int year) {
+         LocalDate startDate = LocalDate.of(year, 1, 1);
+         LocalDate endDate = LocalDate.of(year, 12, 31);
+@@ -146,23 +190,6 @@
+                 .toList();
+     }
+ 
+-    @Override
+-    public byte[] getInvoicePdfContent(Long invoiceId) {
+-        Invoice invoice = getInvoiceOrThrow(invoiceId);
+-        if (invoice.getPdfPath() == null) {
+-            throw new ResponseStatusException(
+-                    HttpStatus.NOT_FOUND, "PDF not found for invoice: " + invoiceId);
+-        }
+-        try {
+-            String fileName = invoice.getInvoiceNumber() + ".pdf";
+-            return ftpService.downloadPdfInvoice(fileName);
+-        } catch (Exception e) {
+-            log.error("Error downloading PDF for invoice: {}", invoiceId, e);
+-            throw new ResponseStatusException(
+-                    HttpStatus.INTERNAL_SERVER_ERROR, "Could not download PDF");
+-        }
+-    }
+-
+     private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {
+         InvoiceItem item = new InvoiceItem();
+         item.setInvoice(invoice);
+@@ -184,27 +211,6 @@
+         );
+     }
+ 
+-    private String generateInvoiceNumber(LocalDate issueDate) {
+-        int year = issueDate.getYear();
+-        int month = issueDate.getMonthValue();
+-        String yearMonth = String.format("%02d-%d", month, year);
+-
+-        List<Integer> existingNumbers = invoiceRepository.findByInvoiceNumberEndingWith(yearMonth)
+-                .stream()
+-                .map(invoice -> Integer.parseInt(invoice.getInvoiceNumber().substring(0, 3)))
+-                .sorted()
+-                .toList();
+-
+-        int nextNumber = 1;
+-        for (Integer existingNumber : existingNumbers) {
+-            if (existingNumber != nextNumber) {
+-                break;
+-            }
+-            nextNumber++;
+-        }
+-        return String.format("%03d-%s", nextNumber, yearMonth);
+-    }
+-
+     private BigDecimal calculateAmount(double duration, double hourlyRate) {
+         return BigDecimal.valueOf(duration * hourlyRate)
+                 .setScale(2, RoundingMode.HALF_UP);
+@@ -218,62 +224,25 @@
+ 
+     private Invoice getInvoiceOrThrow(Long id) {
+         return invoiceRepository.findById(id)
+-                .orElseThrow(() -> new ResponseStatusException(
+-                        HttpStatus.NOT_FOUND, "Invoice with id: " + id + "not found"));
+-    }
+-
+-    @Transactional
+-    @Override
+-    public void savePdfAndSendInvoice(Long id) {
+-        log.info(" 😁 Processing invoice PDF generation and email for invoice id: {}", id);
+-        Invoice invoice = getInvoiceOrThrow(id);
+-        Client client = invoice.getClient();
+-        String fileName = invoice.getInvoiceNumber() + ".pdf";
+-
+-        ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
+-        pdfGenerator.generateInvoicePdf(invoice, seller, pdfOutput);
+-        byte[] pdfContent = pdfOutput.toByteArray();
+-
+-        ftpService.uploadPdfInvoice(fileName, pdfContent);
+-
+-        invoice.setPdfPath(ftpService.getInvoicesDirectory() + "/" + fileName);
+-        invoice.setPdfGeneratedAt(LocalDateTime.now());
+-
+-        try {
+-            String firstName = client.getClientName().split(" ")[0];
+-            String invoiceNumber = invoice.getInvoiceNumber();
+-            String preMonth = invoice.getIssueDate().getMonth().toString();
+-            String month = preMonth.charAt(0) + preMonth.substring(1).toLowerCase();
+-
+-            emailMessageService.sendInvoiceEmailWithBytes(
+-                    client.getEmail(),
+-                    COPY_EMAIL,
+-                    firstName,
+-                    invoiceNumber,
+-                    month,
+-                    fileName,
+-                    pdfContent
+-            );
+-
+-            invoice.setEmailSentAt(LocalDateTime.now());
+-            invoiceRepository.save(invoice);
+-            log.info("Successfully processed invoice id: {}", id);
+-        } catch (MessagingException e) {
+-            log.error("Failed to send invoice email for id: {}", id, e);
+-            throw new RuntimeException("Failed to send email", e);
+-        }
++                .orElseThrow(() -> new EntityNotFoundException("Invoice", id));
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public InvoiceReportData generateReport(DateRangeRequest dateRange, Long clientId) {
+-        List<InvoiceDto> invoices = searchInvoices(dateRange, clientId, null).getContent();
++        LocalDate fromDate = convertToStartDate(dateRange);
++        LocalDate toDate = convertToEndDate(dateRange);
+ 
+-        List<InvoiceDto> sortedInvoices = invoices.stream()
+-                .sorted(Comparator.comparing(InvoiceDto::issueDate))
++        // Używamy dedykowanej metody repozytorium z sortowaniem
++        Sort sort = Sort.by(Sort.Direction.ASC, "issueDate");
++        List<Invoice> invoices = invoiceRepository.findForReporting(clientId, fromDate, toDate, sort);
++
++        List<InvoiceDto> sortedInvoiceDtos = invoices.stream()
++                .map(invoiceDtoMapper)
+                 .toList();
+ 
+         BigDecimal totalAmount = invoices.stream()
+-                .map(InvoiceDto::totalAmount)
++                .map(Invoice::getTotalAmount)
+                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+ 
+         String period = generatePeriodLabel(dateRange);
+@@ -286,7 +255,7 @@
+             }
+         }
+ 
+-        return new InvoiceReportData(sortedInvoices, totalAmount, period, clientName);
++        return new InvoiceReportData(sortedInvoiceDtos, totalAmount, period, clientName);
+     }
+ 
+     @Transactional
+@@ -294,14 +263,12 @@
+     public InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request) {
+         Invoice invoice = getInvoiceOrThrow(id);
+         Client newClient = clientRepository.findById(request.clientId())
+-                .orElseThrow(() -> new ResponseStatusException(
+-                        HttpStatus.NOT_FOUND, "Client not found: " + request.clientId()));
++                .orElseThrow(() -> new EntityNotFoundException("Client", request.clientId()));
+ 
+         if (!invoice.getInvoiceNumber().equals(request.invoiceNumber())) {
+             invoiceRepository.findByInvoiceNumber(request.invoiceNumber())
+                     .ifPresent(existing -> {
+-                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+-                                "Invoice number already exists: " + request.invoiceNumber());
++                        throw new ResourceAlreadyExistsException("Invoice", "number", request.invoiceNumber());
+                     });
+         }
+ 
+@@ -352,12 +319,7 @@
+ 
+     @Override
+     public List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month) {
+-        List<Invoice> invoices = invoiceRepository.findAll();
+-
+-        return invoices.stream()
+-                .filter(invoice -> clientId == null || invoice.getClient().getId().equals(clientId))
+-                .filter(invoice -> year == null || invoice.getIssueDate().getYear() == year)
+-                .filter(invoice -> month == null || invoice.getIssueDate().getMonthValue() == month)
++        return invoiceRepository.findFilteredInvoices(clientId, year, month).stream()
+                 .map(invoiceDtoMapper)
+                 .collect(toList());
+     }
+@@ -368,7 +330,7 @@
+         log.info("Starting deletion of invoice ID: {}", id);
+ 
+         Invoice invoice = invoiceRepository.findById(id)
+-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found with id: " + id));
++                .orElseThrow(() -> new EntityNotFoundException("Invoice", id));
+ 
+         log.info("Found invoice: {}, associated timesheets: {}",
+                 invoice.getInvoiceNumber(), invoice.getTimesheets().size());
+@@ -432,7 +394,7 @@
+         }
+ 
+         if (fromDate.isAfter(toDate)) {
+-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date cannot be after end date");
++            throw new ValidationException("Start date cannot be after end date");
+         }
+     }
+ 
+Index: src/main/resources/static/css/invoice-create-style.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/css/invoice-create-style.css b/src/main/resources/static/css/invoice-create-style.css
+--- a/src/main/resources/static/css/invoice-create-style.css	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/css/invoice-create-style.css	(date 1744198137807)
+@@ -55,12 +55,10 @@
+ .invoice-info {
+     display: flex;
+     gap: 2rem;
+-    margin-left: auto; /* to przesunie na prawą stronę */
+-    text-align: right; /* tekst wyrównany do prawej */
+-    /*color: #5c6ac4;*/
+-}
++    margin-left: auto;
++    text-align: right;
++   }
+ 
+-/* Zmiana koloru dla etykiet i wartości */
+ .invoice-info .label {
+     color: var(--my-grey);
+ }
+@@ -186,14 +184,14 @@
+ }
+ 
+ .save-button {
+-    display: inline-block; /* Dla pełnej szerokości */
+-    padding: 1rem 2rem; /* Większe wymiary przycisku */
+-    font-size: 1.7rem; /* Większy tekst */
++    display: inline-block;
++    padding: 1rem 2rem;
++    font-size: 1.7rem;
+     font-weight: bold;
+-    background-color: #161b22; /* Główny kolor */
++    background-color: #161b22;
+     color: #ffc008;
+     border: none;
+-    border-radius: 5px; /* Lekko zaokrąglone rogi */
++    border-radius: 5px;
+     text-align: center;
+     cursor: pointer;
+     transition: background-color 0.3s ease;
+@@ -212,7 +210,6 @@
+     box-shadow: 0px 4px 15px rgb(113, 232, 54);
+ }
+ 
+-/* Drukowanie */
+ @media print {
+     body {
+         -webkit-print-color-adjust: exact;
+@@ -223,7 +220,6 @@
+         padding: 0;
+     }
+ 
+-    /* ukryj przyciski i elementy nawigacji */
+     .save-button {
+         display: none;
+     }
+@@ -233,7 +229,7 @@
+         print-color-adjust: exact;
+     }
+ 
+-    /* możemy dodać styl dla oznaczenia ORIGINAL/COPY */
++    /* ORIGINAL/COPY  style */
+     .document-type {
+         position: absolute;
+         top: 20px;
+@@ -247,7 +243,6 @@
+     }
+ }
+ 
+-/* Responsywność */
+ @media (max-width: 768px) {
+     .header, .addresses, .items, .payment-details, .notes, .footer {
+         padding-left: 1rem;
+@@ -255,16 +250,15 @@
+     }
+ 
+     .save-button {
+-        width: 100%; /* Pełna szerokość na małych ekranach */
+-        font-size: 1rem; /* Nieco mniejszy tekst */
++        width: 100%;
++        font-size: 1rem;
+     }
+ 
+     .addresses {
+         display: flex;
+         flex-direction: row;
+         justify-content: space-between;
+-        /*gap: 1.5rem;*/
+-    }
++           }
+ 
+     .address {
+         max-width: 45%;
+@@ -273,4 +267,32 @@
+     .total-section {
+         width: 100%;
+     }
++
++    .notification {
++        position: fixed;
++        top: 20px;
++        right: 20px;
++        padding: 15px 20px;
++        border-radius: 4px;
++        color: white;
++        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
++        transform: translateY(-20px);
++        opacity: 0;
++        transition: transform 0.3s ease, opacity 0.3s ease;
++        z-index: 1000;
++        max-width: 300px;
++    }
++
++    .notification.success {
++        background-color: #4CAF50;
++    }
++
++    .notification.error {
++        background-color: #F44336;
++    }
++
++    .notification.show {
++        transform: translateY(0);
++        opacity: 1;
++    }
+ }
+Index: src/test/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/src/test/resources/application.properties b/src/test/resources/application.properties
+--- a/src/test/resources/application.properties	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/test/resources/application.properties	(date 1736887953604)
+@@ -1,10 +1,10 @@
+ 
+-spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.datasource.username=sa
+-spring.datasource.password=
+-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-spring.jpa.hibernate.ddl-auto=create-drop
++#spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
++#spring.datasource.driverClassName=org.h2.Driver
++#spring.datasource.username=sa
++#spring.datasource.password=
++#spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
++#spring.jpa.hibernate.ddl-auto=create-drop
+ 
+ ## TESTS ONLY
+ #
+Index: src/main/resources/static/js/invoice-create.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/static/js/invoice-create.js b/src/main/resources/static/js/invoice-create.js
+--- a/src/main/resources/static/js/invoice-create.js	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/static/js/invoice-create.js	(date 1744672515248)
+@@ -13,7 +13,7 @@
+     button.disabled = true;
+     button.textContent = 'Processing...';
+ 
+-    fetch(`/invoice-create/${invoiceId}/save-and-send`, {
++    fetch(`/invoices/create/${invoiceId}/save-and-send`, {
+         method: 'POST',
+         headers: {
+             'Content-Type': 'application/json',
+@@ -25,7 +25,7 @@
+             if (response.ok) {
+                 alert('😀 Invoice has been saved and sent to the client 😀');
+                 setTimeout(() => {
+-                    window.location.href = '/';
++                    window.location.href = '/invoices/items';
+                 }, 3000);
+             } else {
+                 throw new Error(`Status: ${response.status}`);
+Index: src/main/resources/templates/invoice-items.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/resources/templates/invoice-items.html b/src/main/resources/templates/invoices/items.html
+rename from src/main/resources/templates/invoice-items.html
+rename to src/main/resources/templates/invoices/items.html
+--- a/src/main/resources/templates/invoice-items.html	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/resources/templates/invoices/items.html	(date 1744747915369)
+@@ -12,7 +12,7 @@
+         <div class="card-body p-4">
+           <h2 class="text-center mb-4">Check Invoice Items</h2>
+ 
+-          <form method="post" th:action="@{/invoice-items}">
++          <form method="post" th:action="@{/invoices/items}">
+             <div class="row mb-4">
+               <div class="col-md-8">
+                 <label>Invoice for:</label>
+@@ -24,8 +24,6 @@
+                           th:data-rate="${client.hourlyRate}">
+                   </option>
+                 </select>
+-<!--              </div>-->
+-<!--              <div class="col-md-4">-->
+                 <label>Invoice date:</label>
+                 <input type="date" class="form-control"
+                        name="issueDate" required>
+Index: src/main/java/dev/robgro/timesheet/service/TimesheetService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/TimesheetService.java b/src/main/java/dev/robgro/timesheet/service/TimesheetService.java
+--- a/src/main/java/dev/robgro/timesheet/service/TimesheetService.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/TimesheetService.java	(date 1744322168677)
+@@ -50,4 +50,6 @@
+     Page<TimesheetDto> getAllTimesheetsPageable(Long clientId, Pageable pageable);
+ 
+     void updatePaymentDate(Long id, LocalDate paymentDate);
++
++    TimesheetDto createEmptyTimesheetDto();
+ }
+Index: src/main/java/dev/robgro/timesheet/controller/app/InvoiceArchiveController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/app/InvoiceArchiveController.java b/src/main/java/dev/robgro/timesheet/controller/app/InvoiceArchiveController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/app/InvoiceArchiveController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/app/InvoiceArchiveController.java	(date 1744671491406)
+@@ -4,7 +4,9 @@
+ import dev.robgro.timesheet.model.dto.InvoiceDto;
+ import dev.robgro.timesheet.service.ClientService;
+ import dev.robgro.timesheet.service.InvoiceService;
++import dev.robgro.timesheet.utils.PaginationUtils;
+ import lombok.RequiredArgsConstructor;
++import lombok.extern.slf4j.Slf4j;
+ import org.springframework.data.domain.Page;
+ import org.springframework.data.domain.PageRequest;
+ import org.springframework.data.domain.Pageable;
+@@ -15,8 +17,9 @@
+ import org.springframework.web.bind.annotation.RequestMapping;
+ import org.springframework.web.bind.annotation.RequestParam;
+ 
++@Slf4j
+ @Controller
+-@RequestMapping("invoice-archive")
++@RequestMapping("invoices/archive")
+ @RequiredArgsConstructor
+ public class InvoiceArchiveController {
+ 
+@@ -36,6 +39,9 @@
+             @RequestParam(defaultValue = "0") int page,
+             @RequestParam(defaultValue = "10") int size) {
+ 
++        log.debug("Showing invoice archive with date range: from {}-{} to {}-{}, clientId={}",
++                fromYear, fromMonth, toYear, toMonth, clientId);
++
+         DateRangeRequest dateRange = new DateRangeRequest(fromYear, fromMonth, toYear, toMonth);
+ 
+         Sort sort = Sort.by(sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
+@@ -44,12 +50,38 @@
+         Page<InvoiceDto> invoicesPage = invoiceService.searchInvoices(dateRange, clientId, pageable);
+ 
+         model.addAttribute("invoices", invoicesPage.getContent());
+-        model.addAttribute("currentPage", page);
+-        model.addAttribute("totalPages", invoicesPage.getTotalPages());
+-        model.addAttribute("totalItems", invoicesPage.getTotalElements());
+-        model.addAttribute("size", size);
++        PaginationUtils.setPaginationAttributesWithSort(model, invoicesPage, page, size, sortBy, sortDir);
++        model.addAttribute("clients", clientService.getAllClients());
++
++        return "invoices/archive";
++    }
++
++    @GetMapping("/pdf")
++    public String showPdfList(
++            Model model,
++            @RequestParam(required = false) Long clientId,
++            @RequestParam(required = false) Integer year,
++            @RequestParam(required = false) Integer month,
++            @RequestParam(required = false, defaultValue = "invoiceNumber") String sortBy,
++            @RequestParam(required = false, defaultValue = "asc") String sortDir,
++            @RequestParam(defaultValue = "0") int page,
++            @RequestParam(defaultValue = "10") int size) {
++
++        log.debug("Showing PDF invoice list with filters: clientId={}, year={}, month={}",
++                clientId, year, month);
++
++        Sort sort = Sort.by(sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
++        Pageable pageable = PageRequest.of(page, size, sort);
++
++        Page<InvoiceDto> invoicesPage = invoiceService.getAllInvoicesPageable(clientId, year, month, pageable);
++
++        model.addAttribute("invoices", invoicesPage.getContent());
++        PaginationUtils.setPaginationAttributesWithSort(model, invoicesPage, page, size, sortBy, sortDir);
+         model.addAttribute("clients", clientService.getAllClients());
++        model.addAttribute("clientId", clientId);
++        model.addAttribute("year", year);
++        model.addAttribute("month", month);
+ 
+-        return "invoice-archive";
++        return "invoices/pdf";
+     }
+ }
+Index: src/main/java/dev/robgro/timesheet/service/TimesheetServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/TimesheetServiceImpl.java b/src/main/java/dev/robgro/timesheet/service/TimesheetServiceImpl.java
+--- a/src/main/java/dev/robgro/timesheet/service/TimesheetServiceImpl.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/TimesheetServiceImpl.java	(date 1744752769843)
+@@ -1,5 +1,7 @@
+ package dev.robgro.timesheet.service;
+ 
++import dev.robgro.timesheet.exception.BusinessRuleViolationException;
++import dev.robgro.timesheet.exception.EntityNotFoundException;
+ import dev.robgro.timesheet.model.dto.TimesheetDto;
+ import dev.robgro.timesheet.model.dto.TimesheetDtoMapper;
+ import dev.robgro.timesheet.model.entity.Client;
+@@ -38,6 +40,7 @@
+     private final TimesheetDtoMapper timesheetDtoMapper;
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<TimesheetDto> getAllTimesheets() {
+         return timesheetRepository.findAll().stream()
+                 .map(timesheetDtoMapper)
+@@ -45,19 +48,22 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public TimesheetDto getTimesheetById(Long id) {
+         return timesheetDtoMapper.apply(getTimesheetOrThrow(id));
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<TimesheetDto> getUnbilledTimesheetsByClientId(Long clientId) {
+-        return timesheetRepository.findByClientIdAndInvoicedFalse(clientId)
+-                .stream()
++//        return timesheetRepository.findByClientIdAndInvoicedFalse(clientId)
++        return timesheetRepository.findUnbilledTimesheetsByClientId(clientId).stream()
+                 .map(timesheetDtoMapper)
+                 .collect(Collectors.toList());
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<TimesheetDto> getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced) {
+         return timesheetRepository.findByClientIdAndInvoiced(clientId, invoiced).stream()
+                 .map(timesheetDtoMapper)
+@@ -77,6 +83,8 @@
+         return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));
+     }
+ 
++    @Override
++    @Transactional(readOnly = true)
+     public List<TimesheetDto> getTimesheetsByFilters(Long clientId, String paymentStatus) {
+         List<Timesheet> timesheets;
+ 
+@@ -98,6 +106,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir) {
+         List<Timesheet> timesheets;
+         if (clientId != null) {
+@@ -152,6 +161,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public Page<TimesheetDto> getFilteredAndPaginatedTimesheets(
+             Long clientId,
+             String paymentStatus,
+@@ -163,21 +173,8 @@
+         Sort sort = Sort.by(sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortBy);
+         PageRequest pageRequest = PageRequest.of(page, size, sort);
+ 
+-        Page<Timesheet> timesheetPage;
+-
+-        if (clientId != null && paymentStatus != null) {
+-            if (paymentStatus.equals("true")) {
+-                timesheetPage = timesheetRepository.findByClientIdAndPaymentDateIsNotNull(clientId, pageRequest);
+-            } else {
+-                timesheetPage = timesheetRepository.findByClientIdAndPaymentDateIsNull(clientId, pageRequest);
+-            }
+-        } else if (clientId != null) {
+-            timesheetPage = timesheetRepository.findByClientId(clientId, pageRequest);
+-        } else {
+-            timesheetPage = timesheetRepository.findAll(pageRequest);
+-        }
+-
+-        return timesheetPage.map(timesheetDtoMapper);
++        return timesheetRepository.findByClientIdAndPaymentStatus(clientId, paymentStatus, pageRequest)
++                .map(timesheetDtoMapper);
+     }
+ 
+     @Override
+@@ -201,10 +198,7 @@
+         Timesheet timesheet = getTimesheetOrThrow(id);
+ 
+         if (timesheet.isInvoiced()) {
+-            throw new ResponseStatusException(
+-                    HttpStatus.BAD_REQUEST,
+-                    "😂 Cannot delete timesheet that is attached to an invoice"
+-            );
++            throw new BusinessRuleViolationException("Cannot delete timesheet that is attached to an invoice");
+         }
+ 
+         if (timesheet.getInvoice() != null) {
+@@ -224,6 +218,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<TimesheetDto> getTimesheetByClientId(Long clientId) {
+         return timesheetRepository.findAllByClientId(clientId).stream()
+                 .map(timesheetDtoMapper)
+@@ -231,6 +226,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<TimesheetDto> getUnbilledTimesheets() {
+         return timesheetRepository.findByInvoiced(false)
+                 .stream()
+@@ -239,6 +235,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<TimesheetDto> getMonthlyTimesheets(Long clientId, int year, int month) {
+         YearMonth yearMonth = YearMonth.of(year, month);
+         LocalDate startDate = yearMonth.atDay(1);
+@@ -253,7 +250,7 @@
+ 
+     private Timesheet getTimesheetOrThrow(Long id) {
+         return timesheetRepository.findById(id)
+-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Timesheet with id " + id + "not found"));
++                .orElseThrow(() -> new EntityNotFoundException("Timesheet", id));
+     }
+ 
+     @Override
+@@ -266,10 +263,7 @@
+     @Transactional
+     @Override
+     public void updateInvoiceFlag(Long id, boolean isInvoiced) {
+-        Timesheet timesheet = timesheetRepository.findById(id)
+-                .orElseThrow(() -> new ResponseStatusException(
+-                        HttpStatus.NOT_FOUND, "Timesheet with id: " + id + " not found"));
+-
++        Timesheet timesheet = getTimesheetOrThrow(id);
+         timesheet.setInvoiced(isInvoiced);
+         timesheetRepository.save(timesheet);
+     }
+@@ -284,24 +278,28 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public Page<TimesheetDto> getAllTimesheetsPageable(Pageable pageable) {
+         return timesheetRepository.findAll(pageable)
+                 .map(timesheetDtoMapper);
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public Page<TimesheetDto> getTimesheetsByClientIdPageable(Long clientId, Pageable pageable) {
+         return timesheetRepository.findAllByClientId(clientId, pageable)
+                 .map(timesheetDtoMapper);
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public Page<TimesheetDto> getAllTimesheetsSortedByInvoiceNumber(Long clientId, Pageable pageable) {
+         return timesheetRepository.findAllSortedByInvoiceNumber(clientId, pageable)
+                 .map(timesheetDtoMapper);
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public Page<TimesheetDto> getAllTimesheetsPageable(Long clientId, Pageable pageable) {
+         if (clientId != null) {
+             return timesheetRepository.findAllByClientId(clientId, pageable)
+@@ -318,4 +316,10 @@
+         timesheet.setPaymentDate(paymentDate);
+         timesheetRepository.save(timesheet);
+     }
++
++    @Override
++    @Transactional(readOnly = true)
++    public TimesheetDto createEmptyTimesheetDto() {
++        return new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null, null);
++    }
+ }
+Index: src/main/java/dev/robgro/timesheet/service/InvoiceNumberGenerator.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/InvoiceNumberGenerator.java b/src/main/java/dev/robgro/timesheet/service/InvoiceNumberGenerator.java
+new file mode 100644
+--- /dev/null	(date 1743785199717)
++++ b/src/main/java/dev/robgro/timesheet/service/InvoiceNumberGenerator.java	(date 1743785199717)
+@@ -0,0 +1,7 @@
++package dev.robgro.timesheet.service;
++
++import java.time.LocalDate;
++
++public interface InvoiceNumberGenerator {
++    String generateInvoiceNumber(LocalDate issueDate);
++}
+Index: src/main/java/dev/robgro/timesheet/service/InvoiceNumberGeneratorImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/InvoiceNumberGeneratorImpl.java b/src/main/java/dev/robgro/timesheet/service/InvoiceNumberGeneratorImpl.java
+new file mode 100644
+--- /dev/null	(date 1743785276189)
++++ b/src/main/java/dev/robgro/timesheet/service/InvoiceNumberGeneratorImpl.java	(date 1743785276189)
+@@ -0,0 +1,37 @@
++package dev.robgro.timesheet.service;
++
++import dev.robgro.timesheet.repository.InvoiceRepository;
++import lombok.RequiredArgsConstructor;
++import org.springframework.stereotype.Service;
++
++import java.time.LocalDate;
++import java.util.List;
++
++@Service
++@RequiredArgsConstructor
++public class InvoiceNumberGeneratorImpl implements InvoiceNumberGenerator {
++
++    private final InvoiceRepository invoiceRepository;
++
++    @Override
++    public String generateInvoiceNumber(LocalDate issueDate) {
++        int year = issueDate.getYear();
++        int month = issueDate.getMonthValue();
++        String yearMonth = String.format("%02d-%d", month, year);
++
++        List<Integer> existingNumbers = invoiceRepository.findByInvoiceNumberEndingWith(yearMonth)
++                .stream()
++                .map(invoice -> Integer.parseInt(invoice.getInvoiceNumber().substring(0, 3)))
++                .sorted()
++                .toList();
++
++        int nextNumber = 1;
++        for (Integer existingNumber : existingNumbers) {
++            if (existingNumber != nextNumber) {
++                break;
++            }
++            nextNumber++;
++        }
++        return String.format("%03d-%s", nextNumber, yearMonth);
++    }
++}
+Index: src/main/java/dev/robgro/timesheet/service/InvoiceDocumentService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/InvoiceDocumentService.java b/src/main/java/dev/robgro/timesheet/service/InvoiceDocumentService.java
+new file mode 100644
+--- /dev/null	(date 1743785082188)
++++ b/src/main/java/dev/robgro/timesheet/service/InvoiceDocumentService.java	(date 1743785082188)
+@@ -0,0 +1,6 @@
++package dev.robgro.timesheet.service;
++
++public interface InvoiceDocumentService {
++    byte[] getInvoicePdfContent(Long invoiceId);
++    void savePdfAndSendInvoice(Long invoiceId);
++}
+Index: src/main/java/dev/robgro/timesheet/service/InvoiceDocumentServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/InvoiceDocumentServiceImpl.java b/src/main/java/dev/robgro/timesheet/service/InvoiceDocumentServiceImpl.java
+new file mode 100644
+--- /dev/null	(date 1744669132047)
++++ b/src/main/java/dev/robgro/timesheet/service/InvoiceDocumentServiceImpl.java	(date 1744669132047)
+@@ -0,0 +1,95 @@
++package dev.robgro.timesheet.service;
++
++import dev.robgro.timesheet.config.InvoiceSeller;
++import dev.robgro.timesheet.exception.EmailException;
++import dev.robgro.timesheet.exception.EntityNotFoundException;
++import dev.robgro.timesheet.exception.IntegrationException;
++import dev.robgro.timesheet.model.entity.Client;
++import dev.robgro.timesheet.model.entity.Invoice;
++import dev.robgro.timesheet.repository.InvoiceRepository;
++import jakarta.mail.MessagingException;
++import lombok.RequiredArgsConstructor;
++import lombok.extern.slf4j.Slf4j;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++
++import java.io.ByteArrayOutputStream;
++import java.time.LocalDateTime;
++
++import static dev.robgro.timesheet.service.EmailMessageService.COPY_EMAIL;
++import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
++
++@Service
++@RequiredArgsConstructor
++@Slf4j
++public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
++
++    private final InvoiceRepository invoiceRepository;
++    private final FtpService ftpService;
++    private final PdfGenerator pdfGenerator;
++    private final EmailMessageService emailMessageService;
++    private final InvoiceSeller seller;
++
++    @Override
++    @Transactional(readOnly = true)
++    public byte[] getInvoicePdfContent(Long invoiceId) {
++        Invoice invoice = getInvoiceOrThrow(invoiceId);
++        if (invoice.getPdfPath() == null) {
++            throw new EntityNotFoundException("PDF for invoice", invoiceId);
++        }
++        try {
++            String fileName = invoice.getInvoiceNumber() + ".pdf";
++            return ftpService.downloadPdfInvoice(fileName);
++        } catch (Exception e) {
++            log.error("Error downloading PDF for invoice: {}", invoiceId, e);
++            throw new IntegrationException("Could not download PDF for invoice " + invoiceId, e);
++        }
++    }
++
++    @Transactional
++    @Override
++    public void savePdfAndSendInvoice(Long invoiceId) {
++        log.info(" 😁 Processing invoice PDF generation and email for invoice id: {}", invoiceId);
++        Invoice invoice = getInvoiceOrThrow(invoiceId);
++        Client client = invoice.getClient();
++        String fileName = invoice.getInvoiceNumber() + ".pdf";
++
++        ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
++        pdfGenerator.generateInvoicePdf(invoice, seller, pdfOutput);
++        byte[] pdfContent = pdfOutput.toByteArray();
++
++        ftpService.uploadPdfInvoice(fileName, pdfContent);
++
++        invoice.setPdfPath(ftpService.getInvoicesDirectory() + "/" + fileName);
++        invoice.setPdfGeneratedAt(LocalDateTime.now());
++
++        try {
++            String firstName = client.getClientName().split(" ")[0];
++            String invoiceNumber = invoice.getInvoiceNumber();
++            String preMonth = invoice.getIssueDate().getMonth().toString();
++            String month = preMonth.charAt(0) + preMonth.substring(1).toLowerCase();
++
++            emailMessageService.sendInvoiceEmailWithBytes(
++                    client.getEmail(),
++                    COPY_EMAIL,
++                    firstName,
++                    invoiceNumber,
++                    month,
++                    fileName,
++                    pdfContent
++            );
++
++            invoice.setEmailSentAt(LocalDateTime.now());
++            invoiceRepository.save(invoice);
++            log.info("Successfully processed invoice id: {}", invoiceId);
++        } catch (MessagingException e) {
++            log.error("Failed to send invoice email for id: {}", invoiceId, e);
++            throw new EmailException("Failed to send invoice email for invoice " + id, e);
++        }
++    }
++
++    private Invoice getInvoiceOrThrow(Long id) {
++        return invoiceRepository.findById(id)
++                .orElseThrow(() -> new EntityNotFoundException("Invoice", id));
++    }
++}
+Index: src/main/java/dev/robgro/timesheet/controller/api/ClientController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/api/ClientController.java b/src/main/java/dev/robgro/timesheet/controller/api/ClientController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/api/ClientController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/api/ClientController.java	(date 1744224643575)
+@@ -11,7 +11,6 @@
+ import org.springframework.http.HttpStatus;
+ import org.springframework.http.ResponseEntity;
+ import org.springframework.web.bind.annotation.*;
+-import org.springframework.web.server.ResponseStatusException;
+ 
+ import java.util.List;
+ 
+@@ -70,19 +69,12 @@
+     @ApiResponses(value = {
+             @ApiResponse(responseCode = "200", description = "Client successfully deleted"),
+             @ApiResponse(responseCode = "404", description = "Client not found"),
++            @ApiResponse(responseCode = "409", description = "Client cannot be deleted due to existing references"),
+             @ApiResponse(responseCode = "500", description = "Internal server error")
+     })
+     @DeleteMapping("/{id}")
+     public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
+-        try {
+-            clientService.deleteClient(id);
+-            return ResponseEntity.ok().build();
+-        } catch (ResponseStatusException e) {
+-            log.error("Error deleting client with id: {}", id, e);
+-            return ResponseEntity.status(e.getStatusCode()).build();
+-        } catch (Exception e) {
+-            log.error("Unexpected error while deleting client with id: {}", id, e);
+-            return ResponseEntity.internalServerError().build();
+-        }
++        clientService.deleteClient(id);
++        return ResponseEntity.noContent().build();
+     }
+ }
+Index: src/main/java/dev/robgro/timesheet/controller/app/ClientViewController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/controller/app/ClientViewController.java b/src/main/java/dev/robgro/timesheet/controller/app/ClientViewController.java
+--- a/src/main/java/dev/robgro/timesheet/controller/app/ClientViewController.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/controller/app/ClientViewController.java	(date 1744632369180)
+@@ -3,12 +3,16 @@
+ import dev.robgro.timesheet.model.dto.ClientDto;
+ import dev.robgro.timesheet.model.dto.OperationResult;
+ import dev.robgro.timesheet.service.ClientService;
++import jakarta.validation.Valid;
+ import lombok.RequiredArgsConstructor;
++import lombok.extern.slf4j.Slf4j;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.Model;
++import org.springframework.validation.BindingResult;
+ import org.springframework.web.bind.annotation.*;
+ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+ 
++@Slf4j
+ @Controller
+ @RequestMapping("/clients")
+ @RequiredArgsConstructor
+@@ -23,17 +27,7 @@
+ 
+     @GetMapping("/new")
+     public String showNewClientForm(Model model) {
+-        model.addAttribute("client", new ClientDto(
+-                null,        // id
+-                "",             // clientName
+-                0.0,            // hourlyRate
+-                0L,             // houseNo (long)
+-                "",             // streetName
+-                "",             // city
+-                "",             // postCode
+-                "",             // email
+-                true            // is active
+-        ));
++        model.addAttribute("client", clientService.createEmptyClientDto());
+         return "client-form";
+     }
+ 
+@@ -44,13 +38,23 @@
+     }
+ 
+     @PostMapping("/save")
+-    public String saveClient(@ModelAttribute ClientDto client) {
++    public String saveClient(@Valid @ModelAttribute ClientDto client,
++                             BindingResult result,
++                             RedirectAttributes redirectAttributes) {
++        if (result.hasErrors()) {
++            return "client-form";
++        }
++
+         clientService.saveClient(client);
++
++        redirectAttributes.addFlashAttribute("success", "Client saved successfully");
+         return "redirect:/clients";
+     }
+ 
++
+     @DeleteMapping("/delete/{id}")
+     public String deleteClient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
++        log.info("Deactivating client ID: {}", id);
+         OperationResult result = clientService.deactivateClient(id);
+         redirectAttributes.addFlashAttribute(result.success() ? "success" : "error", result.message());
+         return "redirect:/clients";
+Index: src/main/java/dev/robgro/timesheet/service/RoleServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/dev/robgro/timesheet/service/RoleServiceImpl.java b/src/main/java/dev/robgro/timesheet/service/RoleServiceImpl.java
+--- a/src/main/java/dev/robgro/timesheet/service/RoleServiceImpl.java	(revision 799ee3cf23cd0df763014c98462af1cdb1445aa9)
++++ b/src/main/java/dev/robgro/timesheet/service/RoleServiceImpl.java	(date 1744669110321)
+@@ -8,6 +8,7 @@
+ import lombok.RequiredArgsConstructor;
+ import lombok.extern.slf4j.Slf4j;
+ import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
+ 
+ import java.util.Collections;
+ import java.util.List;
+@@ -21,6 +22,7 @@
+     private final RoleRepository roleRepository;
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public Set<Role> getRolesByNames(Set<String> roleNames) {
+         if (roleNames == null || roleNames.isEmpty()) {
+             return Collections.emptySet();
+@@ -32,6 +34,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public Role getRoleByName(String roleName) {
+         try {
+             RoleName roleNameEnum = RoleName.valueOf(roleName);
+@@ -44,6 +47,7 @@
+     }
+ 
+     @Override
++    @Transactional(readOnly = true)
+     public List<Role> getAllRoles() {
+         return roleRepository.findAll();
+     }
+diff --git a/src/main/resources/templates/invoice-report.html b/src/main/resources/templates/invoices/reports.html
+rename from src/main/resources/templates/invoice-report.html
+rename to src/main/resources/templates/invoices/reports.html
+diff --git a/src/main/resources/templates/timesheet-list.html b/src/main/resources/templates/timesheets-list.html
+rename from src/main/resources/templates/timesheet-list.html
+rename to src/main/resources/templates/timesheets-list.html
+diff --git a/src/main/resources/templates/invoice-pdf.html b/src/main/resources/templates/invoices/pdf.html
+rename from src/main/resources/templates/invoice-pdf.html
+rename to src/main/resources/templates/invoices/pdf.html
+diff --git a/src/main/resources/templates/invoice-edit.html b/src/main/resources/templates/invoices/edit.html
+rename from src/main/resources/templates/invoice-edit.html
+rename to src/main/resources/templates/invoices/edit.html
