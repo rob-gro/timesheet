@@ -1,7 +1,6 @@
 package dev.robgro.timesheet.service;
 
 import dev.robgro.timesheet.exception.EntityNotFoundException;
-import dev.robgro.timesheet.exception.ServiceOperationException;
 import dev.robgro.timesheet.model.dto.ClientDto;
 import dev.robgro.timesheet.model.dto.ClientDtoMapper;
 import dev.robgro.timesheet.model.dto.OperationResult;
@@ -32,6 +31,8 @@ class ClientServiceImplTest {
 
     @InjectMocks
     private ClientServiceImpl clientService;
+
+    // ----- Basic Client Retrieval -----
 
     @Test
     void shouldGetAllClients() {
@@ -82,6 +83,8 @@ class ClientServiceImplTest {
                 .hasMessageContaining("Client with id 1 not found");
     }
 
+    // ----- Client Creation and Update -----
+
     @Test
     void shouldSaveNewClient() {
         // given
@@ -118,7 +121,6 @@ class ClientServiceImplTest {
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.clientName()).isEqualTo("New Client");
 
-        // Verify a new client is saved with active flag set to true
         verify(clientRepository).save(argThat(client -> client.isActive()));
     }
 
@@ -191,6 +193,8 @@ class ClientServiceImplTest {
         ));
     }
 
+    // ----- Client Deletion and Deactivation -----
+
     @Test
     void shouldDeleteClient() {
         // given
@@ -222,6 +226,25 @@ class ClientServiceImplTest {
     }
 
     @Test
+    void shouldDeactivateAlreadyInactiveClient() {
+        // given
+        Long clientId = 1L;
+        Client client = new Client();
+        client.setId(clientId);
+        client.setActive(false);
+
+        when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
+
+        // when
+        OperationResult result = clientService.deactivateClient(clientId);
+
+        // then
+        assertThat(result.success()).isTrue();
+        assertThat(result.message()).isEqualTo("Client has been successfully deactivated");
+        verify(clientRepository).save(client);
+    }
+
+    @Test
     void shouldHandleExceptionWhenDeactivatingClient() {
         // given
         Long clientId = 1L;
@@ -240,25 +263,6 @@ class ClientServiceImplTest {
         assertThat(result.message()).isEqualTo("Unable to deactivate client");
         verify(clientRepository).findById(clientId);
         verify(clientRepository).save(client);
-    }
-
-    @Test
-    void shouldDeactivateAlreadyInactiveClient() {
-        // given
-        Long clientId = 1L;
-        Client client = new Client();
-        client.setId(clientId);
-        client.setActive(false);  // Klient jest już nieaktywny
-
-        when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
-
-        // when
-        OperationResult result = clientService.deactivateClient(clientId);
-
-        // then
-        assertThat(result.success()).isTrue();
-        assertThat(result.message()).isEqualTo("Client has been successfully deactivated");
-        verify(clientRepository).save(client);  // Mimo że klient jest nieaktywny, metoda i tak wykona save
     }
 
     @Test
@@ -297,6 +301,8 @@ class ClientServiceImplTest {
         verify(clientRepository).save(client);
     }
 
+    // ----- Client Search Operations -----
+
     @Test
     void shouldSearchClientsByName() {
         // given
@@ -316,6 +322,8 @@ class ClientServiceImplTest {
         verify(clientRepository).findActiveClientsByName(searchName);
         verify(clientDtoMapper, times(2)).apply(any(Client.class));
     }
+
+    // ----- Utility Methods -----
 
     @Test
     void shouldCreateEmptyClientDto() {
