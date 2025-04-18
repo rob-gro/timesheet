@@ -35,7 +35,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class InvoiceCreationServiceImplTest {
+class  InvoiceCreationServiceImplTest {
 
     @Mock
     private ClientService clientService;
