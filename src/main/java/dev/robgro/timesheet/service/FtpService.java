@@ -136,7 +136,7 @@ public class FtpService {
         throw new FtpException("Unexpected code path in downloadPdfInvoice");
     }
 
-    private byte[] doDownloadPdfInvoice(String fileName) throws IOException {
+    protected byte[] doDownloadPdfInvoice(String fileName) throws IOException {
         FTPSClient ftpsClient = null;
 
         try {
