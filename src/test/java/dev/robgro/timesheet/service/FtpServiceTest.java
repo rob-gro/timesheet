@@ -74,7 +74,6 @@ class FtpServiceTest {
     @Test
     void shouldHandleRetry() {
         // given
-        // Tworzymy instancję podklasy FtpService, która nadpisuje metodę doDownloadPdfInvoice
         FtpService ftpService = new FtpService(mock(Environment.class)) {
             private int attemptCount = 0;
 
@@ -82,22 +81,18 @@ class FtpServiceTest {
             protected byte[] doDownloadPdfInvoice(String fileName) throws IOException {
                 attemptCount++;
                 if (attemptCount <= 2) {
-                    // Rzucamy IOException, który zostanie złapany przez mechanizm retry
-                    // i opakowany w FtpException
                     throw new IOException("Simulated download failure");
                 }
                 return "Success after retry".getBytes();
             }
         };
 
-        // Konfiguracja pól
         ReflectionTestUtils.setField(ftpService, "server", "ftp.example.com");
         ReflectionTestUtils.setField(ftpService, "port", 21);
         ReflectionTestUtils.setField(ftpService, "username", "testuser");
         ReflectionTestUtils.setField(ftpService, "password", "password123");
         ReflectionTestUtils.setField(ftpService, "invoicesDirectory", "/invoices");
 
-        // Mockujemy Environment
         Environment mockEnv = mock(Environment.class);
         when(mockEnv.getActiveProfiles()).thenReturn(new String[]{"test"});
         ReflectionTestUtils.setField(ftpService, "environment", mockEnv);
@@ -112,47 +107,28 @@ class FtpServiceTest {
     @Test
     void shouldHandleMaxRetriesExceeded() {
         // given
-        // Tworzymy instancję podklasy FtpService, która zawsze rzuca wyjątek
         FtpService ftpService = new FtpService(mock(Environment.class)) {
             @Override
             protected byte[] doDownloadPdfInvoice(String fileName) throws IOException {
-                // Zawsze rzucamy wyjątek, co spowoduje wyczerpanie limitu prób
                 throw new IOException("Persistent failure");
             }
         };
 
-        // Konfiguracja pól
         ReflectionTestUtils.setField(ftpService, "server", "ftp.example.com");
         ReflectionTestUtils.setField(ftpService, "port", 21);
         ReflectionTestUtils.setField(ftpService, "username", "testuser");
         ReflectionTestUtils.setField(ftpService, "password", "password123");
         ReflectionTestUtils.setField(ftpService, "invoicesDirectory", "/invoices");
 
-        // Mockujemy Environment
         Environment mockEnv = mock(Environment.class);
         when(mockEnv.getActiveProfiles()).thenReturn(new String[]{"test"});
         ReflectionTestUtils.setField(ftpService, "environment", mockEnv);
 
         // when/then
-        // Spodziewamy się własnego wyjątku FtpException, a nie standardowego IOException
         assertThatThrownBy(() -> ftpService.downloadPdfInvoice("test.pdf"))
                 .isInstanceOf(dev.robgro.timesheet.exception.FtpException.class)
                 .hasMessageContaining("Failed to download invoice PDF");
     }
-
-//    @Test
-//    void shouldHandleMaxRetriesExceeded() {
-//        // given
-//        FailingFtpService ftpService = new FailingFtpService();
-//        configureService(ftpService);
-//
-//        // when/then
-//        assertThatThrownBy(() -> ftpService.downloadPdfInvoice("failing-test.pdf"))
-//                .isInstanceOf(FtpException.class)
-//                .hasMessageContaining("Simulated persistent failure");
-//    }
-
-    // Helpers
 
     private InMemoryFtpService createInMemoryFtpService() {
         InMemoryFtpService service = new InMemoryFtpService();
@@ -161,7 +137,6 @@ class FtpServiceTest {
     }
 
     private void configureService(FtpService service) {
-        // Konfiguracja pól przez refleksję
         ReflectionTestUtils.setField(service, "server", SERVER);
         ReflectionTestUtils.setField(service, "port", PORT);
         ReflectionTestUtils.setField(service, "username", USERNAME);
@@ -171,7 +146,6 @@ class FtpServiceTest {
         ReflectionTestUtils.setField(service, "dataTimeout", 10000);
         ReflectionTestUtils.setField(service, "acceptAllCertificates", false);
 
-        // Ustawienie środowiska
         Environment mockEnv = mock(Environment.class);
         when(mockEnv.getActiveProfiles()).thenReturn(new String[]{"test"});
         ReflectionTestUtils.setField(service, "environment", mockEnv);
@@ -183,7 +157,6 @@ class FtpServiceTest {
         private final Map<String, byte[]> fileStorage = new HashMap<>();
 
         public InMemoryFtpService() {
-            // Pusty konstruktor, przekażemy fałszywe środowisko przez refleksję
             super(null);
         }
 
@@ -208,7 +181,7 @@ class FtpServiceTest {
         private final int failuresBeforeSuccess;
 
         public RetrySimulatingFtpService(int failuresBeforeSuccess) {
-            super(null); // Przekażemy fałszywe środowisko przez refleksję
+            super(null);
             this.failuresBeforeSuccess = failuresBeforeSuccess;
         }
 
@@ -228,7 +201,7 @@ class FtpServiceTest {
 
     private static class FailingFtpService extends FtpService {
         public FailingFtpService() {
-            super(null); // Przekażemy fałszywe środowisko przez refleksję
+            super(null);
         }
 
         @Override
