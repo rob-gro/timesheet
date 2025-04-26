@@ -21,6 +21,7 @@ public class OpenApi {
         final String securitySchemeName = "bearerAuth";
 
         return new OpenAPI()
+                .openapi("3.0.1")
                 .info(new Info()
                         .title("Timesheet Management API")
                         .description("API for managing timesheets and invoices + sending emails to the clients")
