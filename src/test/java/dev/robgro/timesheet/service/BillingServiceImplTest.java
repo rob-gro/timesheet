@@ -1,9 +1,14 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.client.ClientService;
 import dev.robgro.timesheet.exception.BusinessRuleViolationException;
-import dev.robgro.timesheet.model.dto.ClientDto;
-import dev.robgro.timesheet.model.dto.InvoiceDto;
-import dev.robgro.timesheet.model.dto.TimesheetDto;
+import dev.robgro.timesheet.client.ClientDto;
+import dev.robgro.timesheet.invoice.BillingServiceImpl;
+import dev.robgro.timesheet.invoice.InvoiceCreationService;
+import dev.robgro.timesheet.invoice.InvoiceDto;
+import dev.robgro.timesheet.invoice.InvoiceService;
+import dev.robgro.timesheet.timesheet.TimesheetDto;
+import dev.robgro.timesheet.timesheet.TimesheetService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

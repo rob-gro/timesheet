@@ -1,7 +1,5 @@
 package dev.robgro.timesheet.exception;
 
-import dev.robgro.timesheet.exception.model.ErrorResponse;
-import dev.robgro.timesheet.exception.model.ValidationError;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

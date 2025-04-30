@@ -1,7 +1,8 @@
 package dev.robgro.timesheet.service;
 
-import dev.robgro.timesheet.model.entity.Invoice;
-import dev.robgro.timesheet.repository.InvoiceRepository;
+import dev.robgro.timesheet.invoice.Invoice;
+import dev.robgro.timesheet.invoice.InvoiceNumberGeneratorImpl;
+import dev.robgro.timesheet.invoice.InvoiceRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

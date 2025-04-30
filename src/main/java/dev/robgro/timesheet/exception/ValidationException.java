@@ -1,6 +1,5 @@
 package dev.robgro.timesheet.exception;
 
-import dev.robgro.timesheet.exception.model.ValidationError;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 

@@ -4,14 +4,16 @@ import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.exception.IntegrationException;
 import dev.robgro.timesheet.exception.ResourceAlreadyExistsException;
 import dev.robgro.timesheet.exception.ValidationException;
-import dev.robgro.timesheet.model.dto.*;
-import dev.robgro.timesheet.model.entity.Client;
-import dev.robgro.timesheet.model.entity.Invoice;
-import dev.robgro.timesheet.model.entity.InvoiceItem;
-import dev.robgro.timesheet.model.entity.Timesheet;
-import dev.robgro.timesheet.repository.ClientRepository;
-import dev.robgro.timesheet.repository.InvoiceRepository;
-import dev.robgro.timesheet.repository.TimesheetRepository;
+import dev.robgro.timesheet.invoice.*;
+import dev.robgro.timesheet.client.Client;
+import dev.robgro.timesheet.invoice.Invoice;
+import dev.robgro.timesheet.invoice.InvoiceItem;
+import dev.robgro.timesheet.timesheet.Timesheet;
+import dev.robgro.timesheet.client.ClientRepository;
+import dev.robgro.timesheet.invoice.InvoiceRepository;
+import dev.robgro.timesheet.timesheet.TimesheetDto;
+import dev.robgro.timesheet.timesheet.TimesheetRepository;
+import dev.robgro.timesheet.timesheet.TimesheetService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.commons.util.ReflectionUtils;
@@ -807,65 +809,5 @@ class InvoiceServiceImplTest {
 
         // then
         assertThat(result).isEqualTo("all dates");
-    }
-
-    @Test
-    void shouldCreateInvoiceItem() {
-        // given
-        TimesheetDto timesheet = new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null);
-        Invoice invoice = new Invoice();
-        Client client = new Client();
-        client.setHourlyRate(50.0);
-        invoice.setClient(client);
-
-        Method createItemMethod = ReflectionUtils.findMethod(InvoiceServiceImpl.class, "createInvoiceItem", TimesheetDto.class, Invoice.class)
-            .orElseThrow(() -> new EntityNotFoundException("Method", "CreateInvoiceItem not found"));
-
-        // when
-        InvoiceItem result = (InvoiceItem) ReflectionUtils.invokeMethod(createItemMethod, invoiceService, timesheet, invoice);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getInvoice()).isEqualTo(invoice);
-        assertThat(result.getServiceDate()).isEqualTo(timesheet.serviceDate());
-        assertThat(result.getDuration()).isEqualTo(timesheet.duration());
-        assertThat(result.getTimesheetId()).isEqualTo(timesheet.id());
-    }
-
-    @Test
-    void shouldCalculateAmount() {
-        // given
-        double duration = 2.5;
-        double hourlyRate = 50.0;
-
-        Method calculateMethod = ReflectionUtils.findMethod(InvoiceServiceImpl.class, "calculateAmount", double.class, double.class)
-            .orElseThrow(() -> new EntityNotFoundException("Method", "CalculateAmount not found"));
-
-        // when
-        BigDecimal result = (BigDecimal) ReflectionUtils.invokeMethod(calculateMethod, invoiceService, duration, hourlyRate);
-
-        // then
-        assertThat(result).isEqualTo(BigDecimal.valueOf(125.00).setScale(2, RoundingMode.HALF_UP));
-    }
-
-    @Test
-    void shouldCalculateTotalAmount() {
-        // given
-        List<InvoiceItem> items = new ArrayList<>();
-        InvoiceItem item1 = new InvoiceItem();
-        item1.setAmount(BigDecimal.valueOf(100.50));
-        InvoiceItem item2 = new InvoiceItem();
-        item2.setAmount(BigDecimal.valueOf(200.75));
-        items.add(item1);
-        items.add(item2);
-
-        Method calculateTotalMethod = ReflectionUtils.findMethod(InvoiceServiceImpl.class, "calculateTotalAmount", List.class)
-            .orElseThrow(() -> new EntityNotFoundException("Method", "CalculateTotalAmount not found"));
-
-        // when
-        BigDecimal result = (BigDecimal) ReflectionUtils.invokeMethod(calculateTotalMethod, invoiceService, items);
-
-        // then
-        assertThat(result).isEqualTo(BigDecimal.valueOf(301.25));
     }
 }

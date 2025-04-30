@@ -29,7 +29,7 @@
                             </select>
                             <select name="year" class="form-select" style="width: 120px;">
                                 <option value="">All Years</option>
-                                <option th:each="year : ${#numbers.sequence(2025, 2020)}"
+                                <option th:each="year : ${#numbers.sequence(2025, 2018)}"
                                         th:value="${year}"
                                         th:text="${year}"
                                         th:selected="${param.year != null && year.toString() == param.year[0]}">

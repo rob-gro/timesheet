@@ -1,5 +1,6 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.invoice.EmailMessageService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;

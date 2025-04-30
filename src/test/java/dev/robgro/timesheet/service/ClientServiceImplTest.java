@@ -1,11 +1,12 @@
 package dev.robgro.timesheet.service;
 
+import dev.robgro.timesheet.client.ClientServiceImpl;
 import dev.robgro.timesheet.exception.EntityNotFoundException;
-import dev.robgro.timesheet.model.dto.ClientDto;
-import dev.robgro.timesheet.model.dto.ClientDtoMapper;
-import dev.robgro.timesheet.model.dto.OperationResult;
-import dev.robgro.timesheet.model.entity.Client;
-import dev.robgro.timesheet.repository.ClientRepository;
+import dev.robgro.timesheet.client.ClientDto;
+import dev.robgro.timesheet.client.ClientDtoMapper;
+import dev.robgro.timesheet.client.OperationResult;
+import dev.robgro.timesheet.client.Client;
+import dev.robgro.timesheet.client.ClientRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

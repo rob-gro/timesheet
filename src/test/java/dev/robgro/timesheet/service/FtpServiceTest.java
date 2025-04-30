@@ -1,6 +1,7 @@
 package dev.robgro.timesheet.service;
 
 import dev.robgro.timesheet.exception.FtpException;
+import dev.robgro.timesheet.invoice.FtpService;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
