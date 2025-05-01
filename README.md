@@ -22,3 +22,40 @@ The **Timesheet** application is designed for managing work hours and automatica
 - **JWT (JSON Web Token)**: For user authorization and managing access to resources within the application.
 - **OpenPDF**: Used for generating invoices in PDF format.
 - **FTP and Email**: The application supports sending and receiving PDF files via FTP and sending invoices via email.
+
+## Screenshots
+
+Here are some screenshots of the application:
+
+1. **Main window**:
+   ![Main Screen](screenshots/00.png)
+
+2. **Creating a timesheet: Choose client, day of service and duration, and that's it**:
+   ![Timesheet Creation](screenshots/01.png)
+
+3. **Creating an invoice: After selecting a client from the dropdown list, their unpaid timesheets and hourly rate will appear. The program calculates the amounts for individual timesheets, as well as the total amount for all selected timesheets. (You don't have to issue invoices for all timesheets at once)**:
+   ![Invoice Creation](screenshots/02.png)
+
+4. **Final verification of all data, PDF generation, and sending to the client**:
+   ![Final Verification](screenshots/03.png)
+
+5. **Email to the client: The invoice entity retrieves the client's name, invoice number, and billing period**:
+   ![Client Email](screenshots/04.png)
+
+6. **PDF invoice**:
+   ![Invoice PDF](screenshots/05.png)
+
+7. **Timesheet summary: Showing the addition of a paid amount for the completed service**:
+   ![Timesheet Summary](screenshots/06.png)
+
+8. **Invoice summary**:
+   ![Invoice Summary](screenshots/07.png)
+
+9. **Report from previously filtered invoices, the header includes the values used to generate the summary**:
+   ![Invoice Report](screenshots/08.png)
+
+10. **Client editing form**:
+    ![Client Editing](screenshots/09.png)
+
+11. **Password reset: Generating a one-time password for the user. After logging in with this password, they must change it to their own new/permanent password**:
+    ![Password Reset](screenshots/10.png)
