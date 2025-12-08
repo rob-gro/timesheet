@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Invoice Items</title>
@@ -20,8 +20,7 @@
                                     <option value="">Select client</option>
                                     <option th:each="client : ${clients}"
                                             th:value="${client.id}"
-                                            th:text="${client.clientName}"
-                                            th:data-rate="${client.hourlyRate}">
+                                            th:text="${client.clientName}">
                                     </option>
                                 </select>
                                 <label>Invoice date:</label>
@@ -35,6 +34,7 @@
                                 <thead>
                                 <tr>
                                     <th>Select</th>
+                                    <th>Client</th>
                                     <th>Service Date</th>
                                     <th>Duration</th>
                                     <th>Rate</th>
@@ -49,18 +49,20 @@
                                                class="timesheet-select"
                                                name="timesheetIds"
                                                th:value="${timesheet.id}"
-                                               th:data-duration="${timesheet.duration}">
+                                               th:data-duration="${timesheet.duration}"
+                                               th:data-rate="${timesheet.hourlyRate}">
                                     </td>
+                                    <td class="text-center" th:text="${timesheet.clientName}"></td>
                                     <td th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
                                     <td th:text="${timesheet.duration}"></td>
-                                    <td class="hourly-rate">0.00</td>
+                                    <td class="hourly-rate" th:text="${#numbers.formatDecimal(timesheet.hourlyRate, 1, 2)}">0.00</td>
                                     <td class="amount"></td>
                                 </tr>
                                 </tbody>
 
                                 <tfoot>
                                 <tr>
-                                    <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>
+                                    <td colspan="5" class="text-right"><strong>Total Amount:</strong></td>
                                     <td class="total-amount">0.00</td>
                                 </tr>
                                 </tfoot>

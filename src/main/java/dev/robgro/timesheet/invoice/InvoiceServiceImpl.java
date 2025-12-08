@@ -253,6 +253,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             item.setDescription(itemRequest.description());
             item.setDuration(itemRequest.duration());
             item.setAmount(itemRequest.amount());
+            item.setHourlyRate(itemRequest.hourlyRate());
 
             if (itemRequest.timesheetId() != null) {
                 item.setTimesheetId(itemRequest.timesheetId());

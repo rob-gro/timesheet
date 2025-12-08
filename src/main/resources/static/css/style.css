@@ -36,13 +36,19 @@ body {
     text-align: center;
 }
 
-.table td:nth-child(2) { /* data */
-    width: 20%;
+.table td:nth-child(2) { /* client */
+    width: 15%;
+    text-align: center;
 }
 
-.table td:nth-child(3), /* duration */
-.table td:nth-child(4), /* rate */
-.table td:nth-child(5) { /* amount */
+.table td:nth-child(3) { /* service date */
+    width: 15%;
+    text-align: center;
+}
+
+.table td:nth-child(4), /* duration */
+.table td:nth-child(5), /* rate */
+.table td:nth-child(6) { /* amount */
     width: 15%;
     text-align: center;
 }
@@ -719,4 +725,58 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 #filterForm .row {
     margin: 0;
+}
+
+
+.timesheet-table {
+    width: 100%;
+}
+
+/* wyrównanie w pionie */
+.timesheet-table th,
+.timesheet-table td {
+    vertical-align: middle;
+}
+
+/* szerokości kolumn */
+.timesheet-table th:nth-child(1),
+.timesheet-table td:nth-child(1) { /* Client */
+    width: 25%;
+}
+
+.timesheet-table th:nth-child(2),
+.timesheet-table td:nth-child(2) { /* Service Date */
+    width: 12%;
+    text-align: center;
+}
+
+.timesheet-table th:nth-child(3),
+.timesheet-table td:nth-child(3) { /* Duration */
+    width: 8%;
+    text-align: center;
+}
+
+.timesheet-table th:nth-child(4),
+.timesheet-table td:nth-child(4) { /* Value */
+    width: 10%;
+    text-align: center;
+}
+
+.timesheet-table th:nth-child(5),
+.timesheet-table td:nth-child(5) { /* Invoice # */
+    width: 15%;
+    text-align: center;
+}
+
+.timesheet-table th:nth-child(6),
+.timesheet-table td:nth-child(6) { /* Paid */
+    width: 15%;
+    text-align: center;
+}
+
+.timesheet-table th:nth-child(7),
+.timesheet-table td:nth-child(7) { /* Actions */
+    width: 15%;
+    text-align: center;
+    white-space: nowrap; /* żeby przyciski były w jednym wierszu */
 }
