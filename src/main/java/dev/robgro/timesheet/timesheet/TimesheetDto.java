@@ -1,5 +1,6 @@
 package dev.robgro.timesheet.timesheet;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record TimesheetDto(
@@ -11,6 +12,7 @@ public record TimesheetDto(
         Long clientId,
         double hourlyRate,
         String invoiceNumber,
-        LocalDate paymentDate
+        LocalDate paymentDate,
+        BigDecimal value
 ) {
 }
