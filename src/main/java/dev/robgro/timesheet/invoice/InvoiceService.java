@@ -33,6 +33,8 @@ public interface InvoiceService {
 
     InvoiceDto createAndRedirectInvoice(CreateInvoiceRequest request);
 
+    InvoiceDto buildInvoicePreview(CreateInvoiceRequest request);
+
     InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request);
 
     void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient);

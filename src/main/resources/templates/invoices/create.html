@@ -91,8 +91,25 @@
     </div>
     <br/>
 
-    <button onclick="savePdfAndSendEmail()" class="save-button">Generate & Send PDF Invoice</button>
-    <input type="hidden" id="invoiceId" th:value="${invoice.id}">
+    <!-- Preview mode: show Back and Generate buttons -->
+    <div th:if="${isPreview != null && isPreview}" style="text-align: center; margin: 2rem 0;">
+        <button onclick="window.location.href='/invoices/items';" class="save-button" style="background-color: #6c757d; margin-right: 10px;">
+            Back to Edit
+        </button>
+        <button onclick="createAndSendInvoice()" class="save-button">Generate & Send PDF Invoice</button>
+
+        <!-- Store form data for invoice creation -->
+        <input type="hidden" id="clientId" th:value="${createRequest.clientId}">
+        <input type="hidden" id="issueDate" th:value="${createRequest.issueDate}">
+        <input type="hidden" id="timesheetIds" th:value="${#strings.listJoin(createRequest.timesheetIds, ',')}">
+        <input type="hidden" id="isPreview" value="true">
+    </div>
+
+    <!-- Existing invoice mode: show only Generate button -->
+    <div th:if="${isPreview == null || !isPreview}" style="text-align: center; margin: 2rem 0;">
+        <button onclick="savePdfAndSendEmail()" class="save-button">Generate & Send PDF Invoice</button>
+        <input type="hidden" id="invoiceId" th:value="${invoice.id}">
+    </div>
 
     <div class="footer">
         <span class="separator">|</span>

@@ -48,11 +48,20 @@ public class InvoiceViewController {
             return "invoices/items";
         }
 
-        log.info("Creating new invoice for client ID: {}, with {} timesheet(s)",
+        log.info("Building invoice preview for client ID: {}, with {} timesheet(s)",
                 request.clientId(), request.timesheetIds().size());
 
-        InvoiceDto invoice = invoiceService.createAndRedirectInvoice(request);
-        return "redirect:/invoices/create/" + invoice.id();
+        // Build preview without creating invoice in database
+        InvoiceDto previewInvoice = invoiceService.buildInvoicePreview(request);
+        ClientDto client = clientService.getClientById(request.clientId());
+
+        model.addAttribute("invoice", previewInvoice);
+        model.addAttribute("client", client);
+        model.addAttribute("seller", invoiceSeller);
+        model.addAttribute("createRequest", request);
+        model.addAttribute("isPreview", true);
+
+        return "invoices/create";
     }
 
     @GetMapping("/edit/{id}")

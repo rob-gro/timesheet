@@ -10,4 +10,6 @@ public interface InvoiceCreationService {
     InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate);
 
     InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetIds);
+
+    InvoiceDto buildInvoicePreview(Long clientId, LocalDate issueDate, List<Long> timesheetIds);
 }

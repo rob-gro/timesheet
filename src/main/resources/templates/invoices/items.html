@@ -12,6 +12,16 @@
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">Check Invoice Items</h2>
 
+                    <!-- Error message display -->
+                    <div th:if="${error}" class="alert alert-danger" role="alert">
+                        <span th:text="${error}"></span>
+                    </div>
+
+                    <!-- Success message display -->
+                    <div th:if="${success}" class="alert alert-success" role="alert">
+                        <span th:text="${success}"></span>
+                    </div>
+
                     <form method="post" th:action="@{/invoices/items}">
                         <div class="row mb-4">
                             <div class="col-md-8">
@@ -53,8 +63,8 @@
                                     </td>
                                     <td th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
                                     <td th:text="${timesheet.duration}"></td>
-                                    <td class="hourly-rate">0.00</td>
-                                    <td class="amount"></td>
+                                    <td class="hourly-rate" th:text="${#numbers.formatDecimal(timesheet.hourlyRate, 1, 2)}">0.00</td>
+                                    <td class="amount" th:text="${#numbers.formatDecimal(timesheet.duration * timesheet.hourlyRate, 1, 2)}">0.00</td>
                                 </tr>
                                 </tbody>
 

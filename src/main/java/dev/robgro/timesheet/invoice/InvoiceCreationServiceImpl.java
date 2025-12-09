@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service("dedicatedInvoiceCreationService")
 @RequiredArgsConstructor
@@ -42,7 +43,7 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
 
         List<InvoiceItem> items = timesheets.stream()
                 .map(timesheet -> createInvoiceItem(timesheet, invoice))
-                .toList();
+                .collect(Collectors.toList());
 
         invoice.setItemsList(items);
         invoice.setTotalAmount(calculateTotalAmount(items));
@@ -58,7 +59,7 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
                     ts.setInvoiceNumber(savedInvoice.getInvoiceNumber());
                     return ts;
                 })
-                .toList();
+                .collect(Collectors.toList());
 
         timesheetRepository.saveAll(updatedTimesheets);
 
@@ -76,7 +77,7 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
         List<TimesheetDto> selectedTimesheets = timesheetIds.stream()
                 .map(timesheetService::getTimesheetById)
                 .filter(timesheet -> !timesheet.invoiced())
-                .toList();
+                .collect(Collectors.toList());
 
         if (selectedTimesheets.isEmpty()) {
             throw new BusinessRuleViolationException("All selected timesheets are already invoiced");
@@ -106,5 +107,63 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
         return items.stream()
                 .map(InvoiceItem::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Override
+    public InvoiceDto buildInvoicePreview(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
+        if (timesheetIds.isEmpty()) {
+            throw new ValidationException("No timesheets selected for invoice");
+        }
+
+        ClientDto client = clientService.getClientById(clientId);
+        List<TimesheetDto> selectedTimesheets = timesheetIds.stream()
+                .map(timesheetService::getTimesheetById)
+                .filter(timesheet -> !timesheet.invoiced())
+                .collect(Collectors.toList());
+
+        if (selectedTimesheets.isEmpty()) {
+            throw new BusinessRuleViolationException("All selected timesheets are already invoiced");
+        }
+
+        // Validate that all timesheets belong to the selected client
+        boolean allBelongToClient = selectedTimesheets.stream()
+                .allMatch(timesheet -> timesheet.clientId().equals(clientId));
+
+        if (!allBelongToClient) {
+            throw new BusinessRuleViolationException("Cannot create invoice: selected timesheets belong to different clients");
+        }
+
+        // Generate invoice number for preview (same as final invoice would get)
+        String invoiceNumber = invoiceNumberGenerator.generateInvoiceNumber(issueDate);
+
+        // Build invoice items without persisting
+        List<InvoiceItemDto> items = selectedTimesheets.stream()
+                .map(timesheet -> new InvoiceItemDto(
+                        null, // no ID for preview
+                        timesheet.serviceDate(),
+                        String.format("Cleaning service - %s",
+                                timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE)),
+                        timesheet.duration(),
+                        calculateAmount(timesheet.duration(), client.hourlyRate())
+                ))
+                .collect(Collectors.toList());
+
+        BigDecimal totalAmount = items.stream()
+                .map(InvoiceItemDto::amount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Return preview InvoiceDto without saving to database
+        return new InvoiceDto(
+                null, // no ID for preview
+                clientId,
+                client.clientName(),
+                invoiceNumber,
+                issueDate,
+                totalAmount,
+                null, // no PDF path yet
+                items,
+                null, // no PDF generated timestamp yet
+                null  // no email sent timestamp yet
+        );
     }
 }

@@ -278,4 +278,114 @@ class  InvoiceCreationServiceImplTest {
         // then
         assertThat(result).isEqualTo(BigDecimal.valueOf(301.25));
     }
+
+    // ----- Invoice Preview -----
+
+    @Test
+    void shouldBuildInvoicePreview() {
+        // given
+        Long clientId = 1L;
+        LocalDate issueDate = LocalDate.now();
+        List<Long> timesheetIds = List.of(1L, 2L);
+
+        ClientDto clientDto = new ClientDto(clientId, "Test Client", 50.0, 123, "Address", "City", "12345", "contact@test.com", true);
+
+        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, false, clientId, 50.0, null, null);
+        TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, false, clientId, 50.0, null, null);
+
+        String invoiceNumber = "001-01-2023";
+
+        when(clientService.getClientById(clientId)).thenReturn(clientDto);
+        when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
+        when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+        when(invoiceNumberGenerator.generateInvoiceNumber(issueDate)).thenReturn(invoiceNumber);
+
+        // when
+        InvoiceDto result = invoiceCreationService.buildInvoicePreview(clientId, issueDate, timesheetIds);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isNull(); // Preview has no ID
+        assertThat(result.clientId()).isEqualTo(clientId);
+        assertThat(result.clientName()).isEqualTo("Test Client");
+        assertThat(result.invoiceNumber()).isEqualTo(invoiceNumber);
+        assertThat(result.issueDate()).isEqualTo(issueDate);
+        assertThat(result.totalAmount()).isEqualTo(BigDecimal.valueOf(250.00).setScale(2, RoundingMode.HALF_UP));
+        assertThat(result.pdfPath()).isNull(); // Preview has no PDF path
+        assertThat(result.itemsList()).hasSize(2);
+        assertThat(result.pdfGeneratedAt()).isNull();
+        assertThat(result.emailSentAt()).isNull();
+
+        verify(clientService).getClientById(clientId);
+        verify(timesheetService, times(2)).getTimesheetById(anyLong());
+        verify(invoiceNumberGenerator).generateInvoiceNumber(issueDate);
+        verifyNoInteractions(invoiceRepository); // Preview should not save to DB
+        verifyNoInteractions(timesheetRepository); // Preview should not modify timesheets
+    }
+
+    @Test
+    void shouldThrowExceptionWhenBuildingPreviewWithEmptyTimesheets() {
+        // given
+        Long clientId = 1L;
+        LocalDate issueDate = LocalDate.now();
+        List<Long> emptyTimesheetIds = List.of();
+
+        // when/then
+        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, issueDate, emptyTimesheetIds))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("No timesheets selected for invoice");
+
+        verify(clientService, never()).getClientById(anyLong());
+        verify(timesheetService, never()).getTimesheetById(anyLong());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenBuildingPreviewWithAllTimesheetsAlreadyInvoiced() {
+        // given
+        Long clientId = 1L;
+        LocalDate issueDate = LocalDate.now();
+        List<Long> timesheetIds = List.of(1L, 2L);
+
+        ClientDto clientDto = new ClientDto(clientId, "Test Client", 50.0, 123, "Address", "City", "12345", "contact@test.com", true);
+
+        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, true, clientId, 50.0, null, null);
+        TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, true, clientId, 50.0, null, null);
+
+        when(clientService.getClientById(clientId)).thenReturn(clientDto);
+        when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
+        when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+
+        // when/then
+        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, issueDate, timesheetIds))
+                .isInstanceOf(BusinessRuleViolationException.class)
+                .hasMessageContaining("All selected timesheets are already invoiced");
+
+        verify(clientService).getClientById(clientId);
+        verify(timesheetService, times(2)).getTimesheetById(anyLong());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenBuildingPreviewWithTimesheetsFromDifferentClients() {
+        // given
+        Long clientId = 1L;
+        LocalDate issueDate = LocalDate.now();
+        List<Long> timesheetIds = List.of(1L, 2L);
+
+        ClientDto clientDto = new ClientDto(clientId, "Test Client", 50.0, 123, "Address", "City", "12345", "contact@test.com", true);
+
+        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, false, clientId, 50.0, null, null);
+        TimesheetDto timesheet2 = new TimesheetDto(2L, "Other Client", LocalDate.now().minusDays(2), 3.0, false, 999L, 50.0, null, null); // Different client
+
+        when(clientService.getClientById(clientId)).thenReturn(clientDto);
+        when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
+        when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+
+        // when/then
+        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, issueDate, timesheetIds))
+                .isInstanceOf(BusinessRuleViolationException.class)
+                .hasMessageContaining("Cannot create invoice: selected timesheets belong to different clients");
+
+        verify(clientService).getClientById(clientId);
+        verify(timesheetService, times(2)).getTimesheetById(anyLong());
+    }
 }

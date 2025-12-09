@@ -182,6 +182,15 @@ public class InvoiceServiceImpl implements InvoiceService {
         );
     }
 
+    @Override
+    public InvoiceDto buildInvoicePreview(CreateInvoiceRequest request) {
+        return invoiceCreationService.buildInvoicePreview(
+                request.clientId(),
+                request.issueDate(),
+                request.timesheetIds()
+        );
+    }
+
     private Invoice getInvoiceOrThrow(Long id) {
         return invoiceRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Invoice", id));

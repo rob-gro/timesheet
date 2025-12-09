@@ -6,11 +6,9 @@ import dev.robgro.timesheet.client.ClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
@@ -51,5 +49,21 @@ public class InvoiceCreateController {
         log.info("Successfully saved and sent invoice with ID: {}", id);
         redirectAttributes.addFlashAttribute("success", "Invoice has been saved and sent");
         return "redirect:/invoices/create/" + id;
+    }
+
+    @PostMapping("/confirm")
+    @ResponseBody
+    @Transactional
+    public void confirmAndCreateInvoice(@RequestBody CreateInvoiceRequest request) {
+        log.info("Creating invoice from preview for client ID: {}, with {} timesheet(s)",
+                request.clientId(), request.timesheetIds().size());
+
+        // Create invoice in database
+        InvoiceDto invoice = invoiceService.createAndRedirectInvoice(request);
+        log.info("Invoice created with ID: {}", invoice.id());
+
+        // Save PDF and send email
+        invoiceService.savePdfAndSendInvoice(invoice.id());
+        log.info("Successfully saved and sent invoice with ID: {}", invoice.id());
     }
 }
