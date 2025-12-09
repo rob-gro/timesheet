@@ -5,6 +5,7 @@ import java.time.LocalDate;
 public record CreateTimesheetRequest(
         Long clientId,
         LocalDate serviceDate,
-        double duration
+        double duration,
+        Boolean isPaidAlready
 ) {
 }

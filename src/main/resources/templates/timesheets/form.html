@@ -51,6 +51,14 @@
                             </div>
                         </div>
 
+                        <div class="mb-4 d-flex justify-content-center">
+                            <button type="button" id="paidToggleBtn" class="btn btn-secondary btn-lg"
+                                    style="min-width: 200px;" onclick="togglePaidStatus()">
+                                Already Paid
+                            </button>
+                            <input type="hidden" id="isPaidAlready" name="isPaidAlready" value="false">
+                        </div>
+
                         <div class="d-grid gap-3 mt-4">
                             <button type="submit" class="nav-button btn-lg">Save Timesheet</button>
                             <a th:href="@{/}" class="nav-button btn-lg text-center text-decoration-none">Back</a>
