@@ -32,7 +32,10 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -240,13 +243,29 @@ public class InvoiceServiceImpl implements InvoiceService {
                     });
         }
 
-        List<Timesheet> oldTimesheets = new ArrayList<>(invoice.getTimesheets());
+        // Map existing invoice items to their timesheets (SOURCE OF TRUTH from DB)
+        Map<Long, Long> oldItemIdToTimesheetId = invoice.getItemsList().stream()
+                .filter(item -> item.getTimesheetId() != null)
+                .collect(Collectors.toMap(
+                        InvoiceItem::getId,
+                        InvoiceItem::getTimesheetId
+                ));
+
+        // Collect invoice item IDs that are being kept in the update
+        Set<Long> keptItemIds = request.items().stream()
+                .map(InvoiceItemUpdateRequest::id)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Detach ONLY timesheets whose invoice items were removed
+        oldItemIdToTimesheetId.entrySet().stream()
+                .filter(entry -> !keptItemIds.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .forEach(timesheetId -> timesheetService.detachFromInvoice(timesheetId));
 
         invoice.setIssueDate(request.issueDate());
         invoice.setInvoiceNumber(request.invoiceNumber());
         invoice.setClient(newClient);
-
-        oldTimesheets.forEach(timesheet -> timesheetService.detachFromInvoice(timesheet.getId()));
 
         invoiceRepository.save(invoice);
 
@@ -270,6 +289,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                         .orElseThrow(() -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND, "Timesheet not found: " + itemRequest.timesheetId()));
 
+                // Update timesheet - pozostaje is_invoiced=true
                 timesheet.setInvoiced(true);
                 timesheet.setInvoice(invoice);
                 timesheet.setInvoiceNumber(invoice.getInvoiceNumber());
@@ -312,7 +332,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             if (deleteTimesheets) {
                 log.info("Deleting timesheet ID: {}", timesheet.getId());
-                invoiceRepository.deleteInvoiceItemsByInvoiceId(id);
+                timesheetRepository.delete(timesheet);
             } else {
                 log.info("Preserving timesheet ID: {}", timesheet.getId());
                 timesheetRepository.save(timesheet);
