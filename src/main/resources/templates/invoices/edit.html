@@ -51,6 +51,7 @@
                                     <th>Service Date</th>
                                     <th>Description</th>
                                     <th>Duration</th>
+                                    <th>Rate</th>
                                     <th>Amount</th>
                                     <th>Actions</th>
                                 </tr>
@@ -58,7 +59,7 @@
                                 <tbody>
                                 <tr th:each="item, itemStat : ${invoice.itemsList}"
                                     th:data-item-id="${item.id}"
-                                    th:data-rate="${item.hourlyRate}">
+                                    th:data-rate="${item.hourlyRate != null ? item.hourlyRate : client.hourlyRate}">
                                     <td>
                                         <input type="date" class="form-control item-date"
                                                th:value="${#temporals.format(item.serviceDate, 'yyyy-MM-dd')}" required>
@@ -72,6 +73,10 @@
                                                th:value="${item.duration}" required>
                                     </td>
                                     <td>
+                                        <input type="number" step="0.01" min="0" class="form-control item-rate"
+                                               th:value="${item.hourlyRate != null ? item.hourlyRate : client.hourlyRate}" required>
+                                    </td>
+                                    <td>
                                         <input type="number" step="0.01" min="0" class="form-control item-amount"
                                                th:value="${item.amount}" required>
                                     </td>
@@ -82,7 +87,7 @@
                                 </tbody>
                                 <tfoot>
                                 <tr>
-                                    <td colspan="3" class="text-right"><strong>Total Amount:</strong></td>
+                                    <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>
                                     <td id="totalAmount" th:text="${invoice.totalAmount}"></td>
                                     <td>
                                         <button type="button" class="save-button" id="addItemButton">Add Item</button>

@@ -17,11 +17,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateAmount(row) {
         const durationInput = row.querySelector('.item-duration');
+        const rateInput = row.querySelector('.item-rate');
         const amountInput = row.querySelector('.item-amount');
         const duration = parseFloat(durationInput.value) || 0;
-
-        // Use rate from row data attribute (for existing items) or current client (for new items)
-        const rate = parseFloat(row.dataset.rate) || 0;
+        const rate = parseFloat(rateInput.value) || 0;
 
         const amount = duration * rate;
         amountInput.value = amount.toFixed(2);
@@ -51,6 +50,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 <input type="number" step="0.5" min="0.5" class="form-control item-duration" value="1" required>
             </td>
             <td>
+                <input type="number" step="0.01" min="0" class="form-control item-rate" value="${clientRate}" required>
+            </td>
+            <td>
                 <input type="number" step="0.01" min="0" class="form-control item-amount" required>
             </td>
             <td>
@@ -73,9 +75,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function attachRowEventListeners(row) {
         const durationInput = row.querySelector('.item-duration');
+        const rateInput = row.querySelector('.item-rate');
         const removeButton = row.querySelector('.remove-item');
 
         durationInput.addEventListener('input', function() {
+            updateAmount(row);
+        });
+
+        rateInput.addEventListener('input', function() {
             updateAmount(row);
         });
 
@@ -113,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 description: row.querySelector('.item-description').value,
                 duration: parseFloat(row.querySelector('.item-duration').value),
                 amount: parseFloat(row.querySelector('.item-amount').value),
-                hourlyRate: parseFloat(row.dataset.rate) || 0
+                hourlyRate: parseFloat(row.querySelector('.item-rate').value) || 0
             };
             formData.items.push(itemData);
         });
