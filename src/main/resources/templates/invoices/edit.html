@@ -56,7 +56,9 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="item, itemStat : ${invoice.itemsList}" th:data-item-id="${item.id}">
+                                <tr th:each="item, itemStat : ${invoice.itemsList}"
+                                    th:data-item-id="${item.id}"
+                                    th:data-rate="${item.hourlyRate}">
                                     <td>
                                         <input type="date" class="form-control item-date"
                                                th:value="${#temporals.format(item.serviceDate, 'yyyy-MM-dd')}" required>

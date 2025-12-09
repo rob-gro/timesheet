@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const durationInput = row.querySelector('.item-duration');
         const amountInput = row.querySelector('.item-amount');
         const duration = parseFloat(durationInput.value) || 0;
-        const rate = parseFloat(clientSelect.options[clientSelect.selectedIndex].dataset.rate) || 0;
+
+        // Use rate from row data attribute (for existing items) or current client (for new items)
+        const rate = parseFloat(row.dataset.rate) || 0;
 
         const amount = duration * rate;
         amountInput.value = amount.toFixed(2);
@@ -32,12 +34,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const newRow = document.createElement('tr');
         newRow.setAttribute('data-item-id', '');
 
+        // Get current client's hourly rate for new items
+        const selectedClient = clientSelect.options[clientSelect.selectedIndex];
+        const clientRate = selectedClient ? parseFloat(selectedClient.dataset.rate) || 0 : 0;
+        newRow.setAttribute('data-rate', clientRate);
+
         newRow.innerHTML = `
             <td>
                 <input type="date" class="form-control item-date" required>
             </td>
             <td>
-                <input type="text" class="form-control item-description" 
+                <input type="text" class="form-control item-description"
                        value="Cleaning services" required>
             </td>
             <td>
@@ -82,14 +89,10 @@ document.addEventListener('DOMContentLoaded', function () {
         attachRowEventListeners(row);
     });
 
-    clientSelect.addEventListener('change', function() {
-        console.log('Selected client index:', this.selectedIndex);
-        console.log('Selected client value:', this.value);
-        console.log('Selected client rate:', this.options[this.selectedIndex].dataset.rate);
-        document.querySelectorAll('#invoiceItemsTable tbody tr').forEach(row => {
-            updateAmount(row);
-        });
-    });
+    // Client change doesn't affect existing items' rates anymore
+    // clientSelect.addEventListener('change', function() {
+    //     // Existing items keep their original rates
+    // });
 
 
     form.addEventListener('submit', function(e) {
@@ -109,7 +112,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 serviceDate: row.querySelector('.item-date').value,
                 description: row.querySelector('.item-description').value,
                 duration: parseFloat(row.querySelector('.item-duration').value),
-                amount: parseFloat(row.querySelector('.item-amount').value)
+                amount: parseFloat(row.querySelector('.item-amount').value),
+                hourlyRate: parseFloat(row.dataset.rate) || 0
             };
             formData.items.push(itemData);
         });

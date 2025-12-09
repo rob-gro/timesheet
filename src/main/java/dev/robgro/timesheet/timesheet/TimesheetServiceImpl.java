@@ -71,6 +71,7 @@ public class TimesheetServiceImpl implements TimesheetService {
         timesheet.setClient(client);
         timesheet.setServiceDate(date);
         timesheet.setDuration(duration);
+        timesheet.setHourlyRate(client.getHourlyRate());
         timesheet.setInvoiced(false);
         return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));
     }
@@ -144,6 +145,7 @@ public class TimesheetServiceImpl implements TimesheetService {
                     });
             case "serviceDate" -> Comparator.comparing(TimesheetDto::serviceDate);
             case "duration" -> Comparator.comparing(TimesheetDto::duration);
+            case "value" -> Comparator.comparing(TimesheetDto::value);
             default -> Comparator.comparing(TimesheetDto::serviceDate);
         };
 
@@ -192,6 +194,7 @@ public class TimesheetServiceImpl implements TimesheetService {
         if (!timesheet.getClient().getId().equals(clientId)) {
             Client client = clientRepository.getReferenceById(clientId);
             timesheet.setClient(client);
+            timesheet.setHourlyRate(client.getHourlyRate());
         }
 
         timesheet.setServiceDate(date);
@@ -327,6 +330,6 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     @Transactional(readOnly = true)
     public TimesheetDto createEmptyTimesheetDto() {
-        return new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null, null);
+        return new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null, null, BigDecimal.ZERO);
     }
 }

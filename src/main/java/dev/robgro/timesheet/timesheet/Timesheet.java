@@ -28,6 +28,9 @@ public class Timesheet {
     @Column(name = "duration")
     private double duration;
 
+    @Column(name = "hourly_rate")
+    private Double hourlyRate;
+
     @Column(name = "is_invoice")
     private boolean invoiced;
 
@@ -41,11 +44,34 @@ public class Timesheet {
     @Column(name = "payment_date")
     private LocalDate paymentDate;
 
-    public Timesheet(Long id, Client client, LocalDate serviceDate, double duration, boolean invoiced, LocalDate paymentDate) {
+    /**
+     * Returns the effective hourly rate for this timesheet.
+     * If hourlyRate is not set (null or 0 - for old timesheets), returns the client's current hourly rate.
+     * Otherwise, returns the timesheet's stored hourly rate.
+     *
+     * @return the effective hourly rate to use for this timesheet
+     */
+    public double getEffectiveHourlyRate() {
+        return (hourlyRate != null && hourlyRate > 0) ? hourlyRate : client.getHourlyRate();
+    }
+
+    /**
+     * Calculates and returns the monetary value of this timesheet.
+     * Value is calculated as duration multiplied by the effective hourly rate.
+     *
+     * @return the monetary value of this timesheet, rounded to 2 decimal places
+     */
+    public java.math.BigDecimal getValue() {
+        return java.math.BigDecimal.valueOf(duration * getEffectiveHourlyRate())
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+
+    public Timesheet(Long id, Client client, LocalDate serviceDate, double duration, double hourlyRate, boolean invoiced, LocalDate paymentDate) {
         this.id = id;
         this.client = client;
         this.serviceDate = serviceDate;
         this.duration = duration;
+        this.hourlyRate = hourlyRate;
         this.invoiced = invoiced;
         this.paymentDate = paymentDate;
     }
@@ -60,6 +86,7 @@ public class Timesheet {
                 ", client=" + client +
                 ", serviceDate=" + serviceDate +
                 ", duration=" + duration +
+                ", hourlyRate=" + hourlyRate +
                 ", invoiced=" + invoiced +
                 ", invoice=" + invoice +
                 ", invoiceNumber='" + invoiceNumber + '\'' +
@@ -72,7 +99,7 @@ public class Timesheet {
         if (o == null || getClass() != o.getClass()) return false;
 
         Timesheet timesheet = (Timesheet) o;
-        return Double.compare(duration, timesheet.duration) == 0 && invoiced == timesheet.invoiced && Objects.equals(id, timesheet.id) && Objects.equals(client, timesheet.client) && Objects.equals(serviceDate, timesheet.serviceDate) && Objects.equals(invoice, timesheet.invoice) && Objects.equals(invoiceNumber, timesheet.invoiceNumber) && Objects.equals(paymentDate, timesheet.paymentDate);
+        return Double.compare(duration, timesheet.duration) == 0 && invoiced == timesheet.invoiced && Objects.equals(id, timesheet.id) && Objects.equals(client, timesheet.client) && Objects.equals(serviceDate, timesheet.serviceDate) && Objects.equals(hourlyRate, timesheet.hourlyRate) && Objects.equals(invoice, timesheet.invoice) && Objects.equals(invoiceNumber, timesheet.invoiceNumber) && Objects.equals(paymentDate, timesheet.paymentDate);
     }
 
     @Override
@@ -81,6 +108,7 @@ public class Timesheet {
         result = 31 * result + Objects.hashCode(client);
         result = 31 * result + Objects.hashCode(serviceDate);
         result = 31 * result + Double.hashCode(duration);
+        result = 31 * result + Objects.hashCode(hourlyRate);
         result = 31 * result + Boolean.hashCode(invoiced);
         result = 31 * result + Objects.hashCode(invoice);
         result = 31 * result + Objects.hashCode(invoiceNumber);

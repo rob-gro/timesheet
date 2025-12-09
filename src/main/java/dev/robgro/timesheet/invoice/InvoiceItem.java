@@ -33,6 +33,9 @@ public class InvoiceItem {
     @Column(name = "amount")
     private BigDecimal amount;
 
+    @Column(name = "hourly_rate", nullable = false)
+    private Double hourlyRate;
+
     @Column(name = "timesheet_id")
     private Long timesheetId;
 }

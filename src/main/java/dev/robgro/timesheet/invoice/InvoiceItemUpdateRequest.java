@@ -9,6 +9,7 @@ public record InvoiceItemUpdateRequest(
         LocalDate serviceDate,
         String description,
         double duration,
-        BigDecimal amount
+        BigDecimal amount,
+        double hourlyRate
 ) {
 }
