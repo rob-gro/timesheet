@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ class TimesheetServiceImplTest {
         Timesheet timesheet = new Timesheet();
         timesheet.setId(1L);
 
-        TimesheetDto dto = new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null);
+        TimesheetDto dto = new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
 
         when(timesheetRepository.findAll()).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(dto);
@@ -75,7 +76,7 @@ class TimesheetServiceImplTest {
         Timesheet timesheet = new Timesheet();
         timesheet.setId(timesheetId);
 
-        TimesheetDto dto = new TimesheetDto(timesheetId, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null);
+        TimesheetDto dto = new TimesheetDto(timesheetId, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
 
         when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(dto);
@@ -102,7 +103,7 @@ class TimesheetServiceImplTest {
                 .thenReturn(List.of(timesheet));
 
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", timesheet.getServiceDate(), 2.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(1L, "Client", timesheet.getServiceDate(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         List<TimesheetDto> result = timesheetService.getMonthlyTimesheets(clientId, year, month);
 
@@ -124,7 +125,7 @@ class TimesheetServiceImplTest {
         Timesheet timesheet = new Timesheet();
         timesheet.setId(1L);
 
-        TimesheetDto dto = new TimesheetDto(1L, "Client", serviceDate, duration, false, clientId, 50.0, null, null);
+        TimesheetDto dto = new TimesheetDto(1L, "Client", serviceDate, duration, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
 
         when(clientRepository.getReferenceById(clientId)).thenReturn(client);
         when(timesheetRepository.save(any(Timesheet.class))).thenReturn(timesheet);
@@ -158,7 +159,7 @@ class TimesheetServiceImplTest {
         when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.of(timesheet));
         when(timesheetRepository.save(timesheet)).thenReturn(timesheet);
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(timesheetId, "Client", date, duration, false, clientId, 50.0, null, null));
+                new TimesheetDto(timesheetId, "Client", date, duration, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         TimesheetDto result = timesheetService.updateTimesheet(timesheetId, clientId, date, duration);
@@ -188,7 +189,7 @@ class TimesheetServiceImplTest {
         when(timesheetRepository.findById(timesheetId)).thenReturn(Optional.of(timesheet));
         when(timesheetRepository.save(timesheet)).thenReturn(timesheet);
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(timesheetId, "Client", date, duration, false, clientId, 50.0, null, null));
+                new TimesheetDto(timesheetId, "Client", date, duration, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         TimesheetDto result = timesheetService.updateTimesheet(timesheetId, clientId, date, duration);
 
@@ -220,7 +221,7 @@ class TimesheetServiceImplTest {
         when(clientRepository.getReferenceById(newClientId)).thenReturn(newClient);
         when(timesheetRepository.save(timesheet)).thenReturn(timesheet);
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(timesheetId, "Client", date, duration, false, newClientId, 50.0, null, null));
+                new TimesheetDto(timesheetId, "Client", date, duration, false, newClientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         TimesheetDto result = timesheetService.updateTimesheet(timesheetId, newClientId, date, duration);
@@ -300,7 +301,7 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findAllByClientId(clientId)).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.getTimesheetByClientId(clientId);
@@ -319,7 +320,7 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findUnbilledTimesheetsByClientId(clientId)).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.getUnbilledTimesheetsByClientId(clientId);
@@ -338,7 +339,7 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findByClientIdAndInvoiced(clientId, invoiced)).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.getTimesheetsByClientAndInvoiceStatus(clientId, invoiced);
@@ -357,7 +358,7 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findByClientIdAndPaymentDateIsNotNull(clientId)).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, LocalDate.now()));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, LocalDate.now(), BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.getTimesheetsByFilters(clientId, paymentStatus);
@@ -376,7 +377,7 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findByClientIdAndPaymentDateIsNull(clientId)).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.getTimesheetsByFilters(clientId, paymentStatus);
@@ -394,7 +395,7 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findAllByClientId(clientId)).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.getTimesheetsByFilters(clientId, null);
@@ -411,7 +412,7 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findAll()).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.getTimesheetsByFilters(null, null);
@@ -428,7 +429,7 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findByInvoiced(false)).thenReturn(List.of(timesheet));
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.getUnbilledTimesheets();
@@ -462,9 +463,9 @@ class TimesheetServiceImplTest {
                 .thenReturn(List.of(timesheet2, timesheet1));
 
         when(timesheetDtoMapper.apply(timesheet1)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, true, clientId, 50.0, invoice1, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, true, clientId, 50.0, invoice1, null, BigDecimal.valueOf(100.0)));
         when(timesheetDtoMapper.apply(timesheet2)).thenReturn(
-                new TimesheetDto(2L, "Client", LocalDate.now(), 3.0, true, clientId, 50.0, invoice2, null));
+                new TimesheetDto(2L, "Client", LocalDate.now(), 3.0, true, clientId, 50.0, invoice2, null, BigDecimal.valueOf(150.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.searchAndSortTimesheets(clientId, sortBy, sortDir);
@@ -494,9 +495,9 @@ class TimesheetServiceImplTest {
                 .thenReturn(List.of(timesheet1, timesheet2));
 
         when(timesheetDtoMapper.apply(timesheet1))
-                .thenReturn(new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null));
+                .thenReturn(new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
         when(timesheetDtoMapper.apply(timesheet2))
-                .thenReturn(new TimesheetDto(2L, "Client", LocalDate.now(), 3.0, false, clientId, 50.0, "001-01-2023", null));
+                .thenReturn(new TimesheetDto(2L, "Client", LocalDate.now(), 3.0, false, clientId, 50.0, "001-01-2023", null, BigDecimal.valueOf(150.0)));
 
         List<TimesheetDto> result = timesheetService.searchAndSortTimesheets(clientId, sortBy, sortDir);
 
@@ -521,9 +522,9 @@ class TimesheetServiceImplTest {
 
         when(timesheetRepository.findAllByClientId(clientId)).thenReturn(List.of(timesheet1, timesheet2));
         when(timesheetDtoMapper.apply(timesheet1)).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.of(2023, 1, 1), 2.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.of(2023, 1, 1), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
         when(timesheetDtoMapper.apply(timesheet2)).thenReturn(
-                new TimesheetDto(2L, "Client", LocalDate.of(2023, 2, 1), 3.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(2L, "Client", LocalDate.of(2023, 2, 1), 3.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         List<TimesheetDto> result = timesheetService.searchAndSortTimesheets(clientId, sortBy, sortDir);
@@ -547,7 +548,7 @@ class TimesheetServiceImplTest {
         when(timesheetRepository.findAllByClientId(clientId)).thenReturn(List.of(timesheet1, timesheet2));
         when(timesheetDtoMapper.apply(any())).thenAnswer(invocation -> {
             Timesheet ts = invocation.getArgument(0);
-            return new TimesheetDto(1L, "Client", ts.getServiceDate(), 2.0, false, clientId, 50.0, null, null);
+            return new TimesheetDto(1L, "Client", ts.getServiceDate(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
         });
 
         List<TimesheetDto> result = timesheetService.searchAndSortTimesheets(clientId, "unknownField", "asc");
@@ -590,7 +591,7 @@ class TimesheetServiceImplTest {
         when(timesheetRepository.findByClientIdAndPaymentStatus(eq(clientId), eq(paymentStatus), any(Pageable.class)))
                 .thenReturn(timesheetPage);
         when(timesheetDtoMapper.apply(any(Timesheet.class)))
-                .thenReturn(new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null));
+                .thenReturn(new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
         Page<TimesheetDto> result = timesheetService.getFilteredAndPaginatedTimesheets(
@@ -612,7 +613,7 @@ class TimesheetServiceImplTest {
                 .thenReturn(timesheetPage);
 
         when(timesheetDtoMapper.apply(any())).thenReturn(
-                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null));
+                new TimesheetDto(1L, "Client", LocalDate.now(), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         Page<TimesheetDto> result = timesheetService.getFilteredAndPaginatedTimesheets(clientId, "", "serviceDate", "desc", 0, 10);
 

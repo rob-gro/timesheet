@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -51,7 +52,7 @@ class BillingServiceImplTest {
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
 
         ClientDto client = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
-        TimesheetDto timesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, false, 1L, 50.0, null, null);
+        TimesheetDto timesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
         InvoiceDto invoice = new InvoiceDto(1L, 1L, "Client 1", "INV-001", lastDayOfMonth, null, null, List.of(), null, null);
 
         when(clientService.getAllClients()).thenReturn(List.of(client));
@@ -77,8 +78,8 @@ class BillingServiceImplTest {
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
 
         ClientDto client = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
-        TimesheetDto invoicedTimesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null);
-        TimesheetDto uninvoicedTimesheet = new TimesheetDto(2L, "Client 1", LocalDate.of(2024, 1, 16), 3.0, false, 1L, 50.0, null, null);
+        TimesheetDto invoicedTimesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
+        TimesheetDto uninvoicedTimesheet = new TimesheetDto(2L, "Client 1", LocalDate.of(2024, 1, 16), 3.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(150.0));
         InvoiceDto invoice = new InvoiceDto(1L, 1L, "Client 1", "INV-001", lastDayOfMonth, null, null, List.of(), null, null);
 
         when(clientService.getAllClients()).thenReturn(List.of(client));
@@ -102,8 +103,8 @@ class BillingServiceImplTest {
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
 
         ClientDto client = new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
-        TimesheetDto invoicedTimesheet1 = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null);
-        TimesheetDto invoicedTimesheet2 = new TimesheetDto(2L, "Client 1", LocalDate.of(2024, 1, 16), 3.0, true, 1L, 50.0, null, null);
+        TimesheetDto invoicedTimesheet1 = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
+        TimesheetDto invoicedTimesheet2 = new TimesheetDto(2L, "Client 1", LocalDate.of(2024, 1, 16), 3.0, true, 1L, 50.0, null, null, BigDecimal.valueOf(150.0));
 
         when(clientService.getAllClients()).thenReturn(List.of(client));
         when(timesheetService.getMonthlyTimesheets(client.id(), year, month)).thenReturn(List.of(invoicedTimesheet1, invoicedTimesheet2));
@@ -166,7 +167,7 @@ class BillingServiceImplTest {
         int month = 1;
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
 
-        TimesheetDto timesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, false, 1L, 50.0, null, null);
+        TimesheetDto timesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
         InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", "INV-001", lastDayOfMonth, null, null, List.of(), null, null);
 
         when(timesheetService.getMonthlyTimesheets(clientId, year, month)).thenReturn(List.of(timesheet));
@@ -204,7 +205,7 @@ class BillingServiceImplTest {
         int year = 2024;
         int month = 1;
 
-        TimesheetDto invoicedTimesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null);
+        TimesheetDto invoicedTimesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
 
         when(timesheetService.getMonthlyTimesheets(clientId, year, month)).thenReturn(List.of(invoicedTimesheet));
 

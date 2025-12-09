@@ -439,7 +439,8 @@ class InvoiceServiceImplTest {
                 issueDate,
                 "Service description",
                 2.0,
-                BigDecimal.valueOf(100.0)
+                BigDecimal.valueOf(100.0),
+                50.0  // hourlyRate
         );
 
         InvoiceUpdateRequest updateRequest = new InvoiceUpdateRequest(

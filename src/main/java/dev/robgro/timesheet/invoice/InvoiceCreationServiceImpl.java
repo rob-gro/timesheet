@@ -82,6 +82,14 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
             throw new BusinessRuleViolationException("All selected timesheets are already invoiced");
         }
 
+        // Validate that all timesheets belong to the selected client
+        boolean allBelongToClient = selectedTimesheets.stream()
+                .allMatch(timesheet -> timesheet.clientId().equals(clientId));
+
+        if (!allBelongToClient) {
+            throw new BusinessRuleViolationException("Cannot create invoice: selected timesheets belong to different clients");
+        }
+
         return createInvoiceFromTimesheets(client, selectedTimesheets, issueDate);
     }
 
@@ -91,8 +99,9 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
         item.setServiceDate(timesheet.serviceDate());
         item.setDescription(String.format("Cleaning service - %s",
                 timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE)));
-        item.setAmount(calculateAmount(timesheet.duration(), invoice.getClient().getHourlyRate()));
+        item.setAmount(calculateAmount(timesheet.duration(), timesheet.hourlyRate()));
         item.setDuration(timesheet.duration());
+        item.setHourlyRate(timesheet.hourlyRate());
         item.setTimesheetId(timesheet.id());
         return item;
     }

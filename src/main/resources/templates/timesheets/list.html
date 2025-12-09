@@ -62,7 +62,9 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table">
+                <!-- -->
+                <table class="table timesheet-table">
+
                     <thead>
                     <tr class="text-center">
                         <th>Client</th>
@@ -90,6 +92,19 @@
                                       onclick="sortTable('duration', 'desc')">▼</span>
                             </div>
                         </th>
+
+                        <th>
+                            Value
+                            <div>
+                                    <span class="sort-icon" data-column="value" data-direction="asc"
+                                          th:classappend="${param.sortBy == 'value' && param.sortDir == 'asc'} ? 'active'"
+                                          onclick="sortTable('value', 'asc')">▲</span>
+                                <span class="sort-icon" data-column="value" data-direction="desc"
+                                      th:classappend="${param.sortBy == 'value' && param.sortDir == 'desc'} ? 'active'"
+                                      onclick="sortTable('value', 'desc')">▼</span>
+                            </div>
+                        </th>
+
                         <th>
                             Invoice #
                             <div>
@@ -117,6 +132,9 @@
                         <td th:class="text-center"
                             th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
                         <td th:text="${timesheet.duration}"></td>
+
+                        <td th:text="${#numbers.formatDecimal(timesheet.value, 1, 2)}"></td>
+
                         <td th:text="${timesheet.invoiced ? timesheet.invoiceNumber : '---'}"></td>
                         <td class="text-center">
                             <div class="payment-status" th:if="${timesheet.paymentDate == null}">
