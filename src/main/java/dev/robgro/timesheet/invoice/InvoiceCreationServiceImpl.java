@@ -153,7 +153,8 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
                         String.format("Cleaning service - %s",
                                 timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE)),
                         timesheet.duration(),
-                        calculateAmount(timesheet.duration(), client.hourlyRate())
+                        calculateAmount(timesheet.duration(), timesheet.hourlyRate()),
+                        timesheet.hourlyRate()
                 ))
                 .collect(Collectors.toList());
 

@@ -32,3 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 /secret.env
+/src/main/resources/clients-emails.txt

@@ -1,0 +1,520 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > InvoiceServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">dev.robgro.timesheet.service</a>
+</div>
+
+<h1>Coverage Summary for Class: InvoiceServiceImpl (dev.robgro.timesheet.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">InvoiceServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    93,5%
+  </span>
+  <span class="absValue">
+    (29/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    76,1%
+  </span>
+  <span class="absValue">
+    (35/46)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    96,6%
+  </span>
+  <span class="absValue">
+    (168/174)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package dev.robgro.timesheet.service;
+&nbsp;
+&nbsp;import dev.robgro.timesheet.exception.EntityNotFoundException;
+&nbsp;import dev.robgro.timesheet.exception.IntegrationException;
+&nbsp;import dev.robgro.timesheet.exception.ResourceAlreadyExistsException;
+&nbsp;import dev.robgro.timesheet.exception.ValidationException;
+&nbsp;import dev.robgro.timesheet.model.dto.*;
+&nbsp;import dev.robgro.timesheet.model.entity.Client;
+&nbsp;import dev.robgro.timesheet.model.entity.Invoice;
+&nbsp;import dev.robgro.timesheet.model.entity.InvoiceItem;
+&nbsp;import dev.robgro.timesheet.model.entity.Timesheet;
+&nbsp;import dev.robgro.timesheet.repository.ClientRepository;
+&nbsp;import dev.robgro.timesheet.repository.InvoiceRepository;
+&nbsp;import dev.robgro.timesheet.repository.TimesheetRepository;
+&nbsp;import jakarta.persistence.EntityManager;
+&nbsp;import jakarta.persistence.PersistenceContext;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Qualifier;
+&nbsp;import org.springframework.context.annotation.Primary;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.domain.Sort;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.jdbc.core.JdbcTemplate;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.web.server.ResponseStatusException;
+&nbsp;
+&nbsp;import java.math.BigDecimal;
+&nbsp;import java.math.RoundingMode;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.time.Month;
+&nbsp;import java.time.YearMonth;
+&nbsp;import java.time.format.DateTimeFormatter;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static java.util.stream.Collectors.toList;
+&nbsp;
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+&nbsp;@Primary
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class InvoiceServiceImpl implements InvoiceService {
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private JdbcTemplate jdbcTemplate;
+&nbsp;
+&nbsp;    @PersistenceContext
+&nbsp;    private EntityManager entityManager;
+&nbsp;
+&nbsp;
+&nbsp;    private final InvoiceRepository invoiceRepository;
+&nbsp;    private final TimesheetRepository timesheetRepository;
+&nbsp;    private final InvoiceDtoMapper invoiceDtoMapper;
+&nbsp;    private final ClientRepository clientRepository;
+&nbsp;    private final FtpService ftpService;
+&nbsp;    private final TimesheetService timesheetService;
+&nbsp;    private final InvoiceDocumentService invoiceDocumentService;
+&nbsp;    private final InvoiceNumberGenerator invoiceNumberGenerator;
+&nbsp;
+&nbsp;    @Qualifier(&quot;dedicatedInvoiceCreationService&quot;)
+&nbsp;    private final InvoiceCreationService invoiceCreationService;
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;InvoiceDto&gt; getAllInvoices() {
+<b class="fc">&nbsp;        return invoiceRepository.findAll().stream()</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper)</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;InvoiceDto&gt; getAllInvoicesOrderByDateDesc() {
+<b class="fc">&nbsp;        return invoiceRepository.findAllByOrderByIssueDateDesc()</b>
+<b class="fc">&nbsp;                .stream()</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper)</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;InvoiceDto&gt; getInvoicesByDateRange(LocalDate startDate, LocalDate endDate) {
+<b class="fc">&nbsp;        return invoiceRepository.findByIssueDateBetweenOrderByIssueDateDesc(startDate, endDate)</b>
+<b class="fc">&nbsp;                .stream()</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper)</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public InvoiceDto getInvoiceById(long id) {
+<b class="fc">&nbsp;        return invoiceDtoMapper.apply(getInvoiceOrThrow(id));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public Optional&lt;InvoiceDto&gt; findByInvoiceNumber(String invoiceNumber) {
+<b class="fc">&nbsp;        return invoiceRepository.findByInvoiceNumber(invoiceNumber)</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;InvoiceDto&gt; searchAndSortInvoices(Long clientId, Integer year, Integer month, String sortBy, String sortDir) {
+<b class="fc">&nbsp;        List&lt;InvoiceDto&gt; invoices = searchInvoices(clientId, year, month);</b>
+<b class="fc">&nbsp;        return sortInvoices(invoices, sortBy, sortDir);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;InvoiceDto&gt; sortInvoices(List&lt;InvoiceDto&gt; invoices, String sortBy, String sortDir) {
+<b class="pc">&nbsp;        Comparator&lt;InvoiceDto&gt; comparator = switch (sortBy) {</b>
+<b class="fc">&nbsp;            case &quot;invoiceNumber&quot; -&gt; Comparator</b>
+<b class="fc">&nbsp;                    .comparing((InvoiceDto i) -&gt; i.invoiceNumber().substring(i.invoiceNumber().length() - 4))</b>
+<b class="fc">&nbsp;                    .thenComparing(i -&gt; i.invoiceNumber().substring(4, 6))</b>
+<b class="fc">&nbsp;                    .thenComparing(i -&gt; i.invoiceNumber().substring(0, 3));</b>
+<b class="fc">&nbsp;            case &quot;issueDate&quot; -&gt; Comparator.comparing(InvoiceDto::issueDate);</b>
+<b class="fc">&nbsp;            case &quot;clientName&quot; -&gt; Comparator.comparing(InvoiceDto::clientName);</b>
+<b class="fc">&nbsp;            case &quot;totalAmount&quot; -&gt; Comparator.comparing(InvoiceDto::totalAmount);</b>
+<b class="fc">&nbsp;            default -&gt; Comparator.comparing(InvoiceDto::invoiceNumber);</b>
+&nbsp;        };
+<b class="fc">&nbsp;        return invoices.stream()</b>
+<b class="fc">&nbsp;                .sorted(sortDir.equals(&quot;desc&quot;) ? comparator.reversed() : comparator)</b>
+<b class="fc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public byte[] getInvoicePdfContent(Long invoiceId) {
+&nbsp;
+<b class="fc">&nbsp;        Invoice invoice = invoiceRepository.findById(invoiceId)</b>
+<b class="fc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Invoice&quot;, invoiceId));</b>
+&nbsp;
+<b class="fc">&nbsp;        if (invoice.getPdfPath() == null) {</b>
+<b class="fc">&nbsp;            throw new EntityNotFoundException(&quot;PDF for invoice&quot;, invoiceId);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="fc">&nbsp;            String fileName = invoice.getInvoiceNumber() + &quot;.pdf&quot;;</b>
+<b class="fc">&nbsp;            return ftpService.downloadPdfInvoice(fileName);</b>
+&nbsp;        } catch (Exception e) {
+<b class="fc">&nbsp;            log.error(&quot;Error downloading PDF for invoice: {}&quot;, invoiceId, e);</b>
+<b class="fc">&nbsp;            throw new IntegrationException(&quot;Could not download PDF for invoice &quot; + invoiceId, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void savePdfAndSendInvoice(Long id) {
+<b class="fc">&nbsp;        invoiceDocumentService.savePdfAndSendInvoice(id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String generateInvoiceNumber(LocalDate issueDate) {
+<b class="nc">&nbsp;        return invoiceNumberGenerator.generateInvoiceNumber(issueDate);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;InvoiceDto&gt; getMonthlyInvoices(Long clientId, int year, int month) {
+<b class="fc">&nbsp;        YearMonth yearMonth = YearMonth.of(year, month);</b>
+<b class="fc">&nbsp;        LocalDate startDate = yearMonth.atDay(1);</b>
+<b class="fc">&nbsp;        LocalDate endDate = yearMonth.atEndOfMonth();</b>
+<b class="fc">&nbsp;        return invoiceRepository.findByClientIdAndIssueDateBetween(clientId, startDate, endDate)</b>
+<b class="fc">&nbsp;                .stream()</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper)</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;InvoiceDto&gt; getYearlyInvoices(Long clientId, int year) {
+<b class="fc">&nbsp;        LocalDate startDate = LocalDate.of(year, 1, 1);</b>
+<b class="fc">&nbsp;        LocalDate endDate = LocalDate.of(year, 12, 31);</b>
+<b class="fc">&nbsp;        return invoiceRepository.findByClientIdAndIssueDateBetween(clientId, startDate, endDate)</b>
+<b class="fc">&nbsp;                .stream()</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper)</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {
+<b class="fc">&nbsp;        InvoiceItem item = new InvoiceItem();</b>
+<b class="fc">&nbsp;        item.setInvoice(invoice);</b>
+<b class="fc">&nbsp;        item.setServiceDate(timesheet.serviceDate());</b>
+<b class="fc">&nbsp;        item.setDescription(String.format(&quot;Cleaning service - %s&quot;,</b>
+<b class="fc">&nbsp;                timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE)));</b>
+<b class="fc">&nbsp;        item.setAmount(calculateAmount(timesheet.duration(), invoice.getClient().getHourlyRate()));</b>
+<b class="fc">&nbsp;        item.setDuration(timesheet.duration());</b>
+<b class="fc">&nbsp;        item.setTimesheetId(timesheet.id());</b>
+<b class="fc">&nbsp;        return item;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public InvoiceDto createAndRedirectInvoice(CreateInvoiceRequest request) {
+<b class="fc">&nbsp;        return invoiceCreationService.createInvoice(</b>
+<b class="fc">&nbsp;                request.clientId(),</b>
+<b class="fc">&nbsp;                request.issueDate(),</b>
+<b class="fc">&nbsp;                request.timesheetIds()</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    private BigDecimal calculateAmount(double duration, double hourlyRate) {
+<b class="fc">&nbsp;        return BigDecimal.valueOf(duration * hourlyRate)</b>
+<b class="fc">&nbsp;                .setScale(2, RoundingMode.HALF_UP);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private BigDecimal calculateTotalAmount(List&lt;InvoiceItem&gt; items) {
+<b class="fc">&nbsp;        return items.stream()</b>
+<b class="fc">&nbsp;                .map(InvoiceItem::getAmount)</b>
+<b class="fc">&nbsp;                .reduce(BigDecimal.ZERO, BigDecimal::add);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Invoice getInvoiceOrThrow(Long id) {
+<b class="fc">&nbsp;        return invoiceRepository.findById(id)</b>
+<b class="fc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Invoice&quot;, id));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public InvoiceReportData generateReport(DateRangeRequest dateRange, Long clientId) {
+<b class="fc">&nbsp;        LocalDate fromDate = convertToStartDate(dateRange);</b>
+<b class="fc">&nbsp;        LocalDate toDate = convertToEndDate(dateRange);</b>
+&nbsp;
+<b class="fc">&nbsp;        Sort sort = Sort.by(Sort.Direction.ASC, &quot;issueDate&quot;);</b>
+<b class="fc">&nbsp;        List&lt;Invoice&gt; invoices = invoiceRepository.findForReporting(clientId, fromDate, toDate, sort);</b>
+&nbsp;
+<b class="fc">&nbsp;        List&lt;InvoiceDto&gt; sortedInvoiceDtos = invoices.stream()</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper)</b>
+<b class="fc">&nbsp;                .toList();</b>
+&nbsp;
+<b class="fc">&nbsp;        BigDecimal totalAmount = invoices.stream()</b>
+<b class="fc">&nbsp;                .map(Invoice::getTotalAmount)</b>
+<b class="fc">&nbsp;                .reduce(BigDecimal.ZERO, BigDecimal::add);</b>
+&nbsp;
+<b class="fc">&nbsp;        String period = generatePeriodLabel(dateRange);</b>
+&nbsp;
+<b class="fc">&nbsp;        String clientName = null;</b>
+<b class="pc">&nbsp;        if (clientId != null) {</b>
+<b class="fc">&nbsp;            Client client = clientRepository.findById(clientId).orElse(null);</b>
+<b class="pc">&nbsp;            if (client != null) {</b>
+<b class="fc">&nbsp;                clientName = client.getClientName();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return new InvoiceReportData(sortedInvoiceDtos, totalAmount, period, clientName);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request) {
+<b class="fc">&nbsp;        Invoice invoice = getInvoiceOrThrow(id);</b>
+<b class="fc">&nbsp;        Client newClient = clientRepository.findById(request.clientId())</b>
+<b class="fc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Client&quot;, request.clientId()));</b>
+&nbsp;
+<b class="fc">&nbsp;        if (!invoice.getInvoiceNumber().equals(request.invoiceNumber())) {</b>
+<b class="fc">&nbsp;            invoiceRepository.findByInvoiceNumber(request.invoiceNumber())</b>
+<b class="fc">&nbsp;                    .ifPresent(existing -&gt; {</b>
+<b class="fc">&nbsp;                        throw new ResourceAlreadyExistsException(&quot;Invoice&quot;, &quot;number&quot;, request.invoiceNumber());</b>
+&nbsp;                    });
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        List&lt;Timesheet&gt; oldTimesheets = new ArrayList&lt;&gt;(invoice.getTimesheets());</b>
+&nbsp;
+<b class="fc">&nbsp;        invoice.setIssueDate(request.issueDate());</b>
+<b class="fc">&nbsp;        invoice.setInvoiceNumber(request.invoiceNumber());</b>
+<b class="fc">&nbsp;        invoice.setClient(newClient);</b>
+&nbsp;
+<b class="fc">&nbsp;        oldTimesheets.forEach(timesheet -&gt; timesheetService.detachFromInvoice(timesheet.getId()));</b>
+&nbsp;
+<b class="fc">&nbsp;        invoiceRepository.save(invoice);</b>
+&nbsp;
+<b class="fc">&nbsp;        invoiceRepository.deleteInvoiceItemsByInvoiceId(id);</b>
+&nbsp;
+<b class="fc">&nbsp;        BigDecimal totalAmount = BigDecimal.ZERO;</b>
+<b class="fc">&nbsp;        for (InvoiceItemUpdateRequest itemRequest : request.items()) {</b>
+<b class="fc">&nbsp;            totalAmount = totalAmount.add(itemRequest.amount());</b>
+&nbsp;
+<b class="fc">&nbsp;            InvoiceItem item = new InvoiceItem();</b>
+<b class="fc">&nbsp;            item.setInvoice(invoice);</b>
+<b class="fc">&nbsp;            item.setServiceDate(itemRequest.serviceDate());</b>
+<b class="fc">&nbsp;            item.setDescription(itemRequest.description());</b>
+<b class="fc">&nbsp;            item.setDuration(itemRequest.duration());</b>
+<b class="fc">&nbsp;            item.setAmount(itemRequest.amount());</b>
+&nbsp;
+<b class="pc">&nbsp;            if (itemRequest.timesheetId() != null) {</b>
+<b class="fc">&nbsp;                item.setTimesheetId(itemRequest.timesheetId());</b>
+<b class="fc">&nbsp;                Timesheet timesheet = timesheetRepository.findById(itemRequest.timesheetId())</b>
+<b class="fc">&nbsp;                        .orElseThrow(() -&gt; new ResponseStatusException(</b>
+<b class="nc">&nbsp;                                HttpStatus.NOT_FOUND, &quot;Timesheet not found: &quot; + itemRequest.timesheetId()));</b>
+&nbsp;
+<b class="fc">&nbsp;                timesheet.setInvoiced(true);</b>
+<b class="fc">&nbsp;                timesheet.setInvoice(invoice);</b>
+<b class="fc">&nbsp;                timesheet.setInvoiceNumber(invoice.getInvoiceNumber());</b>
+<b class="fc">&nbsp;                timesheetRepository.save(timesheet);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            invoice.getItemsList().add(item);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        invoice.setTotalAmount(totalAmount);</b>
+&nbsp;
+<b class="pc">&nbsp;        if (invoice.getPdfPath() != null) {</b>
+<b class="nc">&nbsp;            invoice.setPdfGeneratedAt(null);</b>
+<b class="nc">&nbsp;            invoice.setPdfPath(null);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return invoiceDtoMapper.apply(invoiceRepository.save(invoice));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;InvoiceDto&gt; searchInvoices(Long clientId, Integer year, Integer month) {
+<b class="fc">&nbsp;        return invoiceRepository.findFilteredInvoices(clientId, year, month).stream()</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper)</b>
+<b class="fc">&nbsp;                .collect(toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient) {
+<b class="fc">&nbsp;        log.info(&quot;Starting deletion of invoice ID: {}&quot;, id);</b>
+&nbsp;
+<b class="fc">&nbsp;        Invoice invoice = invoiceRepository.findById(id)</b>
+<b class="fc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Invoice&quot;, id));</b>
+&nbsp;
+<b class="fc">&nbsp;        log.info(&quot;Found invoice: {}, associated timesheets: {}&quot;,</b>
+<b class="fc">&nbsp;                invoice.getInvoiceNumber(), invoice.getTimesheets().size());</b>
+&nbsp;
+<b class="fc">&nbsp;        List&lt;Timesheet&gt; timesheetsToProcess = new ArrayList&lt;&gt;(invoice.getTimesheets());</b>
+<b class="fc">&nbsp;        for (Timesheet timesheet : timesheetsToProcess) {</b>
+<b class="fc">&nbsp;            log.info(&quot;Processing timesheet ID: {}&quot;, timesheet.getId());</b>
+<b class="fc">&nbsp;            timesheet.setInvoice(null);</b>
+<b class="fc">&nbsp;            timesheet.setInvoiced(false);</b>
+&nbsp;
+<b class="fc">&nbsp;            if (deleteTimesheets) {</b>
+<b class="fc">&nbsp;                log.info(&quot;Deleting timesheet ID: {}&quot;, timesheet.getId());</b>
+<b class="fc">&nbsp;                invoiceRepository.deleteInvoiceItemsByInvoiceId(id);</b>
+&nbsp;            } else {
+<b class="fc">&nbsp;                log.info(&quot;Preserving timesheet ID: {}&quot;, timesheet.getId());</b>
+<b class="fc">&nbsp;                timesheetRepository.save(timesheet);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        log.info(&quot;Deleting invoice items&quot;);</b>
+<b class="fc">&nbsp;        jdbcTemplate.update(&quot;DELETE FROM invoice_items WHERE invoice_id = ?&quot;, id);</b>
+&nbsp;
+<b class="fc">&nbsp;        log.info(&quot;Deleting invoice&quot;);</b>
+<b class="fc">&nbsp;        invoiceRepository.delete(invoice);</b>
+&nbsp;
+<b class="fc">&nbsp;        log.info(&quot;Successfully deleted invoice ID: {}&quot;, id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Page&lt;InvoiceDto&gt; getAllInvoicesPageable(Long clientId, Integer year, Integer month, Pageable pageable) {
+<b class="fc">&nbsp;        return invoiceRepository.findFilteredInvoices(clientId, year, month, pageable)</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Page&lt;InvoiceDto&gt; searchInvoices(DateRangeRequest dateRange, Long clientId, Pageable pageable) {
+<b class="fc">&nbsp;        LocalDate fromDate = convertToStartDate(dateRange);</b>
+<b class="fc">&nbsp;        LocalDate toDate = convertToEndDate(dateRange);</b>
+&nbsp;
+<b class="fc">&nbsp;        validateDateRange(fromDate, toDate);</b>
+&nbsp;
+<b class="fc">&nbsp;        return invoiceRepository.findByDateRangeAndClient(fromDate, toDate, clientId, pageable)</b>
+<b class="fc">&nbsp;                .map(invoiceDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private LocalDate convertToStartDate(DateRangeRequest range) {
+<b class="pc">&nbsp;        return range.fromYear() != null &amp;&amp; range.fromMonth() != null</b>
+<b class="fc">&nbsp;                ? LocalDate.of(range.fromYear(), range.fromMonth(), 1)</b>
+<b class="nc">&nbsp;                : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private LocalDate convertToEndDate(DateRangeRequest range) {
+<b class="pc">&nbsp;        return range.toYear() != null &amp;&amp; range.toMonth() != null</b>
+<b class="fc">&nbsp;                ? LocalDate.of(range.toYear(), range.toMonth(), 1).plusMonths(1).minusDays(1)</b>
+<b class="nc">&nbsp;                : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void validateDateRange(LocalDate fromDate, LocalDate toDate) {
+<b class="fc">&nbsp;        if (fromDate == null || toDate == null) {</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (fromDate.isAfter(toDate)) {</b>
+<b class="fc">&nbsp;            throw new ValidationException(&quot;Start date cannot be after end date&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private String generatePeriodLabel(DateRangeRequest dateRange) {
+<b class="fc">&nbsp;        Integer fromYear = dateRange.fromYear();</b>
+<b class="fc">&nbsp;        Integer fromMonth = dateRange.fromMonth();</b>
+<b class="fc">&nbsp;        Integer toYear = dateRange.toYear();</b>
+<b class="fc">&nbsp;        Integer toMonth = dateRange.toMonth();</b>
+&nbsp;
+<b class="pc">&nbsp;        if (fromYear == null || fromMonth == null || toYear == null || toMonth == null) {</b>
+<b class="fc">&nbsp;            return &quot;all dates&quot;;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return Month.of(fromMonth) + &quot; &quot; + fromYear + &quot; - &quot; + Month.of(toMonth) + &quot; &quot; + toYear;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-18 14:51</div>
+</div>
+</body>
+</html>

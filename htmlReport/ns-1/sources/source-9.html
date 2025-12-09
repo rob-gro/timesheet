@@ -1,0 +1,456 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PdfGenerator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">dev.robgro.timesheet.service</a>
+</div>
+
+<h1>Coverage Summary for Class: PdfGenerator (dev.robgro.timesheet.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PdfGenerator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/222)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package dev.robgro.timesheet.service;
+&nbsp;
+&nbsp;import com.lowagie.text.*;
+&nbsp;import com.lowagie.text.Font;
+&nbsp;import com.lowagie.text.Rectangle;
+&nbsp;import com.lowagie.text.pdf.ColumnText;
+&nbsp;import com.lowagie.text.pdf.PdfPCell;
+&nbsp;import com.lowagie.text.pdf.PdfPTable;
+&nbsp;import com.lowagie.text.pdf.PdfWriter;
+&nbsp;import dev.robgro.timesheet.config.InvoiceSeller;
+&nbsp;import dev.robgro.timesheet.exception.ServiceOperationException;
+&nbsp;import dev.robgro.timesheet.model.entity.Invoice;
+&nbsp;import dev.robgro.timesheet.model.entity.InvoiceItem;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;
+&nbsp;import java.awt.*;
+&nbsp;import java.io.OutputStream;
+&nbsp;import java.time.format.DateTimeFormatter;
+&nbsp;
+&nbsp;@Service
+<b class="nc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class PdfGenerator {
+&nbsp;
+&nbsp;    public void generateInvoicePdf(Invoice invoice, InvoiceSeller seller, OutputStream outputStream) {
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            Document document = new Document(PageSize.A4);</b>
+<b class="nc">&nbsp;            PdfWriter writer = PdfWriter.getInstance(document, outputStream);</b>
+<b class="nc">&nbsp;            document.open();</b>
+&nbsp;
+<b class="nc">&nbsp;            Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10);</b>
+<b class="nc">&nbsp;            Font boldFont = FontFactory.getFont(FontFactory.HELVETICA, 10, Font.BOLD);</b>
+<b class="nc">&nbsp;            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA, 11, Font.BOLD, new Color(0, 86, 179)); // #0056b3</b>
+<b class="nc">&nbsp;            Font blueFont = FontFactory.getFont(FontFactory.HELVETICA, 10, Font.NORMAL, new Color(92, 106, 196)); // #5c6ac4</b>
+<b class="nc">&nbsp;            Font blueBoldFont = FontFactory.getFont(FontFactory.HELVETICA, 10, Font.BOLD, new Color(92, 106, 196));</b>
+&nbsp;
+&nbsp;// &quot;ORIGINAL&quot;
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;ORIGINAL&quot;, boldFont));</b>
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;\n&quot;));</b>
+&nbsp;
+&nbsp;// data and invoice number
+<b class="nc">&nbsp;            PdfPTable headerTable = new PdfPTable(1);</b>
+<b class="nc">&nbsp;            headerTable.setWidthPercentage(100);</b>
+<b class="nc">&nbsp;            headerTable.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+&nbsp;
+<b class="nc">&nbsp;            PdfPCell dateLabel = new PdfPCell(new Phrase(&quot;Date&quot;, normalFont));</b>
+<b class="nc">&nbsp;            PdfPCell dateValue = new PdfPCell(new Phrase(invoice.getIssueDate().format(DateTimeFormatter.ofPattern(&quot;dd.MM.yyyy&quot;)), headerFont));</b>
+&nbsp;
+<b class="nc">&nbsp;            PdfPCell invoiceLabel = new PdfPCell(new Phrase(&quot;Invoice #&quot;, normalFont));</b>
+<b class="nc">&nbsp;            PdfPCell invoiceValue = new PdfPCell(new Phrase(invoice.getInvoiceNumber(), headerFont));</b>
+<b class="nc">&nbsp;            dateLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;            dateValue.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;            invoiceLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;            invoiceValue.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+&nbsp;
+<b class="nc">&nbsp;            dateLabel.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;            dateValue.setBorder(Rectangle.NO_BORDER);</b>
+&nbsp;
+&nbsp;// separate line
+<b class="nc">&nbsp;            PdfPCell separatorCell = new PdfPCell(new Phrase());</b>
+<b class="nc">&nbsp;            separatorCell.setBorder(Rectangle.BOTTOM);</b>
+<b class="nc">&nbsp;            separatorCell.setBorderWidth(0.5f);</b>
+<b class="nc">&nbsp;            separatorCell.setBorderColor(new Color(38, 134, 214));</b>
+<b class="nc">&nbsp;            separatorCell.setFixedHeight(10);</b>
+<b class="nc">&nbsp;            separatorCell.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;            headerTable.setWidthPercentage(15);</b>
+&nbsp;
+<b class="nc">&nbsp;            invoiceLabel.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;            invoiceValue.setBorder(Rectangle.NO_BORDER);</b>
+&nbsp;
+<b class="nc">&nbsp;            headerTable.addCell(dateLabel);</b>
+<b class="nc">&nbsp;            headerTable.addCell(dateValue);</b>
+<b class="nc">&nbsp;            headerTable.addCell(separatorCell);</b>
+<b class="nc">&nbsp;            headerTable.addCell(invoiceLabel);</b>
+<b class="nc">&nbsp;            headerTable.addCell(invoiceValue);</b>
+&nbsp;
+<b class="nc">&nbsp;            document.add(headerTable);</b>
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;\n&quot;));</b>
+&nbsp;
+&nbsp;// address section
+<b class="nc">&nbsp;            PdfPTable addressTable = new PdfPTable(2);</b>
+<b class="nc">&nbsp;            addressTable.setWidthPercentage(100);</b>
+&nbsp;
+&nbsp;// sender / seller
+<b class="nc">&nbsp;            PdfPCell fromCell = new PdfPCell();</b>
+<b class="nc">&nbsp;            fromCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;            fromCell.addElement(new Paragraph(&quot;Invoice from:&quot;, normalFont));</b>
+<b class="nc">&nbsp;            fromCell.addElement(new Paragraph(seller.getName(), boldFont));</b>
+<b class="nc">&nbsp;            fromCell.addElement(new Paragraph(seller.getStreet(), boldFont));</b>
+<b class="nc">&nbsp;            fromCell.addElement(new Paragraph(seller.getPostcode() + &quot;, &quot; + seller.getCity(), boldFont));</b>
+&nbsp;
+&nbsp;// receiver / client
+<b class="nc">&nbsp;            PdfPCell toCell = new PdfPCell();</b>
+<b class="nc">&nbsp;            toCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;            toCell.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;            Paragraph invoiceFor = new Paragraph(&quot;Invoice for:&quot;, blueFont);</b>
+<b class="nc">&nbsp;            invoiceFor.setAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;            toCell.addElement(invoiceFor);</b>
+&nbsp;
+&nbsp;// client address to right
+<b class="nc">&nbsp;            Paragraph[] clientAddressLines = {</b>
+<b class="nc">&nbsp;                    new Paragraph(invoice.getClient().getClientName(), blueBoldFont),</b>
+<b class="nc">&nbsp;                    new Paragraph(invoice.getClient().getHouseNo() + &quot; &quot; + invoice.getClient().getStreetName(), blueBoldFont),</b>
+<b class="nc">&nbsp;                    new Paragraph(invoice.getClient().getPostCode() + &quot;, &quot; + invoice.getClient().getCity(), blueBoldFont)</b>
+&nbsp;            };
+&nbsp;
+<b class="nc">&nbsp;            for (Paragraph line : clientAddressLines) {</b>
+<b class="nc">&nbsp;                line.setAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;                toCell.addElement(line);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            addressTable.addCell(fromCell);</b>
+<b class="nc">&nbsp;            addressTable.addCell(toCell);</b>
+&nbsp;
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;\n&quot;));</b>
+&nbsp;
+&nbsp;// grey background for addresses section
+<b class="nc">&nbsp;            PdfPCell addressWrapper = new PdfPCell(addressTable);</b>
+<b class="nc">&nbsp;            addressWrapper.setBackgroundColor(new Color(241, 245, 249)); // #f1f5f9</b>
+<b class="nc">&nbsp;            addressWrapper.setPadding(20);</b>
+<b class="nc">&nbsp;            addressWrapper.setBorder(Rectangle.NO_BORDER);</b>
+&nbsp;
+<b class="nc">&nbsp;            PdfPTable wrapperTable = new PdfPTable(1);</b>
+<b class="nc">&nbsp;            wrapperTable.setWidthPercentage(100);</b>
+<b class="nc">&nbsp;            wrapperTable.addCell(addressWrapper);</b>
+<b class="nc">&nbsp;            document.add(wrapperTable);</b>
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;\n&quot;));</b>
+&nbsp;
+&nbsp;// table
+<b class="nc">&nbsp;            PdfPTable itemsTable = new PdfPTable(new float[]{0.5f, 5, 2, 2, 2});</b>
+<b class="nc">&nbsp;            itemsTable.setWidthPercentage(98);</b>
+&nbsp;
+&nbsp;// table head
+<b class="nc">&nbsp;            String[] headers = {&quot;#&quot;, &quot;Description&quot;, &quot;Duration (h)&quot;, &quot;Rate (£)&quot;, &quot;Amount (£)&quot;};</b>
+<b class="nc">&nbsp;            PdfPCell[] headerCells = {</b>
+<b class="nc">&nbsp;                    createHeaderCell(headers[0], Element.ALIGN_CENTER),    // number</b>
+<b class="nc">&nbsp;                    createHeaderCell(headers[1], Element.ALIGN_LEFT),      // description</b>
+<b class="nc">&nbsp;                    createHeaderCell(headers[2], Element.ALIGN_RIGHT),     // duration</b>
+<b class="nc">&nbsp;                    createHeaderCell(headers[3], Element.ALIGN_RIGHT),     // hourly rate</b>
+<b class="nc">&nbsp;                    createHeaderCell(headers[4], Element.ALIGN_RIGHT)      // amount</b>
+&nbsp;            };
+<b class="nc">&nbsp;            for (PdfPCell cell : headerCells) {</b>
+<b class="nc">&nbsp;                itemsTable.addCell(cell);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;// table rows
+<b class="nc">&nbsp;            int rowNumber = 1;</b>
+<b class="nc">&nbsp;            for (InvoiceItem item : invoice.getItemsList()) {</b>
+<b class="nc">&nbsp;                PdfPCell numberCell = new PdfPCell(new Phrase(String.valueOf(rowNumber++), normalFont));</b>
+<b class="nc">&nbsp;                numberCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;                numberCell.setHorizontalAlignment(Element.ALIGN_CENTER);</b>
+<b class="nc">&nbsp;                numberCell.setVerticalAlignment(Element.ALIGN_MIDDLE);</b>
+<b class="nc">&nbsp;                numberCell.setPadding(10);</b>
+<b class="nc">&nbsp;                numberCell.setBorderWidthBottom(1f);</b>
+<b class="nc">&nbsp;                numberCell.setBorderColor(new Color(241, 245, 249));</b>
+&nbsp;
+<b class="nc">&nbsp;                PdfPCell descCell = new PdfPCell(new Phrase(&quot;Cleaning services on &quot; +</b>
+<b class="nc">&nbsp;                        item.getServiceDate().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;)), normalFont));</b>
+<b class="nc">&nbsp;                descCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;                descCell.setVerticalAlignment(Element.ALIGN_MIDDLE);</b>
+<b class="nc">&nbsp;                descCell.setPadding(10);</b>
+<b class="nc">&nbsp;                descCell.setBorderWidthBottom(1f);</b>
+<b class="nc">&nbsp;                descCell.setBorderColor(new Color(241, 245, 249));</b>
+&nbsp;
+<b class="nc">&nbsp;                PdfPCell durationCell = new PdfPCell(new Phrase(String.valueOf(item.getDuration()), normalFont));</b>
+<b class="nc">&nbsp;                durationCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;                durationCell.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;                durationCell.setVerticalAlignment(Element.ALIGN_MIDDLE);</b>
+<b class="nc">&nbsp;                durationCell.setPadding(10);</b>
+<b class="nc">&nbsp;                durationCell.setBorderWidthBottom(1f);</b>
+<b class="nc">&nbsp;                durationCell.setBorderColor(new Color(241, 245, 249));</b>
+&nbsp;
+<b class="nc">&nbsp;                PdfPCell rateCell = new PdfPCell(new Phrase(String.valueOf(invoice.getClient().getHourlyRate()), normalFont));</b>
+<b class="nc">&nbsp;                rateCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;                rateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;                rateCell.setVerticalAlignment(Element.ALIGN_MIDDLE);</b>
+<b class="nc">&nbsp;                rateCell.setPadding(10);</b>
+<b class="nc">&nbsp;                rateCell.setBorderWidthBottom(1f);</b>
+<b class="nc">&nbsp;                rateCell.setBorderColor(new Color(241, 245, 249));</b>
+&nbsp;
+<b class="nc">&nbsp;                PdfPCell amountCell = new PdfPCell(new Phrase(item.getAmount().toString(), normalFont));</b>
+<b class="nc">&nbsp;                amountCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;                amountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;                amountCell.setVerticalAlignment(Element.ALIGN_MIDDLE);</b>
+<b class="nc">&nbsp;                amountCell.setPadding(10);</b>
+<b class="nc">&nbsp;                amountCell.setBorderWidthBottom(1f);</b>
+<b class="nc">&nbsp;                amountCell.setBorderColor(new Color(241, 245, 249));</b>
+&nbsp;
+<b class="nc">&nbsp;                itemsTable.addCell(numberCell);</b>
+<b class="nc">&nbsp;                itemsTable.addCell(descCell);</b>
+<b class="nc">&nbsp;                itemsTable.addCell(durationCell);</b>
+<b class="nc">&nbsp;                itemsTable.addCell(rateCell);</b>
+<b class="nc">&nbsp;                itemsTable.addCell(amountCell);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            document.add(itemsTable);</b>
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;\n&quot;));</b>
+&nbsp;
+&nbsp;// total amount
+<b class="nc">&nbsp;            PdfPTable totalTable = new PdfPTable(1);</b>
+<b class="nc">&nbsp;            totalTable.setWidthPercentage(50);</b>
+<b class="nc">&nbsp;            totalTable.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+&nbsp;
+<b class="nc">&nbsp;            PdfPCell totalCell = new PdfPCell(new PdfPTable(2));</b>
+<b class="nc">&nbsp;            totalCell.setBackgroundColor(new Color(92, 106, 196)); // #5c6ac4</b>
+<b class="nc">&nbsp;            totalCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;            totalCell.setPadding(10);</b>
+&nbsp;
+<b class="nc">&nbsp;            PdfPTable totalInnerTable = new PdfPTable(2);</b>
+<b class="nc">&nbsp;            totalInnerTable.setWidthPercentage(100);</b>
+<b class="nc">&nbsp;            PdfPCell totalLabelCell = new PdfPCell(new Phrase(&quot;Total Amount:&quot;, FontFactory.getFont(FontFactory.HELVETICA, 10, Font.BOLD, Color.WHITE)));</b>
+<b class="nc">&nbsp;            PdfPCell totalValueCell = new PdfPCell(new Phrase(&quot;£ &quot; + invoice.getTotalAmount().toString(), FontFactory.getFont(FontFactory.HELVETICA, 10, Font.BOLD, Color.WHITE)));</b>
+<b class="nc">&nbsp;            totalLabelCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;            totalValueCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;            totalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);</b>
+<b class="nc">&nbsp;            totalInnerTable.addCell(totalLabelCell);</b>
+<b class="nc">&nbsp;            totalInnerTable.addCell(totalValueCell);</b>
+&nbsp;
+<b class="nc">&nbsp;            totalCell.addElement(totalInnerTable);</b>
+<b class="nc">&nbsp;            totalTable.addCell(totalCell);</b>
+<b class="nc">&nbsp;            document.add(totalTable);</b>
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;\n\n\n&quot;));</b>
+&nbsp;
+&nbsp;// payment details
+<b class="nc">&nbsp;            Paragraph paymentTitle = new Paragraph(&quot;PAYMENT DETAILS&quot;, boldFont);</b>
+<b class="nc">&nbsp;            document.add(paymentTitle);</b>
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;\n&quot;));</b>
+&nbsp;// account holder
+<b class="nc">&nbsp;            Phrase holderLabel = new Phrase(&quot;Account owner: &quot;, normalFont);</b>
+<b class="nc">&nbsp;            Phrase holderValue = new Phrase(&quot;Agnieszka Markiewicz&quot;, boldFont);</b>
+<b class="nc">&nbsp;            Paragraph holderLine = new Paragraph();</b>
+<b class="nc">&nbsp;            holderLine.add(holderLabel);</b>
+<b class="nc">&nbsp;            holderLine.add(holderValue);</b>
+<b class="nc">&nbsp;            document.add(holderLine);</b>
+&nbsp;// bank
+<b class="nc">&nbsp;            Phrase bankLabel = new Phrase(&quot;Bank: &quot;, normalFont);</b>
+<b class="nc">&nbsp;            Phrase bankValue = new Phrase(&quot;TSB&quot;, boldFont);</b>
+<b class="nc">&nbsp;            Paragraph bankLine = new Paragraph();</b>
+<b class="nc">&nbsp;            bankLine.add(bankLabel);</b>
+<b class="nc">&nbsp;            bankLine.add(bankValue);</b>
+<b class="nc">&nbsp;            document.add(bankLine);</b>
+&nbsp;// sort code
+<b class="nc">&nbsp;            Phrase sortCodeLabel = new Phrase(&quot;Sort Code: &quot;, normalFont);</b>
+<b class="nc">&nbsp;            Phrase sortCodeValue = new Phrase(&quot;87-68-20&quot;, boldFont);</b>
+<b class="nc">&nbsp;            Paragraph sortCodeLine = new Paragraph();</b>
+<b class="nc">&nbsp;            sortCodeLine.add(sortCodeLabel);</b>
+<b class="nc">&nbsp;            sortCodeLine.add(sortCodeValue);</b>
+<b class="nc">&nbsp;            document.add(sortCodeLine);</b>
+&nbsp;// account number
+<b class="nc">&nbsp;            Phrase accountLabel = new Phrase(&quot;Account Number: &quot;, normalFont);</b>
+<b class="nc">&nbsp;            Phrase accountValue = new Phrase(&quot;75040460&quot;, boldFont);</b>
+<b class="nc">&nbsp;            Paragraph accountLine = new Paragraph();</b>
+<b class="nc">&nbsp;            accountLine.add(accountLabel);</b>
+<b class="nc">&nbsp;            accountLine.add(accountValue);</b>
+<b class="nc">&nbsp;            document.add(accountLine);</b>
+<b class="nc">&nbsp;            document.add(new Paragraph(&quot;\n\n&quot;));</b>
+&nbsp;
+&nbsp;// notes
+<b class="nc">&nbsp;            PdfPTable footerTable = new PdfPTable(1);</b>
+<b class="nc">&nbsp;            float y = document.bottom();</b>
+<b class="nc">&nbsp;            footerTable.setTotalWidth(document.getPageSize().getWidth() / 2);</b>
+&nbsp;
+<b class="nc">&nbsp;            float leftMargin = document.left();</b>
+&nbsp;
+<b class="nc">&nbsp;            ColumnText.showTextAligned(</b>
+<b class="nc">&nbsp;                    writer.getDirectContent(),</b>
+&nbsp;                    Element.ALIGN_LEFT,
+&nbsp;                    new Phrase(&quot;Notes:&quot;, boldFont),
+&nbsp;                    leftMargin,
+&nbsp;                    y + 120, 0
+&nbsp;            );
+&nbsp;
+<b class="nc">&nbsp;            ColumnText.showTextAligned(</b>
+<b class="nc">&nbsp;                    writer.getDirectContent(),</b>
+&nbsp;                    Element.ALIGN_LEFT,
+&nbsp;                    new Phrase(&quot;_________________________________________________________________________&quot;, normalFont),
+&nbsp;                    leftMargin,
+&nbsp;                    y + 105, 0
+&nbsp;            );
+&nbsp;
+&nbsp;// footer
+<b class="nc">&nbsp;            footerTable.setWidthPercentage(50);</b>
+<b class="nc">&nbsp;            footerTable.setHorizontalAlignment(Element.ALIGN_CENTER);</b>
+<b class="nc">&nbsp;            Font footerFont = FontFactory.getFont(FontFactory.HELVETICA, 8, Font.NORMAL, new Color(102, 102, 102));</b>
+&nbsp;
+&nbsp;// line over the footer
+<b class="nc">&nbsp;            PdfPCell separatorLine = new PdfPCell(new Phrase());</b>
+<b class="nc">&nbsp;            separatorLine.setBorder(Rectangle.BOTTOM);</b>
+<b class="nc">&nbsp;            separatorLine.setBorderWidth(0.5f);</b>
+<b class="nc">&nbsp;            separatorLine.setBorderColor(new Color(38, 134, 214));</b>
+<b class="nc">&nbsp;            separatorLine.setFixedHeight(10);</b>
+<b class="nc">&nbsp;            footerTable.setWidthPercentage(15);</b>
+<b class="nc">&nbsp;            footerTable.addCell(separatorLine);</b>
+&nbsp;
+&nbsp;// hrefs
+<b class="nc">&nbsp;            Chunk websiteLink = new Chunk(&quot;https://robgro.dev&quot;, footerFont);</b>
+<b class="nc">&nbsp;            websiteLink.setAnchor(&quot;https://robgro.dev&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            Chunk emailLink = new Chunk(&quot;contact@robgro.dev&quot;, footerFont);</b>
+<b class="nc">&nbsp;            emailLink.setAnchor(&quot;mailto:contact@robgro.dev&quot;);</b>
+&nbsp;
+&nbsp;// separator
+<b class="nc">&nbsp;            Chunk separator = new Chunk(&quot;  |  &quot;, footerFont);</b>
+&nbsp;
+<b class="nc">&nbsp;            Phrase footerPhrase = new Phrase();</b>
+<b class="nc">&nbsp;            footerPhrase.add(websiteLink);</b>
+<b class="nc">&nbsp;            footerPhrase.add(separator);</b>
+<b class="nc">&nbsp;            footerPhrase.add(new Chunk(&quot;+44 747 8385 228&quot;, footerFont));</b>
+<b class="nc">&nbsp;            footerPhrase.add(separator);</b>
+<b class="nc">&nbsp;            footerPhrase.add(emailLink);</b>
+&nbsp;
+<b class="nc">&nbsp;            PdfPCell footerCell = new PdfPCell(footerPhrase);</b>
+<b class="nc">&nbsp;            footerCell.setHorizontalAlignment(Element.ALIGN_CENTER);</b>
+<b class="nc">&nbsp;            footerCell.setBorder(Rectangle.NO_BORDER);</b>
+<b class="nc">&nbsp;            footerTable.addCell(footerCell);</b>
+&nbsp;
+&nbsp;// footer setting
+<b class="nc">&nbsp;            y = document.bottom() - 10;</b>
+<b class="nc">&nbsp;            footerTable.writeSelectedRows(0, -1, (document.getPageSize().getWidth() - footerTable.getTotalWidth()) / 2, y, writer.getDirectContent());</b>
+&nbsp;
+&nbsp;            document.close();
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new ServiceOperationException(&quot;Failed to generate PDF&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private PdfPCell createHeaderCell(String text, int alignment) {
+<b class="nc">&nbsp;        Font boldFont = FontFactory.getFont(FontFactory.HELVETICA, 9, Font.BOLD);</b>
+<b class="nc">&nbsp;        PdfPCell cell = new PdfPCell(new Phrase(text, boldFont));</b>
+<b class="nc">&nbsp;        cell.setHorizontalAlignment(alignment);</b>
+<b class="nc">&nbsp;        cell.setBorderColor(new Color(92, 106, 196));</b>
+<b class="nc">&nbsp;        cell.setBorderWidthBottom(2);</b>
+<b class="nc">&nbsp;        cell.setBorderWidthTop(0);</b>
+<b class="nc">&nbsp;        cell.setBorderWidthLeft(0);</b>
+<b class="nc">&nbsp;        cell.setBorderWidthRight(0);</b>
+<b class="nc">&nbsp;        cell.setPaddingBottom(10);</b>
+<b class="nc">&nbsp;        return cell;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-18 14:51</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,452 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TimesheetServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">dev.robgro.timesheet.service</a>
+</div>
+
+<h1>Coverage Summary for Class: TimesheetServiceImpl (dev.robgro.timesheet.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TimesheetServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/138)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package dev.robgro.timesheet.service;
+&nbsp;
+&nbsp;import dev.robgro.timesheet.exception.BusinessRuleViolationException;
+&nbsp;import dev.robgro.timesheet.exception.EntityNotFoundException;
+&nbsp;import dev.robgro.timesheet.model.dto.TimesheetDto;
+&nbsp;import dev.robgro.timesheet.model.dto.TimesheetDtoMapper;
+&nbsp;import dev.robgro.timesheet.model.entity.Client;
+&nbsp;import dev.robgro.timesheet.model.entity.Invoice;
+&nbsp;import dev.robgro.timesheet.model.entity.InvoiceItem;
+&nbsp;import dev.robgro.timesheet.model.entity.Timesheet;
+&nbsp;import dev.robgro.timesheet.repository.ClientRepository;
+&nbsp;import dev.robgro.timesheet.repository.TimesheetRepository;
+&nbsp;import dev.robgro.timesheet.utils.PaginationUtils;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.math.BigDecimal;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.time.YearMonth;
+&nbsp;import java.util.Comparator;
+&nbsp;import java.util.List;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import static java.util.stream.Collectors.toList;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+<b class="nc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class TimesheetServiceImpl implements TimesheetService {
+&nbsp;
+&nbsp;    private final TimesheetRepository timesheetRepository;
+&nbsp;    private final ClientRepository clientRepository;
+&nbsp;    private final TimesheetDtoMapper timesheetDtoMapper;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;TimesheetDto&gt; getAllTimesheets() {
+<b class="nc">&nbsp;        return timesheetRepository.findAll().stream()</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public TimesheetDto getTimesheetById(Long id) {
+<b class="nc">&nbsp;        return timesheetDtoMapper.apply(getTimesheetOrThrow(id));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;TimesheetDto&gt; getUnbilledTimesheetsByClientId(Long clientId) {
+<b class="nc">&nbsp;        return timesheetRepository.findUnbilledTimesheetsByClientId(clientId).stream()</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;TimesheetDto&gt; getTimesheetsByClientAndInvoiceStatus(Long clientId, boolean invoiced) {
+<b class="nc">&nbsp;        return timesheetRepository.findByClientIdAndInvoiced(clientId, invoiced).stream()</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public TimesheetDto createTimesheet(Long clientId, LocalDate date, double duration) {
+<b class="nc">&nbsp;        Client client = clientRepository.getReferenceById(clientId);</b>
+&nbsp;
+<b class="nc">&nbsp;        Timesheet timesheet = new Timesheet();</b>
+<b class="nc">&nbsp;        timesheet.setClient(client);</b>
+<b class="nc">&nbsp;        timesheet.setServiceDate(date);</b>
+<b class="nc">&nbsp;        timesheet.setDuration(duration);</b>
+<b class="nc">&nbsp;        timesheet.setInvoiced(false);</b>
+<b class="nc">&nbsp;        return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;TimesheetDto&gt; getTimesheetsByFilters(Long clientId, String paymentStatus) {
+&nbsp;        List&lt;Timesheet&gt; timesheets;
+&nbsp;
+<b class="nc">&nbsp;        if (clientId != null &amp;&amp; paymentStatus != null) {</b>
+<b class="nc">&nbsp;            if (paymentStatus.equals(&quot;true&quot;)) {</b>
+<b class="nc">&nbsp;                timesheets = timesheetRepository.findByClientIdAndPaymentDateIsNotNull(clientId);</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                timesheets = timesheetRepository.findByClientIdAndPaymentDateIsNull(clientId);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        } else if (clientId != null) {</b>
+<b class="nc">&nbsp;            timesheets = timesheetRepository.findAllByClientId(clientId);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            timesheets = timesheetRepository.findAll();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return timesheets.stream()</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;TimesheetDto&gt; searchAndSortTimesheets(Long clientId, String sortBy, String sortDir) {
+&nbsp;        List&lt;Timesheet&gt; timesheets;
+<b class="nc">&nbsp;        if (clientId != null) {</b>
+<b class="nc">&nbsp;            timesheets = timesheetRepository.findAllByClientId(clientId);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            timesheets = timesheetRepository.findAll();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;TimesheetDto&gt; dtos = timesheets.stream()</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(toList());</b>
+&nbsp;
+<b class="nc">&nbsp;        return sortTimesheets(dtos, sortBy, sortDir);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;TimesheetDto&gt; sortTimesheets(List&lt;TimesheetDto&gt; timesheets, String sortBy, String sortDir) {
+&nbsp;
+<b class="nc">&nbsp;        log.debug(&quot;Sorting timesheets by: {}, direction: {}&quot;, sortBy, sortDir);</b>
+<b class="nc">&nbsp;        if (sortBy.equals(&quot;invoiceNumber&quot;)) {</b>
+<b class="nc">&nbsp;            log.debug(&quot;First timesheet invoice number: {}&quot;,</b>
+<b class="nc">&nbsp;                    timesheets.isEmpty() ? &quot;none&quot; : timesheets.get(0).invoiceNumber());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Comparator&lt;TimesheetDto&gt; comparator = switch (sortBy) {</b>
+<b class="nc">&nbsp;            case &quot;invoiceNumber&quot; -&gt; Comparator</b>
+<b class="nc">&nbsp;                    .comparing((TimesheetDto i) -&gt; {</b>
+<b class="nc">&nbsp;                        String year = i.invoiceNumber() != null ?</b>
+<b class="nc">&nbsp;                                i.invoiceNumber().substring(i.invoiceNumber().length() - 4) : &quot;&quot;;</b>
+<b class="nc">&nbsp;                        log.debug(&quot;Comparing year: {} for invoice {}&quot;, year, i.invoiceNumber());</b>
+<b class="nc">&nbsp;                        return year;</b>
+&nbsp;                    })
+<b class="nc">&nbsp;                    .thenComparing(i -&gt; {</b>
+<b class="nc">&nbsp;                        String month = i.invoiceNumber() != null ?</b>
+<b class="nc">&nbsp;                                i.invoiceNumber().substring(4, 6) : &quot;&quot;;</b>
+<b class="nc">&nbsp;                        log.debug(&quot;Comparing month: {} for invoice {}&quot;, month, i.invoiceNumber());</b>
+<b class="nc">&nbsp;                        return month;</b>
+&nbsp;                    })
+<b class="nc">&nbsp;                    .thenComparing(i -&gt; {</b>
+<b class="nc">&nbsp;                        String number = i.invoiceNumber() != null ?</b>
+<b class="nc">&nbsp;                                i.invoiceNumber().substring(0, 3) : &quot;&quot;;</b>
+<b class="nc">&nbsp;                        log.debug(&quot;Comparing number: {} for invoice {}&quot;, number, i.invoiceNumber());</b>
+<b class="nc">&nbsp;                        return number;</b>
+&nbsp;                    });
+<b class="nc">&nbsp;            case &quot;serviceDate&quot; -&gt; Comparator.comparing(TimesheetDto::serviceDate);</b>
+<b class="nc">&nbsp;            case &quot;duration&quot; -&gt; Comparator.comparing(TimesheetDto::duration);</b>
+<b class="nc">&nbsp;            default -&gt; Comparator.comparing(TimesheetDto::serviceDate);</b>
+&nbsp;        };
+&nbsp;
+<b class="nc">&nbsp;        return timesheets.stream()</b>
+<b class="nc">&nbsp;                .sorted(sortDir.equals(&quot;desc&quot;) ? comparator.reversed() : comparator)</b>
+<b class="nc">&nbsp;                .collect(toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public Page&lt;TimesheetDto&gt; getFilteredAndPaginatedTimesheets(
+&nbsp;            Long clientId,
+&nbsp;            String paymentStatus,
+&nbsp;            String sortBy,
+&nbsp;            String sortDir,
+&nbsp;            int page,
+&nbsp;            int size) {
+&nbsp;
+<b class="nc">&nbsp;        sortBy = (sortBy == null || sortBy.isEmpty()) ? &quot;serviceDate&quot; : sortBy;</b>
+<b class="nc">&nbsp;        sortDir = (sortDir == null || sortDir.isEmpty()) ? &quot;desc&quot; : sortDir;</b>
+&nbsp;
+<b class="nc">&nbsp;        if (paymentStatus != null &amp;&amp; paymentStatus.isEmpty()) {</b>
+<b class="nc">&nbsp;            paymentStatus = null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        log.debug(&quot;Retrieving paginated timesheets with params: clientId={}, paymentStatus={}, sortBy={}, sortDir={}, page={}, size={}&quot;,</b>
+<b class="nc">&nbsp;                clientId, paymentStatus, sortBy, sortDir, page, size);</b>
+&nbsp;
+<b class="nc">&nbsp;        Pageable pageable = PaginationUtils.createPageable(sortBy, sortDir, page, size);</b>
+&nbsp;
+<b class="nc">&nbsp;        Page&lt;Timesheet&gt; timesheetsPage = timesheetRepository.findByClientIdAndPaymentStatus(clientId, paymentStatus, pageable);</b>
+&nbsp;
+<b class="nc">&nbsp;        log.debug(&quot;Found {} timesheets in page {} of {}&quot;,</b>
+<b class="nc">&nbsp;                timesheetsPage.getNumberOfElements(),</b>
+<b class="nc">&nbsp;                timesheetsPage.getNumber(),</b>
+<b class="nc">&nbsp;                timesheetsPage.getTotalPages());</b>
+&nbsp;
+<b class="nc">&nbsp;        return timesheetsPage.map(timesheetDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public TimesheetDto updateTimesheet(Long id, Long clientId, LocalDate date, double duration) {
+<b class="nc">&nbsp;        Timesheet timesheet = getTimesheetOrThrow(id);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!timesheet.getClient().getId().equals(clientId)) {</b>
+<b class="nc">&nbsp;            Client client = clientRepository.getReferenceById(clientId);</b>
+<b class="nc">&nbsp;            timesheet.setClient(client);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        timesheet.setServiceDate(date);</b>
+<b class="nc">&nbsp;        timesheet.setDuration(duration);</b>
+<b class="nc">&nbsp;        return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void deleteTimesheet(Long id) {
+<b class="nc">&nbsp;        Timesheet timesheet = getTimesheetOrThrow(id);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (timesheet.isInvoiced()) {</b>
+<b class="nc">&nbsp;            throw new BusinessRuleViolationException(&quot;Cannot delete timesheet that is attached to an invoice&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (timesheet.getInvoice() != null) {</b>
+<b class="nc">&nbsp;            Invoice invoice = timesheet.getInvoice();</b>
+<b class="nc">&nbsp;            invoice.getItemsList().removeIf(item -&gt; item.getTimesheetId().equals(timesheet.getId()));</b>
+<b class="nc">&nbsp;            invoice.setTotalAmount(calculateTotalAmount(invoice.getItemsList()));</b>
+<b class="nc">&nbsp;            timesheet.setInvoice(null);</b>
+<b class="nc">&nbsp;            timesheet.setInvoiced(false);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        timesheetRepository.delete(timesheet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private BigDecimal calculateTotalAmount(List&lt;InvoiceItem&gt; items) {
+<b class="nc">&nbsp;        return items.stream()</b>
+<b class="nc">&nbsp;                .map(InvoiceItem::getAmount)</b>
+<b class="nc">&nbsp;                .reduce(BigDecimal.ZERO, BigDecimal::add);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;TimesheetDto&gt; getTimesheetByClientId(Long clientId) {
+<b class="nc">&nbsp;        return timesheetRepository.findAllByClientId(clientId).stream()</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;TimesheetDto&gt; getUnbilledTimesheets() {
+<b class="nc">&nbsp;        return timesheetRepository.findByInvoiced(false)</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;TimesheetDto&gt; getMonthlyTimesheets(Long clientId, int year, int month) {
+<b class="nc">&nbsp;        YearMonth yearMonth = YearMonth.of(year, month);</b>
+<b class="nc">&nbsp;        LocalDate startDate = yearMonth.atDay(1);</b>
+<b class="nc">&nbsp;        LocalDate endDate = yearMonth.atEndOfMonth();</b>
+&nbsp;
+<b class="nc">&nbsp;        return timesheetRepository.findByClient_IdAndServiceDateBetween(clientId, startDate, endDate)</b>
+<b class="nc">&nbsp;                .stream()</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper)</b>
+<b class="nc">&nbsp;                .sorted(Comparator.comparing(TimesheetDto::serviceDate))</b>
+<b class="nc">&nbsp;                .collect(toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Timesheet getTimesheetOrThrow(Long id) {
+<b class="nc">&nbsp;        return timesheetRepository.findById(id)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Timesheet&quot;, id));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void markAsInvoiced(Long id) {
+<b class="nc">&nbsp;        Timesheet timesheet = getTimesheetOrThrow(id);</b>
+<b class="nc">&nbsp;        timesheet.setInvoiced(true);</b>
+<b class="nc">&nbsp;        timesheetRepository.save(timesheet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public void updateInvoiceFlag(Long id, boolean isInvoiced) {
+<b class="nc">&nbsp;        Timesheet timesheet = getTimesheetOrThrow(id);</b>
+<b class="nc">&nbsp;        timesheet.setInvoiced(isInvoiced);</b>
+<b class="nc">&nbsp;        timesheetRepository.save(timesheet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void detachFromInvoice(Long id) {
+<b class="nc">&nbsp;        Timesheet timesheet = getTimesheetOrThrow(id);</b>
+<b class="nc">&nbsp;        timesheet.setInvoiced(false);</b>
+<b class="nc">&nbsp;        timesheet.setInvoice(null);</b>
+<b class="nc">&nbsp;        timesheetRepository.save(timesheet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public Page&lt;TimesheetDto&gt; getAllTimesheetsPageable(Pageable pageable) {
+<b class="nc">&nbsp;        return timesheetRepository.findAll(pageable)</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public Page&lt;TimesheetDto&gt; getTimesheetsByClientIdPageable(Long clientId, Pageable pageable) {
+<b class="nc">&nbsp;        return timesheetRepository.findAllByClientId(clientId, pageable)</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public Page&lt;TimesheetDto&gt; getAllTimesheetsSortedByInvoiceNumber(Long clientId, Pageable pageable) {
+<b class="nc">&nbsp;        return timesheetRepository.findAllSortedByInvoiceNumber(clientId, pageable)</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public Page&lt;TimesheetDto&gt; getAllTimesheetsPageable(Long clientId, Pageable pageable) {
+<b class="nc">&nbsp;        if (clientId != null) {</b>
+<b class="nc">&nbsp;            return timesheetRepository.findAllByClientId(clientId, pageable)</b>
+<b class="nc">&nbsp;                    .map(timesheetDtoMapper);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return timesheetRepository.findAll(pageable)</b>
+<b class="nc">&nbsp;                .map(timesheetDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void updatePaymentDate(Long id, LocalDate paymentDate) {
+<b class="nc">&nbsp;        Timesheet timesheet = getTimesheetOrThrow(id);</b>
+<b class="nc">&nbsp;        timesheet.setPaymentDate(paymentDate);</b>
+<b class="nc">&nbsp;        timesheetRepository.save(timesheet);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public TimesheetDto createEmptyTimesheetDto() {
+<b class="nc">&nbsp;        return new TimesheetDto(null, null, null, 0.5, false, null, 0.0, null, null);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-18 14:51</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,329 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > UserServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">dev.robgro.timesheet.service</a>
+</div>
+
+<h1>Coverage Summary for Class: UserServiceImpl (dev.robgro.timesheet.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">UserServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/88)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package dev.robgro.timesheet.service;
+&nbsp;
+&nbsp;import dev.robgro.timesheet.exception.EntityNotFoundException;
+&nbsp;import dev.robgro.timesheet.exception.ResourceAlreadyExistsException;
+&nbsp;import dev.robgro.timesheet.exception.ValidationException;
+&nbsp;import dev.robgro.timesheet.model.dto.UserDto;
+&nbsp;import dev.robgro.timesheet.model.dto.UserDtoMapper;
+&nbsp;import dev.robgro.timesheet.model.entity.Role;
+&nbsp;import dev.robgro.timesheet.model.entity.User;
+&nbsp;import dev.robgro.timesheet.repository.UserRepository;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.security.crypto.password.PasswordEncoder;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Random;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+<b class="nc">&nbsp;@Slf4j</b>
+&nbsp;@Service
+<b class="nc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public class UserServiceImpl implements UserService {
+&nbsp;
+&nbsp;    private final UserRepository userRepository;
+&nbsp;    private final PasswordEncoder passwordEncoder;
+&nbsp;    private final RoleService roleService;
+&nbsp;    private final UserDtoMapper userDtoMapper;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;UserDto&gt; getAllUsers() {
+<b class="nc">&nbsp;        return userRepository.findAll().stream()</b>
+<b class="nc">&nbsp;                .map(userDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public UserDto getUserById(Long id) {
+<b class="nc">&nbsp;        return userRepository.findById(id)</b>
+<b class="nc">&nbsp;                .map(userDtoMapper)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;User &quot;, id));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public List&lt;UserDto&gt; getUsersByRole(String roleName) {
+<b class="nc">&nbsp;        return userRepository.findByRoleName(roleName).stream()</b>
+<b class="nc">&nbsp;                .map(userDtoMapper)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public Page&lt;UserDto&gt; searchUsers(Boolean active, String username, Pageable pageable) {
+<b class="nc">&nbsp;        return userRepository.findByActiveAndUsername(active, username, pageable)</b>
+<b class="nc">&nbsp;                .map(userDtoMapper);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public UserDto createUser(UserDto userDto) {
+<b class="nc">&nbsp;        if (userRepository.existsByUsername(userDto.username())) {</b>
+<b class="nc">&nbsp;            throw new ResourceAlreadyExistsException(&quot;User&quot;, &quot;username&quot;, userDto.username());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (userDto.email() != null &amp;&amp; userRepository.existsByEmail(userDto.email())) {</b>
+<b class="nc">&nbsp;            throw new ResourceAlreadyExistsException(&quot;User&quot;, &quot;email&quot;, userDto.email());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        User user = new User();</b>
+<b class="nc">&nbsp;        user.setUsername(userDto.username());</b>
+<b class="nc">&nbsp;        user.setPassword(userDto.password());</b>
+<b class="nc">&nbsp;        user.setEmail(userDto.email());</b>
+<b class="nc">&nbsp;        user.setActive(userDto.active());</b>
+&nbsp;
+<b class="nc">&nbsp;        User savedUser = userRepository.save(user);</b>
+<b class="nc">&nbsp;        return userDtoMapper.apply(savedUser);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public UserDto updateUser(Long id, UserDto userDto) {
+<b class="nc">&nbsp;        User user = userRepository.findById(id)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;User&quot;, id));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!user.getUsername().equals(userDto.username()) &amp;&amp;</b>
+<b class="nc">&nbsp;                userRepository.existsByUsername(userDto.username())) {</b>
+<b class="nc">&nbsp;            throw new ResourceAlreadyExistsException(&quot;User&quot;, &quot;username&quot;, userDto.username());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (userDto.email() != null &amp;&amp; !userDto.email().equals(user.getEmail()) &amp;&amp;</b>
+<b class="nc">&nbsp;                userRepository.existsByEmail(userDto.email())) {</b>
+<b class="nc">&nbsp;            throw new ResourceAlreadyExistsException(&quot;User&quot;, &quot;email&quot;, userDto.email());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        user.setUsername(userDto.username());</b>
+<b class="nc">&nbsp;        user.setEmail(userDto.email());</b>
+<b class="nc">&nbsp;        user.setActive(userDto.active());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (userDto.roles() != null &amp;&amp; !userDto.roles().isEmpty()) {</b>
+<b class="nc">&nbsp;            Set&lt;Role&gt; roles = roleService.getRolesByNames(userDto.roles());</b>
+<b class="nc">&nbsp;            user.setRoles(roles);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        User savedUser = userRepository.save(user);</b>
+<b class="nc">&nbsp;        return userDtoMapper.apply(savedUser);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void changePassword(Long id, String currentPassword, String newPassword) {
+<b class="nc">&nbsp;        User user = userRepository.findById(id)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;User&quot;, id));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {</b>
+<b class="nc">&nbsp;            throw new ValidationException(&quot;Current password is incorrect&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        user.setPassword(passwordEncoder.encode(newPassword));</b>
+<b class="nc">&nbsp;        userRepository.save(user);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String generateRandomPassword() {
+<b class="nc">&nbsp;        String chars = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&amp;*&quot;;</b>
+<b class="nc">&nbsp;        StringBuilder sb = new StringBuilder();</b>
+<b class="nc">&nbsp;        Random random = new Random();</b>
+&nbsp;
+<b class="nc">&nbsp;        for (int i = 0; i &lt; 10; i++) {</b>
+<b class="nc">&nbsp;            int index = random.nextInt(chars.length());</b>
+<b class="nc">&nbsp;            sb.append(chars.charAt(index));</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return sb.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Override
+&nbsp;    public String resetPassword(Long id) {
+<b class="nc">&nbsp;        User user = userRepository.findById(id)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;User &quot;, id));</b>
+&nbsp;
+<b class="nc">&nbsp;        String tempPassword = generateRandomPassword();</b>
+<b class="nc">&nbsp;        user.setPassword(passwordEncoder.encode(tempPassword));</b>
+&nbsp;
+<b class="nc">&nbsp;        userRepository.save(user);</b>
+<b class="nc">&nbsp;        return tempPassword;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public UserDto updateUserRoles(Long id, Set&lt;String&gt; roleNames) {
+<b class="nc">&nbsp;        User user = userRepository.findById(id)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;User &quot;, id));</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;Role&gt; roles = roleService.getRolesByNames(roleNames);</b>
+<b class="nc">&nbsp;        user.setRoles(roles);</b>
+<b class="nc">&nbsp;        User savedUser = userRepository.save(user);</b>
+<b class="nc">&nbsp;        return userDtoMapper.apply(savedUser);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public void deleteUser(Long id) {
+<b class="nc">&nbsp;        if (!userRepository.existsById(id)) {</b>
+<b class="nc">&nbsp;            throw new EntityNotFoundException(&quot;User &quot;, id);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        userRepository.deleteById(id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    public UserDto setUserActiveStatus(Long id, boolean active) {
+<b class="nc">&nbsp;        User user = userRepository.findById(id)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;User &quot;, id));</b>
+&nbsp;
+<b class="nc">&nbsp;        user.setActive(active);</b>
+<b class="nc">&nbsp;        User savedUser = userRepository.save(user);</b>
+<b class="nc">&nbsp;        return userDtoMapper.apply(savedUser);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(readOnly = true)
+&nbsp;    public UserDto createUserWithPassword(UserDto userDto, String rawPassword) {
+&nbsp;
+<b class="nc">&nbsp;        if (userRepository.existsByUsername(userDto.username())) {</b>
+<b class="nc">&nbsp;            throw new ResourceAlreadyExistsException(&quot;User&quot;, &quot;username&quot;, userDto.username());</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (userDto.email() != null &amp;&amp; userRepository.existsByEmail(userDto.email())) {</b>
+<b class="nc">&nbsp;            throw new ResourceAlreadyExistsException(&quot;User&quot;, &quot;email&quot;, userDto.email());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        User user = new User();</b>
+<b class="nc">&nbsp;        user.setUsername(userDto.username());</b>
+<b class="nc">&nbsp;        user.setPassword(passwordEncoder.encode(rawPassword));</b>
+<b class="nc">&nbsp;        user.setEmail(userDto.email());</b>
+<b class="nc">&nbsp;        user.setActive(userDto.active());</b>
+&nbsp;
+<b class="nc">&nbsp;        if (userDto.roles() != null &amp;&amp; !userDto.roles().isEmpty()) {</b>
+<b class="nc">&nbsp;            Set&lt;Role&gt; roles = roleService.getRolesByNames(userDto.roles());</b>
+<b class="nc">&nbsp;            user.setRoles(roles);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        User savedUser = userRepository.save(user);</b>
+<b class="nc">&nbsp;        log.debug(&quot;Created new user: {}&quot;, savedUser.getUsername());</b>
+&nbsp;
+<b class="nc">&nbsp;        return userDtoMapper.apply(savedUser);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-18 14:51</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > InvoiceService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">dev.robgro.timesheet.service</a>
+</div>
+
+<h1>Coverage Summary for Class: InvoiceService (dev.robgro.timesheet.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">InvoiceService</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package dev.robgro.timesheet.service;
+&nbsp;
+&nbsp;import dev.robgro.timesheet.model.dto.*;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;public interface InvoiceService {
+&nbsp;
+&nbsp;    List&lt;InvoiceDto&gt; getAllInvoices();
+&nbsp;
+&nbsp;    List&lt;InvoiceDto&gt; getAllInvoicesOrderByDateDesc();
+&nbsp;
+&nbsp;    List&lt;InvoiceDto&gt; getInvoicesByDateRange(LocalDate startDate, LocalDate endDate);
+&nbsp;
+&nbsp;    InvoiceDto getInvoiceById(long id);
+&nbsp;
+&nbsp;    Optional&lt;InvoiceDto&gt; findByInvoiceNumber(String invoiceNumber);
+&nbsp;
+&nbsp;    List&lt;InvoiceDto&gt; searchAndSortInvoices(Long clientId, Integer year, Integer month, String sortBy, String sortDir);
+&nbsp;
+&nbsp;    List&lt;InvoiceDto&gt; getMonthlyInvoices(Long clientId, int year, int month);
+&nbsp;
+&nbsp;    List&lt;InvoiceDto&gt; getYearlyInvoices(Long clientId, int year);
+&nbsp;
+&nbsp;    byte[] getInvoicePdfContent(Long invoiceId);
+&nbsp;
+&nbsp;    void savePdfAndSendInvoice(Long id);
+&nbsp;
+&nbsp;    List&lt;InvoiceDto&gt; searchInvoices(Long clientId, Integer year, Integer month);
+&nbsp;
+&nbsp;    InvoiceDto createAndRedirectInvoice(CreateInvoiceRequest request);
+&nbsp;
+&nbsp;    InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request);
+&nbsp;
+&nbsp;    void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient);
+&nbsp;
+&nbsp;    Page&lt;InvoiceDto&gt; getAllInvoicesPageable(Long clientId, Integer year, Integer month, Pageable pageable);
+&nbsp;
+&nbsp;    Page&lt;InvoiceDto&gt; searchInvoices(DateRangeRequest dateRange, Long clientId, Pageable pageable);
+&nbsp;
+&nbsp;    InvoiceReportData generateReport(DateRangeRequest dateRange, Long clientId);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-04-18 14:51</div>
+</div>
+</body>
+</html>
