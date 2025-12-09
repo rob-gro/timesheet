@@ -5,6 +5,7 @@ import java.time.LocalDate;
 public record UpdateTimesheetRequest(
         Long clientId,
         LocalDate serviceDate,
-        double duration
+        double duration,
+        Boolean isPaidAlready
 ) {
 }

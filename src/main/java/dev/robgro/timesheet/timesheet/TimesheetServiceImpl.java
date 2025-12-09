@@ -64,7 +64,7 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     @Override
     @Transactional
-    public TimesheetDto createTimesheet(Long clientId, LocalDate date, double duration) {
+    public TimesheetDto createTimesheet(Long clientId, LocalDate date, double duration, Boolean isPaidAlready) {
         Client client = clientRepository.getReferenceById(clientId);
 
         Timesheet timesheet = new Timesheet();
@@ -73,6 +73,11 @@ public class TimesheetServiceImpl implements TimesheetService {
         timesheet.setDuration(duration);
         timesheet.setHourlyRate(client.getHourlyRate());
         timesheet.setInvoiced(false);
+
+        if (Boolean.TRUE.equals(isPaidAlready)) {
+            timesheet.setPaymentDate(date);
+        }
+
         return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));
     }
 
@@ -188,7 +193,7 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     @Override
     @Transactional
-    public TimesheetDto updateTimesheet(Long id, Long clientId, LocalDate date, double duration) {
+    public TimesheetDto updateTimesheet(Long id, Long clientId, LocalDate date, double duration, Boolean isPaidAlready) {
         Timesheet timesheet = getTimesheetOrThrow(id);
 
         if (!timesheet.getClient().getId().equals(clientId)) {
@@ -199,6 +204,15 @@ public class TimesheetServiceImpl implements TimesheetService {
 
         timesheet.setServiceDate(date);
         timesheet.setDuration(duration);
+
+        if (isPaidAlready != null) {
+            if (Boolean.TRUE.equals(isPaidAlready)) {
+                timesheet.setPaymentDate(date);
+            } else {
+                timesheet.setPaymentDate(null);
+            }
+        }
+
         return timesheetDtoMapper.apply(timesheetRepository.save(timesheet));
     }
 

@@ -75,7 +75,8 @@ public class TimesheetViewController {
         timesheetService.createTimesheet(
                 timesheet.clientId(),
                 timesheet.serviceDate(),
-                timesheet.duration());
+                timesheet.duration(),
+                null);
 
         redirectAttributes.addFlashAttribute("success", true);
         return "redirect:/timesheets/form";
@@ -113,7 +114,8 @@ public class TimesheetViewController {
                 id,
                 timesheet.clientId(),
                 timesheet.serviceDate(),
-                timesheet.duration());
+                timesheet.duration(),
+                null);
 
         redirectAttributes.addFlashAttribute("success", "Timesheet updated successfully");
         return "redirect:/timesheets/list";

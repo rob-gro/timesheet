@@ -31,7 +31,8 @@ public class TimesheetController {
         TimesheetDto timesheet = timesheetService.createTimesheet(
                 request.clientId(),
                 request.serviceDate(),
-                request.duration());
+                request.duration(),
+                request.isPaidAlready());
         return ResponseEntity.status(HttpStatus.CREATED).body(timesheet);
     }
 
@@ -56,7 +57,8 @@ public class TimesheetController {
                 id,
                 request.clientId(),
                 request.serviceDate(),
-                request.duration());
+                request.duration(),
+                request.isPaidAlready());
         return ResponseEntity.status(HttpStatus.OK).body(timesheet);
     }
 

@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TimesheetService {
-    TimesheetDto createTimesheet(Long clientId, LocalDate serviceDate, double duration);
+    TimesheetDto createTimesheet(Long clientId, LocalDate serviceDate, double duration, Boolean isPaidAlready);
 
     List<TimesheetDto> getAllTimesheets();
 
@@ -25,7 +25,7 @@ public interface TimesheetService {
 
     List<TimesheetDto> searchAndSortTimesheets(Long clientId, String sortBy, String sortDir);
 
-    TimesheetDto updateTimesheet(Long id, Long clientId, LocalDate serviceDate, double duration);
+    TimesheetDto updateTimesheet(Long id, Long clientId, LocalDate serviceDate, double duration, Boolean isPaidAlready);
 
     void deleteTimesheet(Long id);
 

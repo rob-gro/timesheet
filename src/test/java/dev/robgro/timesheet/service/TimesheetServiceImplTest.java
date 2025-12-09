@@ -132,7 +132,7 @@ class TimesheetServiceImplTest {
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(dto);
 
         // when
-        TimesheetDto result = timesheetService.createTimesheet(clientId, serviceDate, duration);
+        TimesheetDto result = timesheetService.createTimesheet(clientId, serviceDate, duration, null);
 
         // then
         assertThat(result).isNotNull();
@@ -162,7 +162,7 @@ class TimesheetServiceImplTest {
                 new TimesheetDto(timesheetId, "Client", date, duration, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
-        TimesheetDto result = timesheetService.updateTimesheet(timesheetId, clientId, date, duration);
+        TimesheetDto result = timesheetService.updateTimesheet(timesheetId, clientId, date, duration, null);
 
         // then
         assertThat(result.id()).isEqualTo(timesheetId);
@@ -191,7 +191,7 @@ class TimesheetServiceImplTest {
         when(timesheetDtoMapper.apply(timesheet)).thenReturn(
                 new TimesheetDto(timesheetId, "Client", date, duration, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
-        TimesheetDto result = timesheetService.updateTimesheet(timesheetId, clientId, date, duration);
+        TimesheetDto result = timesheetService.updateTimesheet(timesheetId, clientId, date, duration, null);
 
         assertThat(result.id()).isEqualTo(timesheetId);
         verify(clientRepository, never()).getReferenceById(anyLong());
@@ -224,7 +224,7 @@ class TimesheetServiceImplTest {
                 new TimesheetDto(timesheetId, "Client", date, duration, false, newClientId, 50.0, null, null, BigDecimal.valueOf(100.0)));
 
         // when
-        TimesheetDto result = timesheetService.updateTimesheet(timesheetId, newClientId, date, duration);
+        TimesheetDto result = timesheetService.updateTimesheet(timesheetId, newClientId, date, duration, null);
 
         // then
         assertThat(result.id()).isEqualTo(timesheetId);
