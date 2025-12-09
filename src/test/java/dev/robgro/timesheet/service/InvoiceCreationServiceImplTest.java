@@ -290,8 +290,8 @@ class  InvoiceCreationServiceImplTest {
 
         ClientDto clientDto = new ClientDto(clientId, "Test Client", 50.0, 123, "Address", "City", "12345", "contact@test.com", true);
 
-        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, false, clientId, 50.0, null, null);
-        TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, false, clientId, 50.0, null, null);
+        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
+        TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(150.0));
 
         String invoiceNumber = "001-01-2023";
 
@@ -348,8 +348,8 @@ class  InvoiceCreationServiceImplTest {
 
         ClientDto clientDto = new ClientDto(clientId, "Test Client", 50.0, 123, "Address", "City", "12345", "contact@test.com", true);
 
-        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, true, clientId, 50.0, null, null);
-        TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, true, clientId, 50.0, null, null);
+        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, true, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
+        TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, true, clientId, 50.0, null, null, BigDecimal.valueOf(150.0));
 
         when(clientService.getClientById(clientId)).thenReturn(clientDto);
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
@@ -373,8 +373,8 @@ class  InvoiceCreationServiceImplTest {
 
         ClientDto clientDto = new ClientDto(clientId, "Test Client", 50.0, 123, "Address", "City", "12345", "contact@test.com", true);
 
-        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, false, clientId, 50.0, null, null);
-        TimesheetDto timesheet2 = new TimesheetDto(2L, "Other Client", LocalDate.now().minusDays(2), 3.0, false, 999L, 50.0, null, null); // Different client
+        TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
+        TimesheetDto timesheet2 = new TimesheetDto(2L, "Other Client", LocalDate.now().minusDays(2), 3.0, false, 999L, 50.0, null, null, BigDecimal.valueOf(150.0)); // Different client
 
         when(clientService.getClientById(clientId)).thenReturn(clientDto);
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
