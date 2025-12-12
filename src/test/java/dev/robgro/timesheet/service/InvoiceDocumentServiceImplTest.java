@@ -163,15 +163,7 @@ class InvoiceDocumentServiceImplTest {
         when(ftpService.getInvoicesDirectory()).thenReturn(ftpDirectory);
         doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), eq(seller), any(ByteArrayOutputStream.class));
         doNothing().when(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
-        doNothing().when(emailMessageService).sendInvoiceEmailWithBytes(
-                eq(clientEmail),
-                eq(COPY_EMAIL),
-                eq("John"),
-                eq(invoiceNumber),
-                eq("January"),
-                eq(invoiceNumber + ".pdf"),
-                any(byte[].class)
-        );
+        doNothing().when(emailMessageService).sendInvoiceEmail(any());
 
         // when
         invoiceDocumentService.savePdfAndSendInvoice(invoiceId);
@@ -181,15 +173,7 @@ class InvoiceDocumentServiceImplTest {
         verify(pdfGenerator).generateInvoicePdf(eq(invoice), eq(seller), any(ByteArrayOutputStream.class));
         verify(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         verify(ftpService).getInvoicesDirectory();
-        verify(emailMessageService).sendInvoiceEmailWithBytes(
-                eq(clientEmail),
-                eq(COPY_EMAIL),
-                eq("John"),
-                eq(invoiceNumber),
-                eq("January"),
-                eq(invoiceNumber + ".pdf"),
-                any(byte[].class)
-        );
+        verify(emailMessageService).sendInvoiceEmail(any());
 
         verify(invoiceRepository).save(argThat(inv -> {
             return inv.getId().equals(invoiceId) &&
@@ -241,9 +225,7 @@ class InvoiceDocumentServiceImplTest {
         doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), eq(seller), any(ByteArrayOutputStream.class));
         doNothing().when(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         doThrow(new MessagingException("Email sending failed"))
-                .when(emailMessageService).sendInvoiceEmailWithBytes(
-                        anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), any(byte[].class)
-                );
+                .when(emailMessageService).sendInvoiceEmail(any());
 
         // when/then
         assertThatThrownBy(() -> invoiceDocumentService.savePdfAndSendInvoice(invoiceId))
@@ -254,15 +236,7 @@ class InvoiceDocumentServiceImplTest {
         verify(pdfGenerator).generateInvoicePdf(eq(invoice), eq(seller), any(ByteArrayOutputStream.class));
         verify(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         verify(ftpService).getInvoicesDirectory();
-        verify(emailMessageService).sendInvoiceEmailWithBytes(
-                eq(clientEmail),
-                eq(COPY_EMAIL),
-                eq("John"),
-                eq(invoiceNumber),
-                eq("January"),
-                eq(invoiceNumber + ".pdf"),
-                any(byte[].class)
-        );
+        verify(emailMessageService).sendInvoiceEmail(any());
         verify(invoiceRepository, never()).save(any(Invoice.class));
     }
 
@@ -297,15 +271,13 @@ class InvoiceDocumentServiceImplTest {
         invoiceDocumentService.savePdfAndSendInvoice(invoiceId);
 
         // then
-        verify(emailMessageService).sendInvoiceEmailWithBytes(
-                eq(clientEmail),
-                eq(COPY_EMAIL),
-                eq("CompanyName"), // Should use full company name when no space exists
-                eq(invoiceNumber),
-                eq("January"),
-                eq(invoiceNumber + ".pdf"),
-                any(byte[].class)
-        );
+        verify(emailMessageService).sendInvoiceEmail(argThat(request ->
+                request.recipientEmail().equals(clientEmail) &&
+                request.ccEmail().equals(COPY_EMAIL) &&
+                request.firstName().equals("CompanyName") && // Should use full company name when no space exists
+                request.invoiceNumber().equals(invoiceNumber) &&
+                request.month().equals("January")
+        ));
 
         verify(invoiceRepository).save(any(Invoice.class));
     }

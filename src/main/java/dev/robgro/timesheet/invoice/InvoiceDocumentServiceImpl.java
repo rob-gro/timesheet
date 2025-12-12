@@ -66,15 +66,19 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
             String preMonth = invoice.getIssueDate().getMonth().toString();
             String month = preMonth.charAt(0) + preMonth.substring(1).toLowerCase();
 
-            emailMessageService.sendInvoiceEmailWithBytes(
-                    client.getEmail(),
-                    COPY_EMAIL,
-                    firstName,
-                    invoiceNumber,
-                    month,
-                    fileName,
-                    pdfContent
-            );
+            InvoiceEmailRequest emailRequest = InvoiceEmailRequest.builder()
+                    .recipientEmail(client.getEmail())
+                    .ccEmail(COPY_EMAIL)
+                    .firstName(firstName)
+                    .invoiceNumber(invoiceNumber)
+                    .month(month)
+                    .fileName(fileName)
+                    .attachment(pdfContent)
+                    .numberOfVisits(invoice.getItemsList().size())
+                    .totalAmount(invoice.getTotalAmount())
+                    .build();
+
+            emailMessageService.sendInvoiceEmail(emailRequest);
 
             invoice.setEmailSentAt(LocalDateTime.now());
             invoiceRepository.save(invoice);

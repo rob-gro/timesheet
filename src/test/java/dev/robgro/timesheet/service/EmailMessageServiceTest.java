@@ -1,6 +1,7 @@
 package dev.robgro.timesheet.service;
 
 import dev.robgro.timesheet.invoice.EmailMessageService;
+import dev.robgro.timesheet.invoice.InvoiceEmailRequest;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -29,13 +32,7 @@ class EmailMessageServiceTest {
     private EmailMessageService emailMessageService;
 
     // Test data
-    private final String recipientEmail = "test@example.com";
-    private final String ccEmail = "cc@example.com";
-    private final String firstName = "John";
-    private final String invoiceNumber = "001-01-2025";
-    private final String month = "January";
-    private final String fileName = "invoice.pdf";
-    private final byte[] attachment = "test content".getBytes();
+    private InvoiceEmailRequest testRequest;
 
     @Captor
     private ArgumentCaptor<ByteArrayResource> resourceCaptor;
@@ -44,16 +41,27 @@ class EmailMessageServiceTest {
     void setUp() {
         // given
         when(emailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        testRequest = InvoiceEmailRequest.builder()
+                .recipientEmail("test@example.com")
+                .ccEmail("cc@example.com")
+                .firstName("John")
+                .invoiceNumber("001-01-2025")
+                .month("January")
+                .fileName("invoice.pdf")
+                .attachment("test content".getBytes())
+                .numberOfVisits(12)
+                .totalAmount(new BigDecimal("450.00"))
+                .build();
     }
 
     @Test
-    void sendInvoiceEmailWithBytes_ShouldSendEmailSuccessfully() throws MessagingException {
+    void sendInvoiceEmail_ShouldSendEmailSuccessfully() throws MessagingException {
         // given
         // Basic setup done in setUp()
 
         // when
-        emailMessageService.sendInvoiceEmailWithBytes(recipientEmail, ccEmail, firstName,
-                invoiceNumber, month, fileName, attachment);
+        emailMessageService.sendInvoiceEmail(testRequest);
 
         // then
         verify(emailSender).createMimeMessage();
@@ -61,7 +69,7 @@ class EmailMessageServiceTest {
     }
 
     @Test
-    void sendInvoiceEmailWithBytes_ShouldSetCorrectMessageParameters() throws MessagingException {
+    void sendInvoiceEmail_ShouldSetCorrectMessageParameters() throws MessagingException {
         // given
         MockedConstruction<MimeMessageHelper> helperMockedConstruction = mockConstruction(
                 MimeMessageHelper.class,
@@ -71,26 +79,25 @@ class EmailMessageServiceTest {
 
         try {
             // when
-            emailMessageService.sendInvoiceEmailWithBytes(recipientEmail, ccEmail, firstName,
-                    invoiceNumber, month, fileName, attachment);
+            emailMessageService.sendInvoiceEmail(testRequest);
 
             // then
             assertEquals(1, helperMockedConstruction.constructed().size());
 
             MimeMessageHelper constructedHelper = helperMockedConstruction.constructed().get(0);
 
-            verify(constructedHelper).setTo(recipientEmail);
-            verify(constructedHelper).setCc(ccEmail);
-            verify(constructedHelper).setSubject("Invoice " + invoiceNumber + " from Aga");
+            verify(constructedHelper).setTo(testRequest.recipientEmail());
+            verify(constructedHelper).setCc(testRequest.ccEmail());
+            verify(constructedHelper).setSubject("Invoice " + testRequest.invoiceNumber() + " from Aga");
 
             verify(constructedHelper).setText(argThat(content ->
-                    content.contains("Hello " + firstName) &&
-                            content.contains(invoiceNumber) &&
-                            content.contains(month) &&
+                    content.contains("Dear " + testRequest.firstName()) &&
+                            content.contains(testRequest.invoiceNumber()) &&
+                            content.contains(testRequest.month()) &&
                             content.contains(EmailMessageService.CONTACT_EMAIL)
             ), eq(true));
 
-            verify(constructedHelper).addAttachment(eq(fileName), any(ByteArrayResource.class));
+            verify(constructedHelper).addAttachment(eq(testRequest.fileName()), any(ByteArrayResource.class));
             verify(emailSender).send(mimeMessage);
         } finally {
             helperMockedConstruction.close();
@@ -98,30 +105,29 @@ class EmailMessageServiceTest {
     }
 
     @Test
-    void sendInvoiceEmailWithBytes_ShouldAddCorrectAttachment() throws MessagingException {
+    void sendInvoiceEmail_ShouldAddCorrectAttachment() throws MessagingException {
         // given
         MockedConstruction<MimeMessageHelper> helperMockedConstruction = mockConstruction(
                 MimeMessageHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).addAttachment(eq(fileName), resourceCaptor.capture());
+                    doNothing().when(mock).addAttachment(eq(testRequest.fileName()), resourceCaptor.capture());
                 }
         );
 
         try {
             // when
-            emailMessageService.sendInvoiceEmailWithBytes(recipientEmail, ccEmail, firstName,
-                    invoiceNumber, month, fileName, attachment);
+            emailMessageService.sendInvoiceEmail(testRequest);
 
             // then
             ByteArrayResource capturedResource = resourceCaptor.getValue();
-            assertArrayEquals(attachment, capturedResource.getByteArray());
+            assertArrayEquals(testRequest.attachment(), capturedResource.getByteArray());
         } finally {
             helperMockedConstruction.close();
         }
     }
 
     @Test
-    void sendInvoiceEmailWithBytes_ShouldThrowExceptionWhenJavaMailSenderFails() throws MessagingException {
+    void sendInvoiceEmail_ShouldThrowExceptionWhenJavaMailSenderFails() throws MessagingException {
         // given
         doAnswer(invocation -> {
             throw new MessagingException("Failed to send email");
@@ -129,8 +135,7 @@ class EmailMessageServiceTest {
 
         // when & then
         assertThrows(MessagingException.class, () ->
-                emailMessageService.sendInvoiceEmailWithBytes(recipientEmail, ccEmail, firstName,
-                        invoiceNumber, month, fileName, attachment)
+                emailMessageService.sendInvoiceEmail(testRequest)
         );
 
         verify(emailSender).createMimeMessage();
