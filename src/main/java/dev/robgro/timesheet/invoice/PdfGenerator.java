@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.awt.*;
 import java.io.OutputStream;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -169,7 +170,7 @@ public class PdfGenerator {
                 durationCell.setBorderWidthBottom(1f);
                 durationCell.setBorderColor(new Color(241, 245, 249));
 
-                PdfPCell rateCell = new PdfPCell(new Phrase(String.format("%.2f", item.getHourlyRate()), normalFont));
+                PdfPCell rateCell = new PdfPCell(new Phrase(String.format(Locale.UK, "%.2f", item.getHourlyRate()), normalFont));
                 rateCell.setBorder(Rectangle.NO_BORDER);
                 rateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 rateCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
