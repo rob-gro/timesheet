@@ -324,20 +324,18 @@ public class InvoiceServiceImpl implements InvoiceService {
         log.info("Found invoice: {}, associated timesheets: {}",
                 invoice.getInvoiceNumber(), invoice.getTimesheets().size());
 
-        List<Timesheet> timesheetsToProcess = new ArrayList<>(invoice.getTimesheets());
-        for (Timesheet timesheet : timesheetsToProcess) {
-            log.info("Processing timesheet ID: {}", timesheet.getId());
-            timesheet.setInvoice(null);
-            timesheet.setInvoiced(false);
-            timesheet.setInvoiceNumber(null);
-
-            if (deleteTimesheets) {
-                log.info("Deleting timesheet ID: {}", timesheet.getId());
-                timesheetRepository.delete(timesheet);
-            } else {
-                log.info("Preserving timesheet ID: {}", timesheet.getId());
-                timesheetRepository.save(timesheet);
-            }
+        if (deleteTimesheets) {
+            // Delete all timesheets associated with invoice
+            log.info("Deleting {} timesheets", invoice.getTimesheets().size());
+            List<Timesheet> timesheetsToDelete = new ArrayList<>(invoice.getTimesheets());
+            timesheetsToDelete.forEach(ts -> {
+                removeTimesheetFromInvoice(invoice, ts);
+                timesheetRepository.delete(ts);
+            });
+        } else {
+            // Detach timesheets but keep them in DB
+            log.info("Detaching {} timesheets", invoice.getTimesheets().size());
+            detachAllTimesheets(invoice);
         }
 
         log.info("Deleting invoice items");
@@ -347,6 +345,26 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoiceRepository.delete(invoice);
 
         log.info("Successfully deleted invoice ID: {}", id);
+    }
+
+    /**
+     * Removes a timesheet from invoice and clears bidirectional relationship.
+     * Helper method for managing invoice-timesheet relationship.
+     */
+    private void removeTimesheetFromInvoice(Invoice invoice, Timesheet timesheet) {
+        invoice.getTimesheets().removeIf(ts -> ts == timesheet);
+        timesheet.setInvoice(null);
+        timesheet.setInvoiced(false);
+        timesheet.setInvoiceNumber(null);
+    }
+
+    /**
+     * Detaches all timesheets from invoice.
+     * Used when deleting invoice but preserving timesheets.
+     */
+    private void detachAllTimesheets(Invoice invoice) {
+        new ArrayList<>(invoice.getTimesheets())
+                .forEach(ts -> removeTimesheetFromInvoice(invoice, ts));
     }
 
     @Override
