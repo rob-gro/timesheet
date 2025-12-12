@@ -338,8 +338,8 @@ public class InvoiceServiceImpl implements InvoiceService {
             detachAllTimesheets(invoice);
         }
 
-        log.info("Deleting invoice items");
-        jdbcTemplate.update("DELETE FROM invoice_items WHERE invoice_id = ?", id);
+        log.info("Deleting invoice items using JPA repository");
+        invoiceRepository.deleteInvoiceItemsByInvoiceId(id);
 
         log.info("Deleting invoice");
         invoiceRepository.delete(invoice);
