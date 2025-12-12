@@ -329,6 +329,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             log.info("Processing timesheet ID: {}", timesheet.getId());
             timesheet.setInvoice(null);
             timesheet.setInvoiced(false);
+            timesheet.setInvoiceNumber(null);
 
             if (deleteTimesheets) {
                 log.info("Deleting timesheet ID: {}", timesheet.getId());
