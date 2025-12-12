@@ -33,3 +33,14 @@ build/
 .vscode/
 /secret.env
 /src/main/resources/clients-emails.txt
+
+### Coverage Reports ###
+htmlReport/
+
+### Email Previews ###
+client_email_FINAL.html
+client_email_designs.html
+email_preview.html
+
+### Docs ###
+docs/
