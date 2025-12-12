@@ -33,6 +33,3 @@ build/
 .vscode/
 /secret.env
 /src/main/resources/clients-emails.txt
-
-### Claude Code ###
-.claude/
