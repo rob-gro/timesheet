@@ -61,3 +61,12 @@ Here are some screenshots of the application:
 
 11. **Password reset: Generating a one-time password for the user. After logging in with this password, they must change it to their own new/permanent password**:
     ![Password Reset](screenshots/10.png)
+
+12. **Admin notification: Monthly invoicing summary email with success/failure statistics**:
+    ![Admin Summary Email](screenshots/11.png)
+
+13. **Admin notification: Warning email about active clients without timesheets**:
+    ![Admin Warning Email](screenshots/13.png)
+
+14. **Admin notification: Error alert email when invoice generation fails**:
+    ![Admin Error Email](screenshots/12.png)
