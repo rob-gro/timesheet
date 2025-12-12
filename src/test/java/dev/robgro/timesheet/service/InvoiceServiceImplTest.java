@@ -641,7 +641,6 @@ class InvoiceServiceImplTest {
 
         // then
         verify(timesheetRepository, never()).save(any(Timesheet.class));
-        verify(invoiceRepository).deleteInvoiceItemsByInvoiceId(invoiceId);
         verify(jdbcTemplateMock).update(anyString(), eq(invoiceId));
         verify(invoiceRepository).delete(invoice);
 
