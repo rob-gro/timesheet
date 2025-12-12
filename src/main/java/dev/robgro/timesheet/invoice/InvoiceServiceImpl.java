@@ -336,6 +336,10 @@ public class InvoiceServiceImpl implements InvoiceService {
             // Detach timesheets but keep them in DB
             log.info("Detaching {} timesheets", invoice.getTimesheets().size());
             detachAllTimesheets(invoice);
+
+            // Force immediate database synchronization to avoid race condition
+            log.debug("Flushing detached timesheets to database");
+            timesheetRepository.flush();
         }
 
         log.info("Deleting invoice items using JPA repository");
