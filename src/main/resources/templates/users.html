@@ -122,18 +122,47 @@
 
                         <div class="form-row">
                             <label>Roles:</label>
-                            <div class="roles-container">
-                                <div class="role-checkbox">
-                                    <input type="checkbox" id="roleAdmin" value="ROLE_ADMIN">
-                                    <label for="roleAdmin">Admin</label>
+                            <div class="roles-list">
+                                <div class="role-item">
+                                    <div class="role-info">
+                                        <div class="role-emoji">👑</div>
+                                        <div class="role-details">
+                                            <div class="role-title">Administrator</div>
+                                            <div class="role-desc">Full system access and management</div>
+                                        </div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="roleAdmin" value="ROLE_ADMIN">
+                                        <span class="toggle-slider"></span>
+                                    </label>
                                 </div>
-                                <div class="role-checkbox">
-                                    <input type="checkbox" id="roleUser" value="ROLE_USER">
-                                    <label for="roleUser">User</label>
+
+                                <div class="role-item">
+                                    <div class="role-info">
+                                        <div class="role-emoji">👤</div>
+                                        <div class="role-details">
+                                            <div class="role-title">User</div>
+                                            <div class="role-desc">Standard access to core features</div>
+                                        </div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="roleUser" value="ROLE_USER">
+                                        <span class="toggle-slider"></span>
+                                    </label>
                                 </div>
-                                <div class="role-checkbox">
-                                    <input type="checkbox" id="roleGuest" value="ROLE_GUEST">
-                                    <label for="roleGuest">Guest</label>
+
+                                <div class="role-item">
+                                    <div class="role-info">
+                                        <div class="role-emoji">👁️</div>
+                                        <div class="role-details">
+                                            <div class="role-title">Guest</div>
+                                            <div class="role-desc">Read-only access to information</div>
+                                        </div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="roleGuest" value="ROLE_GUEST">
+                                        <span class="toggle-slider"></span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
