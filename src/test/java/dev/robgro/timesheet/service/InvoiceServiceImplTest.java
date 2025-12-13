@@ -587,9 +587,6 @@ class InvoiceServiceImplTest {
     @Test
     void shouldDeleteInvoice() {
         // given
-        JdbcTemplate jdbcTemplateMock = mock(JdbcTemplate.class);
-        ReflectionTestUtils.setField(invoiceService, "jdbcTemplate", jdbcTemplateMock);
-
         Long invoiceId = 1L;
         Invoice invoice = new Invoice();
         invoice.setId(invoiceId);
@@ -602,26 +599,19 @@ class InvoiceServiceImplTest {
         invoice.getTimesheets().add(timesheet);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
-        when(jdbcTemplateMock.update(anyString(), eq(invoiceId))).thenReturn(1);
 
         // when
         invoiceService.deleteInvoice(invoiceId, false, false);
 
         // then
-        verify(timesheetRepository).save(timesheet);
-        verify(jdbcTemplateMock).update(anyString(), eq(invoiceId));
+        verify(timesheetRepository).flush();
+        verify(invoiceRepository).deleteInvoiceItemsByInvoiceId(invoiceId);
         verify(invoiceRepository).delete(invoice);
-
-        // Clean up to not affect other tests
-        ReflectionTestUtils.setField(invoiceService, "jdbcTemplate", null);
     }
 
     @Test
     void shouldDeleteInvoiceAndTimesheets() {
         // given
-        JdbcTemplate jdbcTemplateMock = mock(JdbcTemplate.class);
-        ReflectionTestUtils.setField(invoiceService, "jdbcTemplate", jdbcTemplateMock);
-
         Long invoiceId = 1L;
         Invoice invoice = new Invoice();
         invoice.setId(invoiceId);
@@ -634,18 +624,14 @@ class InvoiceServiceImplTest {
         invoice.getTimesheets().add(timesheet);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
-        when(jdbcTemplateMock.update(anyString(), eq(invoiceId))).thenReturn(1);
 
         // when
         invoiceService.deleteInvoice(invoiceId, true, false);
 
         // then
-        verify(timesheetRepository, never()).save(any(Timesheet.class));
-        verify(jdbcTemplateMock).update(anyString(), eq(invoiceId));
+        verify(timesheetRepository, never()).flush();
+        verify(invoiceRepository).deleteInvoiceItemsByInvoiceId(invoiceId);
         verify(invoiceRepository).delete(invoice);
-
-        // Clean up
-        ReflectionTestUtils.setField(invoiceService, "jdbcTemplate", null);
     }
 
     // ----- Report Generation -----
