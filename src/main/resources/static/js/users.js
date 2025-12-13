@@ -156,7 +156,7 @@ function showRolesForm(userId) {
 
     document.getElementById('rolesUserId').value = user.id;
     document.getElementById('rolesUsername').textContent = user.username;
-es
+
     document.getElementById('roleAdmin').checked = false;
     document.getElementById('roleUser').checked = false;
     document.getElementById('roleGuest').checked = false;
@@ -172,7 +172,7 @@ es
     document.getElementById('passwordFormSection').style.display = 'none';
     document.getElementById('rolesFormSection').style.display = 'block';
 }
-t
+
 function cancelUserForm() {
     document.getElementById('userListSection').style.display = 'block';
     document.getElementById('userFormSection').style.display = 'none';
