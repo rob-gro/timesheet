@@ -103,7 +103,11 @@ class  InvoiceCreationServiceImplTest {
                 LocalDateTime.now().toString(),
                 List.of(),
                 null,
-                null
+                null,
+                null,
+                0,
+                null,
+                "NOT_SENT"
         );
 
         when(clientRepository.getReferenceById(clientId)).thenReturn(client);
@@ -146,7 +150,7 @@ class  InvoiceCreationServiceImplTest {
 
         InvoiceDto expectedDto = new InvoiceDto(
                 1L, clientId, "Test Client", "001-01-2023", issueDate,
-                BigDecimal.valueOf(250.0), LocalDateTime.now().toString(), List.of(), null, null
+                BigDecimal.valueOf(250.0), LocalDateTime.now().toString(), List.of(), null, null, null, 0, null, "NOT_SENT"
         );
 
         when(clientService.getClientById(clientId)).thenReturn(clientDto);

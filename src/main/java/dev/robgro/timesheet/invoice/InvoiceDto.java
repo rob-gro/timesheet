@@ -15,6 +15,10 @@ public record InvoiceDto(
         String pdfPath,
         List<InvoiceItemDto> itemsList,
         LocalDateTime pdfGeneratedAt,
-        LocalDateTime emailSentAt
+        LocalDateTime emailSentAt,
+        LocalDateTime emailOpenedAt,
+        Integer emailOpenCount,
+        LocalDateTime lastEmailOpenedAt,
+        String emailStatus
 ) {
 }
