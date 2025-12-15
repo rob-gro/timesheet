@@ -26,6 +26,7 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
     private final PdfGenerator pdfGenerator;
     private final EmailMessageService emailMessageService;
     private final InvoiceSeller seller;
+    private final dev.robgro.timesheet.tracking.EmailTrackingService trackingService;
 
     @Override
     @Transactional(readOnly = true)
@@ -60,6 +61,10 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
         invoice.setPdfPath(ftpService.getInvoicesDirectory() + "/" + fileName);
         invoice.setPdfGeneratedAt(LocalDateTime.now());
 
+        // Create tracking token for email open tracking (90-day expiry)
+        String trackingToken = trackingService.createTrackingToken(invoice);
+        log.debug("Created email tracking token: {} for invoice: {}", trackingToken, invoiceId);
+
         try {
             String firstName = client.getClientName().split(" ")[0];
             String invoiceNumber = invoice.getInvoiceNumber();
@@ -76,6 +81,7 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
                     .attachment(pdfContent)
                     .numberOfVisits(invoice.getItemsList().size())
                     .totalAmount(invoice.getTotalAmount())
+                    .trackingToken(trackingToken)  // Add tracking token
                     .build();
 
             emailMessageService.sendInvoiceEmail(emailRequest);

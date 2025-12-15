@@ -28,7 +28,11 @@ public class InvoiceDtoMapper implements Function<Invoice, InvoiceDto> {
                         .map(invoiceItemDtoMapper)
                         .collect(Collectors.toList()),
                 invoice.getPdfGeneratedAt(),
-                invoice.getEmailSentAt()
+                invoice.getEmailSentAt(),
+                invoice.getEmailOpenedAt(),
+                invoice.getEmailOpenCount(),
+                invoice.getLastEmailOpenedAt(),
+                invoice.getEmailStatus()
         );
     }
 }

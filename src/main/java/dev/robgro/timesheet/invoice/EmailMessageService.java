@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,12 +16,18 @@ import java.util.Locale;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailMessageService {
 
     private final JavaMailSender emailSender;
     public static final String CONTACT_EMAIL = "contact@robgro.dev";
     public static final String COPY_EMAIL = "robgrodev@gmail.com";
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    public EmailMessageService(JavaMailSender emailSender) {
+        this.emailSender = emailSender;
+    }
 
     public void sendInvoiceEmail(InvoiceEmailRequest request) throws MessagingException {
         log.info("Preparing to send invoice email to: {}, invoice: {}",
@@ -250,6 +257,7 @@ public class EmailMessageService {
                             <em>Please consider the environment before printing this email.</em>
                         </p>
                     </div>
+                    %s
                 </body>
                 </html>
                 """,
@@ -263,7 +271,8 @@ public class EmailMessageService {
                 java.time.LocalDate.now().toString(),  // Invoice Date
                 request.invoiceNumber(),       // Attachment filename
                 CONTACT_EMAIL,                 // Questions?
-                CONTACT_EMAIL                  // Footer email
+                CONTACT_EMAIL,                 // Footer email
+                buildTrackingPixel(request.trackingToken())  // Tracking pixel
         );
 
         helper.setText(emailContent, true);
@@ -273,5 +282,31 @@ public class EmailMessageService {
         emailSender.send(message);
         log.info("Successfully sent invoice email to: {}, invoice: {}",
                 request.recipientEmail(), request.invoiceNumber());
+    }
+
+    /**
+     * Builds tracking pixel HTML
+     * Returns empty string if tracking token is null (tracking disabled)
+     *
+     * Cache buster parameter (?v=timestamp) helps prevent Gmail image proxy caching
+     */
+    private String buildTrackingPixel(String trackingToken) {
+        if (trackingToken == null || trackingToken.isEmpty()) {
+            log.debug("No tracking token provided, skipping pixel injection");
+            return ""; // Tracking disabled or token not generated
+        }
+
+        // Add cache buster to prevent Gmail proxy caching
+        long cacheBuster = System.currentTimeMillis();
+
+        return String.format(
+                "<!-- Email Tracking Pixel -->" +
+                        "<img src=\"%s/api/track/%s.png?v=%d\" " +
+                        "width=\"1\" height=\"1\" alt=\"\" " +
+                        "style=\"display:none; width:1px; height:1px; opacity:0;\" />",
+                baseUrl,
+                trackingToken,
+                cacheBuster
+        );
     }
 }

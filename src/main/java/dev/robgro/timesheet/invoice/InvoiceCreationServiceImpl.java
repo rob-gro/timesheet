@@ -173,7 +173,11 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
                 null, // no PDF path yet
                 items,
                 null, // no PDF generated timestamp yet
-                null  // no email sent timestamp yet
+                null, // no email sent timestamp yet
+                null, // no email opened timestamp yet
+                0,    // no email open count yet
+                null, // no last email opened timestamp yet
+                "NOT_SENT" // email status
         );
     }
 }

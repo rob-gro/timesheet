@@ -14,6 +14,7 @@ public record InvoiceEmailRequest(
         String fileName,
         byte[] attachment,
         int numberOfVisits,
-        BigDecimal totalAmount
+        BigDecimal totalAmount,
+        String trackingToken  // Tracking pixel token (null if tracking disabled)
 ) {
 }

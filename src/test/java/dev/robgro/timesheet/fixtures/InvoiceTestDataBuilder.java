@@ -121,7 +121,11 @@ public class InvoiceTestDataBuilder {
                     .buildDto())
                 .toList(),
             pdfGeneratedAt,
-            emailSentAt
+            emailSentAt,
+            null,  // emailOpenedAt - not set in tests
+            0,     // emailOpenCount - default 0
+            null,  // lastEmailOpenedAt - not set in tests
+            "NOT_SENT"  // emailStatus - default
         );
     }
 }

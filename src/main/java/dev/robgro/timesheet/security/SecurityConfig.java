@@ -83,6 +83,7 @@ public class SecurityConfig {
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/track/**").permitAll() // Email tracking pixel (public)
 
                         // API endpoints - access levels
                         .requestMatchers("/api/v1/clients/**").hasRole("ADMIN")
