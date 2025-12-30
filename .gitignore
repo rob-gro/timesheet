@@ -45,5 +45,8 @@ email_preview.html
 ### Docs ###
 docs/
 
+### Claude Code internal files ###
+.claude/
+
 ### Large files ###
 Timesheet.jpg
