@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:fragment="styles">
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin: 0;
+                padding: 20px;
+            }
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                overflow: hidden;
+            }
+            .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 28px;
+                font-weight: 600;
+            }
+            .section {
+                padding: 25px 30px;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .section:last-child {
+                border-bottom: none;
+            }
+            .section h2 {
+                margin: 0 0 20px 0;
+                font-size: 18px;
+                color: #333;
+                font-weight: 600;
+            }
+            .highlight {
+                background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            }
+            .info-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .info-table tr {
+                border-bottom: 1px solid #f0f0f0;
+            }
+            .info-table tr:last-child {
+                border-bottom: none;
+            }
+            .info-table td {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+            .info-table td:first-child {
+                font-weight: 600;
+                color: #555;
+                width: 35%;
+            }
+            .info-table td:last-child {
+                color: #333;
+            }
+            .highlight-row td:last-child {
+                font-weight: 700;
+                color: #d63031;
+            }
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+                margin-top: 15px;
+            }
+            .stat-card {
+                background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 8px;
+                text-align: center;
+            }
+            .stat-card .icon {
+                font-size: 32px;
+                margin-bottom: 10px;
+            }
+            .stat-card .value {
+                font-size: 28px;
+                font-weight: 700;
+                margin: 10px 0;
+            }
+            .stat-card .label {
+                font-size: 13px;
+                opacity: 0.9;
+            }
+            .insights ul {
+                margin: 0;
+                padding-left: 20px;
+            }
+            .insights li {
+                margin: 10px 0;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+            .footer {
+                background: #f8f9fa;
+                padding: 20px;
+                text-align: center;
+                color: #666;
+                font-size: 13px;
+            }
+            .footer a {
+                color: #667eea;
+                text-decoration: none;
+            }
+            @media (max-width: 600px) {
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+        </style>
+    </th:block>
+</head>
+</html>
