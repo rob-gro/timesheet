@@ -65,7 +65,7 @@ public class InvoicingTaskServiceImpl implements InvoicingTaskService {
         sendAdminNotifications(summary, emptyClients);
 
         log.info("=== COMPLETED INVOICING: {} success, {} failed ===",
-                summary.getSuccessfulInvoices(), summary.getFailedInvoices());
+                summary.successfulInvoices(), summary.failedInvoices());
 
         return summary;
     }

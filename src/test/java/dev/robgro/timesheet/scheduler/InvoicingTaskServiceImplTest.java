@@ -149,7 +149,7 @@ class InvoicingTaskServiceImplTest {
 
             // then
             YearMonth expectedPreviousMonth = YearMonth.now().minusMonths(1);
-            assertThat(summary.getPreviousMonth())
+            assertThat(summary.previousMonth())
                     .as("Summary should contain correct previous month")
                     .isEqualTo(expectedPreviousMonth);
 
@@ -177,9 +177,9 @@ class InvoicingTaskServiceImplTest {
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
 
             // then
-            assertThat(summary.getTotalInvoices()).isEqualTo(1);
-            assertThat(summary.getSuccessfulInvoices()).isEqualTo(1);
-            assertThat(summary.getFailedInvoices()).isEqualTo(0);
+            assertThat(summary.totalInvoices()).isEqualTo(1);
+            assertThat(summary.successfulInvoices()).isEqualTo(1);
+            assertThat(summary.failedInvoices()).isEqualTo(0);
 
             verify(billingService).generateMonthlyInvoices(anyInt(), anyInt());
             verify(invoiceService).savePdfAndSendInvoice(1L);
@@ -200,9 +200,9 @@ class InvoicingTaskServiceImplTest {
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
 
             // then
-            assertThat(summary.getTotalInvoices()).isEqualTo(1);
-            assertThat(summary.getSuccessfulInvoices()).isEqualTo(0);
-            assertThat(summary.getFailedInvoices()).isEqualTo(1);
+            assertThat(summary.totalInvoices()).isEqualTo(1);
+            assertThat(summary.successfulInvoices()).isEqualTo(0);
+            assertThat(summary.failedInvoices()).isEqualTo(1);
 
             verify(notificationService).sendErrorNotification(
                     contains("Invoice Processing Error"),
@@ -223,9 +223,9 @@ class InvoicingTaskServiceImplTest {
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
 
             // then
-            assertThat(summary.getTotalInvoices()).isEqualTo(0);
-            assertThat(summary.getSuccessfulInvoices()).isEqualTo(0);
-            assertThat(summary.getFailedInvoices()).isEqualTo(0);
+            assertThat(summary.totalInvoices()).isEqualTo(0);
+            assertThat(summary.successfulInvoices()).isEqualTo(0);
+            assertThat(summary.failedInvoices()).isEqualTo(0);
         }
     }
 
@@ -262,7 +262,7 @@ class InvoicingTaskServiceImplTest {
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
 
             // then
-            assertThat(summary.getClientsWithoutTimesheets())
+            assertThat(summary.clientsWithoutTimesheets())
                     .hasSize(1)
                     .contains("Empty Client");
 
@@ -290,7 +290,7 @@ class InvoicingTaskServiceImplTest {
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
 
             // then
-            assertThat(summary.getClientsWithoutTimesheets()).isEmpty();
+            assertThat(summary.clientsWithoutTimesheets()).isEmpty();
 
             // Inactive client should not be checked for timesheets
             verify(timesheetService, never()).getMonthlyTimesheets(eq(3L), anyInt(), anyInt());
@@ -368,10 +368,10 @@ class InvoicingTaskServiceImplTest {
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
 
             // then
-            assertThat(summary.getExecutionTime()).isNotNull();
-            assertThat(summary.getPreviousMonth()).isNotNull();
-            assertThat(summary.getTotalInvoices()).isEqualTo(1);
-            assertThat(summary.getProcessingResults()).hasSize(1);
+            assertThat(summary.executionTime()).isNotNull();
+            assertThat(summary.previousMonth()).isNotNull();
+            assertThat(summary.totalInvoices()).isEqualTo(1);
+            assertThat(summary.processingResults()).hasSize(1);
         }
 
         @Test
@@ -387,7 +387,7 @@ class InvoicingTaskServiceImplTest {
 
             // then
             YearMonth expectedPreviousMonth = YearMonth.now().minusMonths(1);
-            assertThat(summary.getPreviousMonth())
+            assertThat(summary.previousMonth())
                     .as("Summary should contain correct previous month")
                     .isEqualTo(expectedPreviousMonth);
         }
