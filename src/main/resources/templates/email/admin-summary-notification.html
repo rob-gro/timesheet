@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <th:block th:replace="~{email/admin-email-styles :: styles}"></th:block>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div style="background-color: #2196F3; color: white; padding: 20px; margin: -20px -20px 20px -20px; border-radius: 8px 8px 0 0;">
+        <h2 style="color: white; margin: 0;">📊 Monthly Invoicing Completed</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Automated invoice generation summary</p>
+    </div>
+
+    <!-- Metric Card -->
+    <div class="metric-card">
+        <div style="opacity: 0.9; font-size: 14px;">SUCCESS RATE</div>
+        <div class="metric-value" th:text="${successRate + '%'}">100%</div>
+        <div style="opacity: 0.9; font-size: 12px;">
+            <span th:text="${summary.successfulInvoices}">X</span> successful •
+            <span th:text="${summary.failedInvoices}">Y</span> failed •
+            <span th:text="${summary.totalInvoices}">Z</span> total
+        </div>
+    </div>
+
+    <!-- Execution Details -->
+    <h3>📅 Execution Details</h3>
+    <table class="detail-table">
+        <tr>
+            <td>Execution Time:</td>
+            <td th:text="${#temporals.format(summary.executionTime, 'dd-MM-yyyy HH:mm:ss')}">01-01-2026 15:00:00</td>
+        </tr>
+        <tr>
+            <td>Month Processed:</td>
+            <td><strong th:text="${summary.previousMonth}">December 2025</strong></td>
+        </tr>
+        <tr style="background-color: #e8f5e9;">
+            <td>✅ Successful Invoices:</td>
+            <td><strong style="color: #4caf50;" th:text="${summary.successfulInvoices}">X</strong></td>
+        </tr>
+        <tr style="background-color: #ffebee;">
+            <td>❌ Failed Invoices:</td>
+            <td><strong style="color: #f44336;" th:text="${summary.failedInvoices}">Y</strong></td>
+        </tr>
+        <tr>
+            <td>📋 Total Invoices:</td>
+            <td><strong th:text="${summary.totalInvoices}">Z</strong></td>
+        </tr>
+    </table>
+
+    <!-- Invoice Processing Results -->
+    <h3>📄 Invoice Processing Results</h3>
+    <table class="detail-table">
+        <tr>
+            <th>Invoice #</th>
+            <th>Client</th>
+            <th>Status</th>
+        </tr>
+        <!-- Success/Failed rows -->
+        <th:block th:each="result : ${summary.processingResults}">
+            <tr th:class="${result.success ? 'invoice-row-success' : 'invoice-row-error'}">
+                <td th:text="${result.invoice.invoiceNumber()}">INV-001</td>
+                <td th:text="${result.invoice.clientName()}">Client Name</td>
+                <td>
+                    <strong th:style="'color: ' + ${result.success ? '#4caf50' : '#f44336'}"
+                            th:text="${result.success ? '✅ SUCCESS' : '❌ FAILED'}">
+                        STATUS
+                    </strong>
+                </td>
+            </tr>
+            <!-- Error details row if failed -->
+            <tr th:if="${!result.success and result.errorMessage != null}"
+                th:class="${result.success ? 'invoice-row-success' : 'invoice-row-error'}">
+                <td colspan="3" style="padding-left: 30px; color: #f44336; font-size: 12px;">
+                    ↳ Error: <span th:text="${result.errorMessage}">Error message</span>
+                </td>
+            </tr>
+        </th:block>
+    </table>
+
+    <!-- Recommendations -->
+    <h3>🎯 Recommendations</h3>
+    <div class="warning-box">
+        <!-- Failed invoices warning -->
+        <span th:if="${summary.failedInvoices > 0}">
+            • Review failed invoices and retry manually if needed<br/>
+        </span>
+        <!-- Empty clients warning -->
+        <span th:if="${!summary.clientsWithoutTimesheets.isEmpty()}">
+            • <span th:text="${summary.clientsWithoutTimesheets.size()}">X</span> active client(s) have no timesheets - verify if expected<br/>
+        </span>
+        <!-- Success message -->
+        <span th:if="${summary.failedInvoices == 0 and summary.clientsWithoutTimesheets.isEmpty()}">
+            ✅ All invoices processed successfully - no action needed
+        </span>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>This is an automated message from Timesheet Invoicing Scheduler.</p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <th:block th:replace="~{email/admin-email-styles :: styles}"></th:block>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div style="background-color: #f44336; color: white; padding: 20px; margin: -20px -20px 20px -20px; border-radius: 8px 8px 0 0;">
+        <h2 style="color: white; margin: 0;">❌ Scheduler Error Alert</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">Immediate attention required</p>
+    </div>
+
+    <!-- Error Box -->
+    <div class="error-box">
+        <h3 style="margin-top: 0; color: #f44336;" th:text="${subject}">Error Subject</h3>
+        <p><strong>Error Type:</strong> <span th:text="${errorType}">Exception</span></p>
+    </div>
+
+    <!-- Error Details -->
+    <h3>📋 Error Details</h3>
+    <table class="detail-table">
+        <tr>
+            <td>Timestamp:</td>
+            <td th:text="${#temporals.format(timestamp, 'dd-MM-yyyy HH:mm:ss')}">01-01-2026 10:00:00</td>
+        </tr>
+        <tr>
+            <td>Error Message:</td>
+            <td><strong style="color: #f44336;" th:text="${exception.message}">Error message</strong></td>
+        </tr>
+        <tr>
+            <td>Context:</td>
+            <td th:text="${details}">Error context details</td>
+        </tr>
+    </table>
+
+    <!-- Stack Trace -->
+    <h3>🔍 Stack Trace</h3>
+    <div style="background-color: #f5f5f5; padding: 15px; border: 1px solid #ddd; border-radius: 4px; overflow-x: auto;">
+        <pre style="margin: 0; font-size: 11px; white-space: pre-wrap; word-wrap: break-word;" th:text="${stackTrace}">Stack trace here</pre>
+    </div>
+
+    <!-- Recommended Actions -->
+    <h3>⚙️ Recommended Actions</h3>
+    <div class="warning-box">
+        • Check application logs for additional context<br/>
+        • Verify database connectivity and permissions<br/>
+        • Ensure FTP/Email services are accessible<br/>
+        • Review recent configuration changes<br/>
+        • Retry failed operations manually if needed
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>This is an automated error notification from Timesheet Invoicing Scheduler.</p>
+        <p style="color: #f44336; font-weight: bold;">⚠️ This error requires immediate attention</p>
+    </div>
+</div>
+</body>
+</html>

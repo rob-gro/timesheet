@@ -23,7 +23,7 @@ public class InvoicingScheduler {
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
 
             log.info("✅ Scheduled task completed successfully. Generated {} invoices",
-                    summary.getTotalInvoices());
+                    summary.totalInvoices());
 
         } catch (Exception e) {
             log.error("❌ CRITICAL ERROR in scheduled task: {}", e.getMessage(), e);

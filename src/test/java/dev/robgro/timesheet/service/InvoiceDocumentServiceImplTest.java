@@ -40,6 +40,9 @@ class InvoiceDocumentServiceImplTest {
     private EmailMessageService emailMessageService;
 
     @Mock
+    private dev.robgro.timesheet.tracking.EmailTrackingService trackingService;
+
+    @Mock
     private InvoiceSeller seller;
 
     @InjectMocks
@@ -161,6 +164,7 @@ class InvoiceDocumentServiceImplTest {
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(ftpService.getInvoicesDirectory()).thenReturn(ftpDirectory);
+        when(trackingService.createTrackingToken(invoice)).thenReturn("test-tracking-token");
         doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), eq(seller), any(ByteArrayOutputStream.class));
         doNothing().when(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         doNothing().when(emailMessageService).sendInvoiceEmail(any());
@@ -222,6 +226,7 @@ class InvoiceDocumentServiceImplTest {
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(ftpService.getInvoicesDirectory()).thenReturn(ftpDirectory);
+        when(trackingService.createTrackingToken(invoice)).thenReturn("test-tracking-token");
         doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), eq(seller), any(ByteArrayOutputStream.class));
         doNothing().when(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         doThrow(new MessagingException("Email sending failed"))
@@ -264,6 +269,7 @@ class InvoiceDocumentServiceImplTest {
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(ftpService.getInvoicesDirectory()).thenReturn(ftpDirectory);
+        when(trackingService.createTrackingToken(invoice)).thenReturn("test-tracking-token");
         doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), eq(seller), any(ByteArrayOutputStream.class));
         doNothing().when(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
 

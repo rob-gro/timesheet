@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <th:block th:replace="~{email/email-styles :: styles}"></th:block>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1 th:if="${tracking.firstOpen}">✅ Invoice Email Opened!</h1>
+        <h1 th:unless="${tracking.firstOpen}">🔄 Invoice Email Re-opened</h1>
+    </div>
+
+    <!-- Main Event Info -->
+    <div class="section">
+        <h2>📧 Event Information</h2>
+        <table class="info-table">
+            <tr th:class="${true} ? 'highlight-row' : ''">
+                <td>Client</td>
+                <td th:text="${client.clientName}">Client Name</td>
+            </tr>
+            <tr>
+                <td>Invoice</td>
+                <td th:text="${invoice.invoiceNumber}">INV-001</td>
+            </tr>
+            <tr>
+                <td>Amount</td>
+                <td th:text="'£' + ${#numbers.formatDecimal(invoice.totalAmount, 1, 2)}">£1000.00</td>
+            </tr>
+            <tr>
+                <td>Opened At</td>
+                <td th:text="${#temporals.format(tracking.lastOpenedAt, 'dd-MM-yyyy HH:mm:ss')}">01-01-2026 10:00:00</td>
+            </tr>
+            <tr th:class="${tracking.openCount > 1} ? 'highlight-row' : ''">
+                <td>Open Count</td>
+                <td th:text="${tracking.openCount}">1</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Time Metrics (only for first open) -->
+    <div class="section highlight" th:if="${tracking.firstOpen and tracking.timeToFirstOpenMinutes != null}">
+        <h2>⏱️ Response Time</h2>
+        <table class="info-table">
+            <tr>
+                <td>Email Sent</td>
+                <td th:text="${#temporals.format(invoice.emailSentAt, 'dd-MM-yyyy HH:mm:ss')}">N/A</td>
+            </tr>
+            <tr>
+                <td>Email Opened</td>
+                <td th:text="${#temporals.format(tracking.openedAt, 'dd-MM-yyyy HH:mm:ss')}">N/A</td>
+            </tr>
+            <tr class="highlight-row">
+                <td>Time to Open</td>
+                <td th:text="${tracking.timeToFirstOpenFormatted}">1h 30m</td>
+            </tr>
+            <tr>
+                <td>In Minutes</td>
+                <td th:text="${tracking.timeToFirstOpenMinutes + ' min'}">90 min</td>
+            </tr>
+            <tr>
+                <td>In Hours</td>
+                <td th:text="${#numbers.formatDecimal(tracking.timeToFirstOpenHours, 1, 1) + ' h'}">1.5 h</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Technical Details -->
+    <div class="section">
+        <h2>💻 Technical Details</h2>
+        <table class="info-table">
+            <tr>
+                <td>Device</td>
+                <td th:text="${tracking.deviceType ?: 'N/A'}">Desktop</td>
+            </tr>
+            <tr>
+                <td>Email Client</td>
+                <td th:text="${tracking.emailClient ?: 'N/A'}">Gmail</td>
+            </tr>
+            <tr>
+                <td>IP Address</td>
+                <td th:text="${tracking.ipAddress ?: 'N/A'}">192.168.1.1</td>
+            </tr>
+            <tr>
+                <td>User-Agent</td>
+                <td th:text="${#strings.abbreviate(tracking.userAgent, 80) ?: 'N/A'}">Mozilla...</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Client Information -->
+    <div class="section">
+        <h2>👤 Client Information</h2>
+        <table class="info-table">
+            <tr>
+                <td>Name</td>
+                <td th:text="${client.clientName}">Client Name</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td th:text="${client.email}">client@example.com</td>
+            </tr>
+            <tr>
+                <td>Address</td>
+                <td th:text="${client.streetName + ' ' + client.houseNo + ', ' + client.postCode + ' ' + client.city}">
+                    Street 123, 12-345 City
+                </td>
+            </tr>
+            <tr>
+                <td>Hourly Rate</td>
+                <td th:text="'£' + ${#numbers.formatDecimal(client.hourlyRate, 1, 2)}">£50.00</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Overall Statistics -->
+    <div class="section stats">
+        <h2>📊 Overall Statistics (All Invoices)</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon">📤</div>
+                <div class="value" th:text="${stats.totalSent}">10</div>
+                <div class="label">Sent</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">✅</div>
+                <div class="value" th:text="${stats.totalOpened}">8</div>
+                <div class="label">Opened</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📈</div>
+                <div class="value" th:text="${#numbers.formatDecimal(stats.openRate, 1, 1) + '%'}">80.0%</div>
+                <div class="label">Open Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">🕐</div>
+                <div class="value" th:text="${stats.openedLast24h}">2</div>
+                <div class="label">Last 24h</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📅</div>
+                <div class="value" th:text="${stats.openedLast7days}">5</div>
+                <div class="label">Last 7 days</div>
+            </div>
+            <div class="stat-card" th:if="${stats.avgTimeToFirstOpenHours != null}">
+                <div class="icon">⏱️</div>
+                <div class="value" th:text="${#numbers.formatDecimal(stats.avgTimeToFirstOpenHours, 1, 1) + ' h'}">2.5 h</div>
+                <div class="label">Avg Time to Open</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="section insights">
+        <h2>💡 Insights</h2>
+        <ul>
+            <!-- First open speed insight -->
+            <li th:if="${tracking.firstOpen and tracking.timeToFirstOpenMinutes != null and tracking.timeToFirstOpenMinutes < 30}">
+                ⚡ <strong>Very fast response!</strong> Client opened the invoice in less than 30 minutes.
+            </li>
+            <li th:if="${tracking.firstOpen and tracking.timeToFirstOpenMinutes != null and tracking.timeToFirstOpenMinutes >= 30 and tracking.timeToFirstOpenMinutes < 120}">
+                ✅ <strong>Fast response.</strong> Client opened the invoice within 2 hours.
+            </li>
+            <li th:if="${tracking.firstOpen and tracking.timeToFirstOpenMinutes != null and tracking.timeToFirstOpenMinutes >= 120 and tracking.timeToFirstOpenMinutes < 1440}">
+                📅 <strong>Same-day response.</strong> Client opened the invoice within 24 hours.
+            </li>
+            <li th:if="${tracking.firstOpen and tracking.timeToFirstOpenMinutes != null and tracking.timeToFirstOpenMinutes >= 1440}">
+                ⏰ <strong>Delayed response.</strong> Client opened the invoice after
+                <span th:text="${tracking.timeToFirstOpenMinutes / 1440}">X</span> day(s).
+            </li>
+
+            <!-- Device insight -->
+            <li th:if="${tracking.deviceType == 'Mobile'}">
+                📱 Client opened the email on a mobile device - verify the invoice PDF is readable on small screens.
+            </li>
+
+            <!-- Multiple opens insight -->
+            <li th:if="${tracking.openCount > 3}">
+                🔄 Client opened the email <span th:text="${tracking.openCount}">X</span> times - they may have questions or concerns?
+            </li>
+
+            <!-- Overall performance insight -->
+            <li th:if="${stats.openRate >= 80.0}">
+                📈 <strong>Excellent open rate: <span th:text="${#numbers.formatDecimal(stats.openRate, 1, 1)}">X</span>%</strong> - clients regularly read invoices.
+            </li>
+            <li th:if="${stats.openRate < 50.0}">
+                ⚠️ <strong>Low open rate: <span th:text="${#numbers.formatDecimal(stats.openRate, 1, 1)}">X</span>%</strong> - consider phone follow-up with clients.
+            </li>
+        </ul>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>🤖 Automated message generated by Email Tracking System</p>
+        <p><a th:href="${baseUrl}" th:text="'Timesheet Application'">Timesheet Application</a></p>
+        <p style="font-size: 11px; color: #666;">Token: <span th:text="${tracking.trackingToken}">TOKEN</span></p>
+    </div>
+
+</div>
+</body>
+</html>
