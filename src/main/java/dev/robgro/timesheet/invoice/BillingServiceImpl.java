@@ -3,6 +3,8 @@ package dev.robgro.timesheet.invoice;
 import dev.robgro.timesheet.client.ClientService;
 import dev.robgro.timesheet.exception.BusinessRuleViolationException;
 import dev.robgro.timesheet.client.ClientDto;
+import dev.robgro.timesheet.seller.Seller;
+import dev.robgro.timesheet.seller.SellerRepository;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
 import dev.robgro.timesheet.timesheet.TimesheetService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,11 +19,12 @@ import java.util.Optional;
 @Service
 public class BillingServiceImpl implements BillingService {
 
-    public BillingServiceImpl(ClientService clientService, InvoiceService invoiceService, InvoiceCreationService invoiceCreationService, TimesheetService timesheetService) {
+    public BillingServiceImpl(ClientService clientService, InvoiceService invoiceService, InvoiceCreationService invoiceCreationService, TimesheetService timesheetService, SellerRepository sellerRepository) {
         this.clientService = clientService;
         this.invoiceService = invoiceService;
         this.invoiceCreationService = invoiceCreationService;
         this.timesheetService = timesheetService;
+        this.sellerRepository = sellerRepository;
     }
 
     private final ClientService clientService;
@@ -30,6 +33,7 @@ public class BillingServiceImpl implements BillingService {
     @Qualifier("dedicatedInvoiceCreationService")
     private final InvoiceCreationService invoiceCreationService;
     private final TimesheetService timesheetService;
+    private final SellerRepository sellerRepository;
 
     public List<InvoiceDto> generateMonthlyInvoices(int year, int month) {
         List<ClientDto> clients = clientService.getAllClients();
@@ -67,7 +71,12 @@ public class BillingServiceImpl implements BillingService {
 
     @Transactional
     public InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
-        return invoiceCreationService.createInvoice(clientId, issueDate, timesheetIds);
+        // TODO FAZA 2: Use authenticated user's defaultSeller instead of first active seller
+        Seller defaultSeller = sellerRepository.findByActiveTrue().stream()
+                .findFirst()
+                .orElseThrow(() -> new BusinessRuleViolationException("No active seller found. Please create an active seller first."));
+
+        return invoiceCreationService.createInvoice(clientId, defaultSeller.getId(), issueDate, timesheetIds);
     }
 
     @Transactional(readOnly = true)

@@ -180,6 +180,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceDto createAndRedirectInvoice(CreateInvoiceRequest request) {
         return invoiceCreationService.createInvoice(
                 request.clientId(),
+                request.sellerId(),
                 request.issueDate(),
                 request.timesheetIds()
         );
@@ -189,6 +190,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceDto buildInvoicePreview(CreateInvoiceRequest request) {
         return invoiceCreationService.buildInvoicePreview(
                 request.clientId(),
+                request.sellerId(),
                 request.issueDate(),
                 request.timesheetIds()
         );

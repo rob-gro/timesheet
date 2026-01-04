@@ -46,6 +46,15 @@ class PdfGeneratorTest {
         testClient.setEmail("client@test.com");
         testClient.setHourlyRate(50.0);
 
+        // Create seller entity
+        dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
+        seller.setId(1L);
+        seller.setName("Test Company Ltd");
+        seller.setStreet("123 Test Street");
+        seller.setPostcode("TE1 2ST");
+        seller.setCity("Testville");
+        seller.setActive(true);
+
         // Create test invoice
         testInvoice = new Invoice();
         testInvoice.setId(1L);
@@ -53,6 +62,7 @@ class PdfGeneratorTest {
         testInvoice.setIssueDate(LocalDate.of(2025, 1, 15));
         testInvoice.setTotalAmount(new BigDecimal("250.00"));
         testInvoice.setClient(testClient);
+        testInvoice.setSeller(seller);
         testInvoice.setItemsList(new ArrayList<>());
     }
 
@@ -70,7 +80,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, testSeller, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -105,7 +115,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, testSeller, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -119,7 +129,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, testSeller, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -145,7 +155,7 @@ class PdfGeneratorTest {
 
         // when & then
         // Note: OpenPDF wraps IOException in ExceptionConverter, so we just verify ServiceOperationException is thrown
-        assertThatThrownBy(() -> pdfGenerator.generateInvoicePdf(testInvoice, testSeller, failingOutputStream))
+        assertThatThrownBy(() -> pdfGenerator.generateInvoicePdf(testInvoice, failingOutputStream))
                 .isInstanceOf(ServiceOperationException.class)
                 .hasMessageContaining("Failed to generate PDF");
     }
@@ -165,7 +175,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, testSeller, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -188,7 +198,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, testSeller, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -209,7 +219,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, testSeller, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -232,7 +242,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, testSeller, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();

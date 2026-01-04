@@ -31,7 +31,7 @@ public class InvoiceViewController {
         log.debug("Showing invoice items form");
         model.addAttribute("timesheets", getUnbilledTimesheets());
         model.addAttribute("clients", clientService.getAllClients());
-        model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, List.of(), null));
+        model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, null, List.of(), null));
         return "invoices/items";
     }
 

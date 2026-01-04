@@ -1,6 +1,5 @@
 package dev.robgro.timesheet.invoice;
 
-import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.exception.EmailException;
 import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.exception.IntegrationException;
@@ -25,7 +24,6 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
     private final FtpService ftpService;
     private final PdfGenerator pdfGenerator;
     private final EmailMessageService emailMessageService;
-    private final InvoiceSeller seller;
     private final dev.robgro.timesheet.tracking.EmailTrackingService trackingService;
 
     @Override
@@ -53,7 +51,7 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
         String fileName = invoice.getInvoiceNumber() + ".pdf";
 
         ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
-        pdfGenerator.generateInvoicePdf(invoice, seller, pdfOutput);
+        pdfGenerator.generateInvoicePdf(invoice, pdfOutput);
         byte[] pdfContent = pdfOutput.toByteArray();
 
         ftpService.uploadPdfInvoice(fileName, pdfContent);

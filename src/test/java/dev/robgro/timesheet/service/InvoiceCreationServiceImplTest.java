@@ -56,6 +56,9 @@ class  InvoiceCreationServiceImplTest {
     @Mock
     private InvoiceNumberGenerator invoiceNumberGenerator;
 
+    @Mock
+    private dev.robgro.timesheet.seller.SellerRepository sellerRepository;
+
     @InjectMocks
     private InvoiceCreationServiceImpl invoiceCreationService;
 
@@ -97,6 +100,8 @@ class  InvoiceCreationServiceImplTest {
                 1L,
                 clientId,
                 "Test Client",
+                1L,
+                "Test Seller",
                 "001-01-2023",
                 issueDate,
                 BigDecimal.valueOf(250.0),
@@ -118,8 +123,13 @@ class  InvoiceCreationServiceImplTest {
         when(invoiceRepository.findById(savedInvoice.getId())).thenReturn(Optional.of(savedInvoice));
         when(invoiceDtoMapper.apply(savedInvoice)).thenReturn(expectedDto);
 
+        // Mock seller
+        dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
+        seller.setId(1L);
+        seller.setName("Test Seller");
+
         // when
-        InvoiceDto result = invoiceCreationService.createInvoiceFromTimesheets(clientDto, timesheets, issueDate);
+        InvoiceDto result = invoiceCreationService.createInvoiceFromTimesheets(clientDto, seller, timesheets, issueDate);
 
         // then
         assertThat(result).isNotNull();
@@ -149,20 +159,25 @@ class  InvoiceCreationServiceImplTest {
         List<TimesheetDto> timesheets = List.of(timesheet1, timesheet2);
 
         InvoiceDto expectedDto = new InvoiceDto(
-                1L, clientId, "Test Client", "001-01-2023", issueDate,
+                1L, clientId, "Test Client", 1L, "Test Seller", "001-01-2023", issueDate,
                 BigDecimal.valueOf(250.0), LocalDateTime.now().toString(), List.of(), null, null, null, 0, null, "NOT_SENT"
         );
+
+        dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
+        seller.setId(1L);
+        seller.setName("Test Seller");
 
         when(clientService.getClientById(clientId)).thenReturn(clientDto);
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+        when(sellerRepository.findById(1L)).thenReturn(java.util.Optional.of(seller));
 
         // Mock the internal method call to createInvoiceFromTimesheets
         InvoiceCreationServiceImpl serviceSpy = spy(invoiceCreationService);
-        doReturn(expectedDto).when(serviceSpy).createInvoiceFromTimesheets(eq(clientDto), anyList(), eq(issueDate));
+        doReturn(expectedDto).when(serviceSpy).createInvoiceFromTimesheets(eq(clientDto), any(dev.robgro.timesheet.seller.Seller.class), anyList(), eq(issueDate));
 
         // when
-        InvoiceDto result = serviceSpy.createInvoice(clientId, issueDate, timesheetIds);
+        InvoiceDto result = serviceSpy.createInvoice(clientId, 1L, issueDate, timesheetIds);
 
         // then
         assertThat(result).isNotNull();
@@ -170,7 +185,7 @@ class  InvoiceCreationServiceImplTest {
 
         verify(clientService).getClientById(clientId);
         verify(timesheetService, times(2)).getTimesheetById(anyLong());
-        verify(serviceSpy).createInvoiceFromTimesheets(eq(clientDto), anyList(), eq(issueDate));
+        verify(serviceSpy).createInvoiceFromTimesheets(eq(clientDto), any(dev.robgro.timesheet.seller.Seller.class), anyList(), eq(issueDate));
     }
 
     @Test
@@ -181,7 +196,7 @@ class  InvoiceCreationServiceImplTest {
         List<Long> emptyTimesheetIds = List.of();
 
         // when/then
-        assertThatThrownBy(() -> invoiceCreationService.createInvoice(clientId, issueDate, emptyTimesheetIds))
+        assertThatThrownBy(() -> invoiceCreationService.createInvoice(clientId, 1L, issueDate, emptyTimesheetIds))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("No timesheets selected for invoice");
 
@@ -201,12 +216,17 @@ class  InvoiceCreationServiceImplTest {
         TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, true, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
         TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, true, clientId, 50.0, null, null, BigDecimal.valueOf(150.0));
 
+        dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
+        seller.setId(1L);
+        seller.setName("Test Seller");
+
         when(clientService.getClientById(clientId)).thenReturn(clientDto);
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+        when(sellerRepository.findById(1L)).thenReturn(java.util.Optional.of(seller));
 
         // when/then
-        assertThatThrownBy(() -> invoiceCreationService.createInvoice(clientId, issueDate, timesheetIds))
+        assertThatThrownBy(() -> invoiceCreationService.createInvoice(clientId, 1L, issueDate, timesheetIds))
                 .isInstanceOf(BusinessRuleViolationException.class)
                 .hasMessageContaining("All selected timesheets are already invoiced");
 
@@ -299,13 +319,18 @@ class  InvoiceCreationServiceImplTest {
 
         String invoiceNumber = "001-01-2023";
 
+        dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
+        seller.setId(1L);
+        seller.setName("Test Seller");
+
         when(clientService.getClientById(clientId)).thenReturn(clientDto);
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+        when(sellerRepository.findById(1L)).thenReturn(java.util.Optional.of(seller));
         when(invoiceNumberGenerator.generateInvoiceNumber(issueDate)).thenReturn(invoiceNumber);
 
         // when
-        InvoiceDto result = invoiceCreationService.buildInvoicePreview(clientId, issueDate, timesheetIds);
+        InvoiceDto result = invoiceCreationService.buildInvoicePreview(clientId, 1L, issueDate, timesheetIds);
 
         // then
         assertThat(result).isNotNull();
@@ -335,7 +360,7 @@ class  InvoiceCreationServiceImplTest {
         List<Long> emptyTimesheetIds = List.of();
 
         // when/then
-        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, issueDate, emptyTimesheetIds))
+        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, 1L, issueDate, emptyTimesheetIds))
                 .isInstanceOf(ValidationException.class)
                 .hasMessageContaining("No timesheets selected for invoice");
 
@@ -355,12 +380,17 @@ class  InvoiceCreationServiceImplTest {
         TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, true, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
         TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, true, clientId, 50.0, null, null, BigDecimal.valueOf(150.0));
 
+        dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
+        seller.setId(1L);
+        seller.setName("Test Seller");
+
         when(clientService.getClientById(clientId)).thenReturn(clientDto);
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+        when(sellerRepository.findById(1L)).thenReturn(java.util.Optional.of(seller));
 
         // when/then
-        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, issueDate, timesheetIds))
+        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, 1L, issueDate, timesheetIds))
                 .isInstanceOf(BusinessRuleViolationException.class)
                 .hasMessageContaining("All selected timesheets are already invoiced");
 
@@ -380,12 +410,17 @@ class  InvoiceCreationServiceImplTest {
         TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
         TimesheetDto timesheet2 = new TimesheetDto(2L, "Other Client", LocalDate.now().minusDays(2), 3.0, false, 999L, 50.0, null, null, BigDecimal.valueOf(150.0)); // Different client
 
+        dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
+        seller.setId(1L);
+        seller.setName("Test Seller");
+
         when(clientService.getClientById(clientId)).thenReturn(clientDto);
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
+        when(sellerRepository.findById(1L)).thenReturn(java.util.Optional.of(seller));
 
         // when/then
-        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, issueDate, timesheetIds))
+        assertThatThrownBy(() -> invoiceCreationService.buildInvoicePreview(clientId, 1L, issueDate, timesheetIds))
                 .isInstanceOf(BusinessRuleViolationException.class)
                 .hasMessageContaining("Cannot create invoice: selected timesheets belong to different clients");
 
