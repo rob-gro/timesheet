@@ -1,8 +1,9 @@
 package dev.robgro.timesheet.invoice;
 
-import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.client.ClientDto;
 import dev.robgro.timesheet.client.ClientService;
+import dev.robgro.timesheet.seller.SellerDto;
+import dev.robgro.timesheet.seller.SellerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -18,7 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class InvoiceCreateController {
     private final InvoiceService invoiceService;
     private final ClientService clientService;
-    private final InvoiceSeller invoiceSeller;
+    private final SellerService sellerService;
 
     @GetMapping("/{id}")
     public String showCreateForm(@PathVariable Long id, Model model) {
@@ -28,9 +29,10 @@ public class InvoiceCreateController {
         log.debug("Found invoice: {}", invoice);
 
         ClientDto client = clientService.getClientById(invoice.clientId());
+        SellerDto seller = sellerService.getSellerById(invoice.sellerId());
 
         model.addAttribute("invoice", invoice);
-        model.addAttribute("seller", invoiceSeller);
+        model.addAttribute("seller", seller);
         model.addAttribute("client", client);
         return "invoices/create";
     }

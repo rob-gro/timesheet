@@ -1,6 +1,7 @@
 package dev.robgro.timesheet.user;
 
 import dev.robgro.timesheet.role.Role;
+import dev.robgro.timesheet.seller.Seller;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,6 +24,10 @@ public class User {
 
     private String email;
     private boolean active = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_seller_id")
+    private Seller defaultSeller;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
