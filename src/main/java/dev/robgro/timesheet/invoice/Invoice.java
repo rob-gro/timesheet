@@ -2,6 +2,7 @@ package dev.robgro.timesheet.invoice;
 
 import dev.robgro.timesheet.client.Client;
 import dev.robgro.timesheet.timesheet.Timesheet;
+import dev.robgro.timesheet.tracking.EmailTracking;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -69,7 +70,7 @@ public class Invoice {
      * Updates email tracking status from EmailTracking entity
      * Called when email is opened
      */
-    public void updateEmailOpenStatus(dev.robgro.timesheet.tracking.EmailTracking tracking) {
+    public void updateEmailOpenStatus(EmailTracking tracking) {
         this.emailOpenedAt = tracking.getOpenedAt();
         this.emailOpenCount = tracking.getOpenCount();
         this.lastEmailOpenedAt = tracking.getLastOpenedAt();

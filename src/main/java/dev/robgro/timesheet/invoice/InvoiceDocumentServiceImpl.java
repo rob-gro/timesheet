@@ -5,6 +5,7 @@ import dev.robgro.timesheet.exception.EmailException;
 import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.exception.IntegrationException;
 import dev.robgro.timesheet.client.Client;
+import dev.robgro.timesheet.tracking.EmailTrackingService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
     private final PdfGenerator pdfGenerator;
     private final EmailMessageService emailMessageService;
     private final InvoiceSeller seller;
-    private final dev.robgro.timesheet.tracking.EmailTrackingService trackingService;
+    private final EmailTrackingService trackingService;
 
     @Override
     @Transactional(readOnly = true)

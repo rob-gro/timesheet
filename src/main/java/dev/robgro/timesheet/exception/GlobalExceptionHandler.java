@@ -93,7 +93,7 @@ public class GlobalExceptionHandler {
                     .stream()
                     .map(this::convertToValidationError)
                     .collect(Collectors.toList());
-        } else if (ex instanceof dev.robgro.timesheet.exception.ValidationException validationException) {
+        } else if (ex instanceof ValidationException validationException) {
             validationErrors = validationException.getValidationErrors();
         } else {
             validationErrors = Collections.emptyList();
