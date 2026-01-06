@@ -60,7 +60,7 @@
             <tr th:each="item, itemStat : ${invoice.itemsList}">
                 <td th:text="${itemStat.count}">1</td>
                 <td>
-                    Cleaning services at
+                    <span th:text="${seller != null ? seller.serviceDescription : 'Services'}">Cleaning services</span> at
                     <span th:text="${#temporals.format(item.serviceDate, 'yyyy-MM-dd')}"></span>
                 </td>
                 <td class="right" th:text="${item.duration}">2.5</td>
@@ -80,9 +80,9 @@
 
     <div class="payment-details">
         <div class="section-title">PAYMENT DETAILS</div>
-        <div>Bank: TSB</div>
-        <div>Sort Code: 87-68-20</div>
-        <div>Account Number: 75040460</div>
+        <div th:if="${seller != null && seller.bankName != null}" th:text="'Bank: ' + ${seller.bankName}">Bank: TSB</div>
+        <div th:if="${seller != null && seller.sortCode != null}" th:text="'Sort Code: ' + ${seller.sortCode}">Sort Code: 87-68-20</div>
+        <div th:if="${seller != null && seller.accountNumber != null}" th:text="'Account Number: ' + ${seller.accountNumber}">Account Number: 75040460</div>
     </div>
 
     <div class="notes">

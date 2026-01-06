@@ -1,6 +1,7 @@
 package dev.robgro.timesheet.invoice;
 
 import dev.robgro.timesheet.client.Client;
+import dev.robgro.timesheet.seller.Seller;
 import dev.robgro.timesheet.timesheet.Timesheet;
 import dev.robgro.timesheet.tracking.EmailTracking;
 import jakarta.persistence.*;
@@ -35,6 +36,10 @@ public class Invoice {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "client_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Client client;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id")
+    private Seller seller;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItem> itemsList = new ArrayList<>();

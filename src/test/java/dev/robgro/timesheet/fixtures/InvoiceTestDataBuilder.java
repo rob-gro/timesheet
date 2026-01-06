@@ -106,6 +106,8 @@ public class InvoiceTestDataBuilder {
             id,
             effectiveClient.getId(),
             effectiveClient.getClientName(),
+            1L,  // sellerId
+            "Test Seller",  // sellerName
             invoiceNumber,
             issueDate,
             totalAmount,

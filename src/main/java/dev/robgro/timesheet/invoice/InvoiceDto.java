@@ -9,6 +9,8 @@ public record InvoiceDto(
         Long id,
         Long clientId,
         String clientName,
+        Long sellerId,
+        String sellerName,
         String invoiceNumber,
         LocalDate issueDate,
         BigDecimal totalAmount,

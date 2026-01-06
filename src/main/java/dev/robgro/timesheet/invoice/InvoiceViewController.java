@@ -1,13 +1,17 @@
 package dev.robgro.timesheet.invoice;
 
-import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.client.ClientDto;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
 import dev.robgro.timesheet.client.ClientService;
 import dev.robgro.timesheet.timesheet.TimesheetService;
+import dev.robgro.timesheet.seller.SellerDto;
+import dev.robgro.timesheet.seller.SellerService;
+import dev.robgro.timesheet.user.User;
+import dev.robgro.timesheet.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -24,14 +28,22 @@ public class InvoiceViewController {
     private final InvoiceService invoiceService;
     private final TimesheetService timesheetService;
     private final ClientService clientService;
-    private final InvoiceSeller invoiceSeller;
+    private final SellerService sellerService;
+    private final UserService userService;
 
     @GetMapping
-    public String showItemsForm(Model model) {
+    public String showItemsForm(Model model, Authentication authentication) {
         log.debug("Showing invoice items form");
         model.addAttribute("timesheets", getUnbilledTimesheets());
         model.addAttribute("clients", clientService.getAllClients());
-        model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, List.of(), null));
+        model.addAttribute("sellers", sellerService.getAllSellers());
+        model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, null, List.of(), null));
+
+        // Add current user for default seller pre-selection
+        if (authentication != null) {
+            User currentUser = userService.findByUsername(authentication.getName());
+            model.addAttribute("currentUser", currentUser);
+        }
         return "invoices/items";
     }
 
@@ -45,6 +57,7 @@ public class InvoiceViewController {
             log.warn("Validation errors in invoice creation: {}", result.getAllErrors());
             model.addAttribute("timesheets", getUnbilledTimesheets());
             model.addAttribute("clients", clientService.getAllClients());
+            model.addAttribute("sellers", sellerService.getAllSellers());
             return "invoices/items";
         }
 
@@ -54,10 +67,11 @@ public class InvoiceViewController {
         // Build preview without creating invoice in database
         InvoiceDto previewInvoice = invoiceService.buildInvoicePreview(request);
         ClientDto client = clientService.getClientById(request.clientId());
+        SellerDto seller = sellerService.getSellerById(request.sellerId());
 
         model.addAttribute("invoice", previewInvoice);
         model.addAttribute("client", client);
-        model.addAttribute("seller", invoiceSeller);
+        model.addAttribute("seller", seller);
         model.addAttribute("createRequest", request);
         model.addAttribute("isPreview", true);
 
@@ -69,9 +83,10 @@ public class InvoiceViewController {
         log.debug("Showing edit form for invoice ID: {}", id);
         InvoiceDto invoice = invoiceService.getInvoiceById(id);
         ClientDto client = clientService.getClientById(invoice.clientId());
+        SellerDto seller = sellerService.getSellerById(invoice.sellerId());
         model.addAttribute("invoice", invoice);
         model.addAttribute("clients", clientService.getAllClients());
-        model.addAttribute("seller", invoiceSeller);
+        model.addAttribute("seller", seller);
         model.addAttribute("client", client);
         return "invoices/edit";
     }

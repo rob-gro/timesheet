@@ -5,6 +5,8 @@ import dev.robgro.timesheet.exception.ResourceAlreadyExistsException;
 import dev.robgro.timesheet.exception.ValidationException;
 import dev.robgro.timesheet.role.Role;
 import dev.robgro.timesheet.role.RoleService;
+import dev.robgro.timesheet.seller.Seller;
+import dev.robgro.timesheet.seller.SellerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
     private final UserDtoMapper userDtoMapper;
+    private final SellerRepository sellerRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -206,5 +209,27 @@ public class UserServiceImpl implements UserService {
         log.debug("Created new user: {}", savedUser.getUsername());
 
         return userDtoMapper.apply(savedUser);
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+    }
+
+    @Override
+    @Transactional
+    public void setDefaultSeller(Long userId, Long sellerId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        if (sellerId != null) {
+            Seller seller = sellerRepository.findById(sellerId)
+                    .orElseThrow(() -> new RuntimeException("Seller not found with id: " + sellerId));
+            user.setDefaultSeller(seller);
+        } else {
+            user.setDefaultSeller(null);
+        }
+        userRepository.save(user);
+        log.info("Set default seller {} for user {}", sellerId, userId);
     }
 }

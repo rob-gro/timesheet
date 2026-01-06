@@ -20,6 +20,8 @@ public class InvoiceDtoMapper implements Function<Invoice, InvoiceDto> {
                 invoice.getId(),
                 invoice.getClient().getId(),
                 invoice.getClient().getClientName(),
+                invoice.getSeller() != null ? invoice.getSeller().getId() : null,
+                invoice.getSeller() != null ? invoice.getSeller().getName() : null,
                 invoice.getInvoiceNumber(),
                 invoice.getIssueDate(),
                 invoice.getTotalAmount(),

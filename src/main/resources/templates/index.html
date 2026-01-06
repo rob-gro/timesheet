@@ -44,6 +44,11 @@
                            sec:authorize="hasRole('ADMIN')">
                             Clients
                         </a>
+                        <a th:href="@{/sellers}"
+                           class="nav-button text-center text-decoration-none"
+                           sec:authorize="hasAnyRole('ADMIN', 'USER')">
+                            Sellers
+                        </a>
                         <a th:href="@{/invoices/archive/pdf}"
                            class="nav-button text-center text-decoration-none">
                             Invoices PDF

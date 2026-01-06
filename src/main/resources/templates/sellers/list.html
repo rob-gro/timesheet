@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Seller Management</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card">
+        <div class="container my-auto mx-auto">
+            <h2 class="text-center mb-4">Manage Sellers</h2>
+
+            <div class="mb-3">
+                <button type="button" class="nav-button" onclick="window.location.href='/sellers/new';">Add New Seller
+                </button>
+                <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main Page</button>
+            </div>
+
+            <div>
+                <table class="table table-striped table-dark">
+                    <colgroup>
+                        <col style="width: 8%">
+                        <col style="width: 23%">
+                        <col style="width: 15%">
+                        <col style="width: 23%">
+                        <col style="width: 12%">
+                        <col style="width: 10%">
+                        <col style="width: 9%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>Default</th>
+                        <th>Seller Name</th>
+                        <th>City</th>
+                        <th>Email</th>
+                        <th>VAT Number</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="seller : ${sellers}"
+                        th:data-seller-id="${seller.id}"
+                        th:style="${!seller.active} ? 'opacity: 0.6; background-color: #2a2a2a;' : ''">
+                        <td>
+                            <span th:if="${seller.systemDefault}">Yes</span>
+                            <button th:if="${!seller.systemDefault && seller.active}"
+                                    class="save-button"
+                                    th:onclick="'setSystemDefault(' + ${seller.id} + ')'">
+                                Set
+                            </button>
+                        </td>
+                        <td th:text="${seller.name}"></td>
+                        <td th:text="${seller.city}"></td>
+                        <td th:text="${seller.email}"></td>
+                        <td th:text="${seller.vatNumber}"></td>
+                        <td>
+                            <span th:if="${seller.active}" class="badge-success">Active</span>
+                            <span th:unless="${seller.active}" class="badge-danger">Inactive</span>
+                        </td>
+                        <td>
+                            <button class="save-button"
+                                    th:onclick="'window.location.href=\'/sellers/edit/' + ${seller.id} + '\''">
+                                Edit
+                            </button>
+
+                            <button th:if="${seller.active}"
+                                    class="del-button"
+                                    th:onclick="'toggleSellerActive(' + ${seller.id} + ', false)'">
+                                Deactivate
+                            </button>
+
+                            <button th:unless="${seller.active}"
+                                    class="save-button"
+                                    th:onclick="'toggleSellerActive(' + ${seller.id} + ', true)'"
+                                    sec:authorize="hasRole('ADMIN')">
+                                Activate
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/sellers.js}"></script>
+
+</body>
+</html>

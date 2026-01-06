@@ -7,7 +7,6 @@ import com.lowagie.text.pdf.ColumnText;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.exception.ServiceOperationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,7 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class PdfGenerator {
 
-    public void generateInvoicePdf(Invoice invoice, InvoiceSeller seller, OutputStream outputStream) {
+    public void generateInvoicePdf(Invoice invoice, OutputStream outputStream) {
 
         try {
             Document document = new Document(PageSize.A4);
@@ -85,9 +84,9 @@ public class PdfGenerator {
             PdfPCell fromCell = new PdfPCell();
             fromCell.setBorder(Rectangle.NO_BORDER);
             fromCell.addElement(new Paragraph("Invoice from:", normalFont));
-            fromCell.addElement(new Paragraph(seller.getName(), boldFont));
-            fromCell.addElement(new Paragraph(seller.getStreet(), boldFont));
-            fromCell.addElement(new Paragraph(seller.getPostcode() + ", " + seller.getCity(), boldFont));
+            fromCell.addElement(new Paragraph(invoice.getSeller().getName(), boldFont));
+            fromCell.addElement(new Paragraph(invoice.getSeller().getStreet(), boldFont));
+            fromCell.addElement(new Paragraph(invoice.getSeller().getPostcode() + ", " + invoice.getSeller().getCity(), boldFont));
 
 // receiver / client
             PdfPCell toCell = new PdfPCell();
@@ -227,28 +226,28 @@ public class PdfGenerator {
             document.add(new Paragraph("\n"));
 // account holder
             Phrase holderLabel = new Phrase("Account owner: ", normalFont);
-            Phrase holderValue = new Phrase("Agnieszka Markiewicz", boldFont);
+            Phrase holderValue = new Phrase(invoice.getSeller().getName(), boldFont);
             Paragraph holderLine = new Paragraph();
             holderLine.add(holderLabel);
             holderLine.add(holderValue);
             document.add(holderLine);
 // bank
             Phrase bankLabel = new Phrase("Bank: ", normalFont);
-            Phrase bankValue = new Phrase("TSB", boldFont);
+            Phrase bankValue = new Phrase(invoice.getSeller().getBankName(), boldFont);
             Paragraph bankLine = new Paragraph();
             bankLine.add(bankLabel);
             bankLine.add(bankValue);
             document.add(bankLine);
 // sort code
             Phrase sortCodeLabel = new Phrase("Sort Code: ", normalFont);
-            Phrase sortCodeValue = new Phrase("87-68-20", boldFont);
+            Phrase sortCodeValue = new Phrase(invoice.getSeller().getSortCode(), boldFont);
             Paragraph sortCodeLine = new Paragraph();
             sortCodeLine.add(sortCodeLabel);
             sortCodeLine.add(sortCodeValue);
             document.add(sortCodeLine);
 // account number
             Phrase accountLabel = new Phrase("Account Number: ", normalFont);
-            Phrase accountValue = new Phrase("75040460", boldFont);
+            Phrase accountValue = new Phrase(invoice.getSeller().getAccountNumber(), boldFont);
             Paragraph accountLine = new Paragraph();
             accountLine.add(accountLabel);
             accountLine.add(accountValue);

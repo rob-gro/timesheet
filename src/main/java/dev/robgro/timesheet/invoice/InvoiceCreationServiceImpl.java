@@ -4,6 +4,8 @@ import dev.robgro.timesheet.client.ClientService;
 import dev.robgro.timesheet.exception.BusinessRuleViolationException;
 import dev.robgro.timesheet.exception.ValidationException;
 import dev.robgro.timesheet.client.ClientDto;
+import dev.robgro.timesheet.seller.Seller;
+import dev.robgro.timesheet.seller.SellerRepository;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
 import dev.robgro.timesheet.timesheet.Timesheet;
 import dev.robgro.timesheet.client.ClientRepository;
@@ -31,13 +33,15 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
     private final TimesheetRepository timesheetRepository;
     private final InvoiceDtoMapper invoiceDtoMapper;
     private final ClientRepository clientRepository;
+    private final SellerRepository sellerRepository;
     private final InvoiceNumberGenerator invoiceNumberGenerator;
 
     @Transactional
     @Override
-    public InvoiceDto createInvoiceFromTimesheets(ClientDto client, List<TimesheetDto> timesheets, LocalDate issueDate) {
+    public InvoiceDto createInvoiceFromTimesheets(ClientDto client, Seller seller, List<TimesheetDto> timesheets, LocalDate issueDate) {
         Invoice invoice = new Invoice();
         invoice.setClient(clientRepository.getReferenceById(client.id()));
+        invoice.setSeller(seller);
         invoice.setIssueDate(issueDate);
         invoice.setInvoiceNumber(invoiceNumberGenerator.generateInvoiceNumber(issueDate));
 
@@ -68,12 +72,21 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
     }
 
     @Transactional
-    public InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
+    public InvoiceDto createInvoice(Long clientId, Long sellerId, LocalDate issueDate, List<Long> timesheetIds) {
         if (timesheetIds.isEmpty()) {
             throw new ValidationException("No timesheets selected for invoice");
         }
 
         ClientDto client = clientService.getClientById(clientId);
+
+        // Validate and fetch seller
+        Seller seller = sellerRepository.findById(sellerId)
+                .orElseThrow(() -> new ValidationException("Seller not found with ID: " + sellerId));
+
+        if (!seller.isActive()) {
+            throw new BusinessRuleViolationException("Cannot create invoice: seller is inactive");
+        }
+
         List<TimesheetDto> selectedTimesheets = timesheetIds.stream()
                 .map(timesheetService::getTimesheetById)
                 .filter(timesheet -> !timesheet.invoiced())
@@ -91,7 +104,7 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
             throw new BusinessRuleViolationException("Cannot create invoice: selected timesheets belong to different clients");
         }
 
-        return createInvoiceFromTimesheets(client, selectedTimesheets, issueDate);
+        return createInvoiceFromTimesheets(client, seller, selectedTimesheets, issueDate);
     }
 
     private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {
@@ -119,12 +132,21 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
     }
 
     @Override
-    public InvoiceDto buildInvoicePreview(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
+    public InvoiceDto buildInvoicePreview(Long clientId, Long sellerId, LocalDate issueDate, List<Long> timesheetIds) {
         if (timesheetIds.isEmpty()) {
             throw new ValidationException("No timesheets selected for invoice");
         }
 
         ClientDto client = clientService.getClientById(clientId);
+
+        // Validate and fetch seller
+        Seller seller = sellerRepository.findById(sellerId)
+                .orElseThrow(() -> new ValidationException("Seller not found with ID: " + sellerId));
+
+        if (!seller.isActive()) {
+            throw new BusinessRuleViolationException("Cannot create invoice: seller is inactive");
+        }
+
         List<TimesheetDto> selectedTimesheets = timesheetIds.stream()
                 .map(timesheetService::getTimesheetById)
                 .filter(timesheet -> !timesheet.invoiced())
@@ -167,6 +189,8 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
                 null, // no ID for preview
                 clientId,
                 client.clientName(),
+                sellerId,
+                seller.getName(),
                 invoiceNumber,
                 issueDate,
                 totalAmount,

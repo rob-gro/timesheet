@@ -83,12 +83,14 @@ class InvoicingTaskServiceImplTest {
                 1L,
                 1L,
                 "Test Client",
+                1L,
+                "Test Seller",
                 "INV-2025-001",
                 LocalDate.now(),
                 new BigDecimal("1000.00"),
                 "/path/to/invoice.pdf",
                 Collections.emptyList(),
-                null, null, null, null, null, null
+                null, null, null, 0, null, "NOT_SENT"
         );
 
         // Default properties behavior (lenient - not all tests need these)
