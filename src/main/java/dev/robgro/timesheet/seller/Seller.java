@@ -16,7 +16,7 @@ import java.util.Objects;
 @Setter
 @RequiredArgsConstructor
 @Table(name = "sellers")
-public class Seller {
+public class  Seller {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -67,6 +67,9 @@ public class Seller {
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
+    @Column(name = "is_system_default", nullable = false)
+    private boolean isSystemDefault = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -104,6 +107,7 @@ public class Seller {
                 ", serviceDescription='" + serviceDescription + '\'' +
                 ", bankName='" + bankName + '\'' +
                 ", active=" + active +
+                ", isSystemDefault=" + isSystemDefault +
                 '}';
     }
 
@@ -112,6 +116,7 @@ public class Seller {
         if (o == null || getClass() != o.getClass()) return false;
         Seller seller = (Seller) o;
         return active == seller.active &&
+                isSystemDefault == seller.isSystemDefault &&
                 Objects.equals(id, seller.id) &&
                 Objects.equals(name, seller.name) &&
                 Objects.equals(street, seller.street) &&
@@ -135,6 +140,7 @@ public class Seller {
         result = 31 * result + Objects.hashCode(accountNumber);
         result = 31 * result + Objects.hashCode(sortCode);
         result = 31 * result + Boolean.hashCode(active);
+        result = 31 * result + Boolean.hashCode(isSystemDefault);
         return result;
     }
 }

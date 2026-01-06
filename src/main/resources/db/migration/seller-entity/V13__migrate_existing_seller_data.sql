@@ -31,18 +31,9 @@ UPDATE invoices
 SET seller_id = @default_seller_id
 WHERE seller_id IS NULL;
 
--- Assign all existing timesheets to default seller
-UPDATE timesheets
-SET seller_id = @default_seller_id
-WHERE seller_id IS NULL;
-
--- Make seller_id NOT NULL in timesheets (now that all records have a value)
-ALTER TABLE timesheets MODIFY seller_id BIGINT NOT NULL;
-
 -- Optionally set default seller for existing users
 -- UPDATE users SET default_seller_id = @default_seller_id WHERE default_seller_id IS NULL;
 
 -- Verification queries
-SELECT CONCAT('✅ Created seller: ', name, ' (ID: ', id, ')') AS status FROM sellers WHERE id = @default_seller_id;
-SELECT CONCAT('✅ Updated ', COUNT(*), ' invoices') AS status FROM invoices WHERE seller_id = @default_seller_id;
-SELECT CONCAT('✅ Updated ', COUNT(*), ' timesheets') AS status FROM timesheets WHERE seller_id = @default_seller_id;
+SELECT CONCAT('[OK] Created seller: ', name, ' (ID: ', id, ')') AS status FROM sellers WHERE id = @default_seller_id;
+SELECT CONCAT('[OK] Updated ', COUNT(*), ' invoices') AS status FROM invoices WHERE seller_id = @default_seller_id;

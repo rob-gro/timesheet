@@ -33,6 +33,16 @@
                                             th:text="${client.clientName}">
                                     </option>
                                 </select>
+                                <label>Seller:</label>
+                                <select class="form-control" id="sellerId" name="sellerId" required>
+                                    <option value="">Select seller</option>
+                                    <option th:each="seller : ${sellers}"
+                                            th:value="${seller.id}"
+                                            th:text="${seller.name}"
+                                            th:if="${seller.active}"
+                                            th:selected="${currentUser != null && currentUser.defaultSeller != null && currentUser.defaultSeller.id == seller.id}">
+                                    </option>
+                                </select>
                                 <label>Invoice date:</label>
                                 <input type="date" class="form-control"
                                        name="issueDate" required>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Seller Details</title>
+    <link rel="stylesheet" th:href="@{/css/client-form-style.css}">
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="card">
+        <h2>Edit Seller</h2>
+
+        <form th:action="@{/sellers/save}" method="post" th:object="${seller}">
+            <input type="hidden" th:field="*{id}">
+
+            <div class="form-row">
+                <label>Seller Name:</label>
+                <input type="text" th:field="*{name}" required>
+            </div>
+
+            <div class="form-row">
+                <label>Street:</label>
+                <input type="text" th:field="*{street}" required>
+            </div>
+
+            <div class="form-row">
+                <label>City:</label>
+                <input type="text" th:field="*{city}" required>
+            </div>
+
+            <div class="form-row">
+                <label>Postcode:</label>
+                <input type="text" th:field="*{postcode}" required>
+            </div>
+
+            <div class="form-row">
+                <label>Service Description:</label>
+                <input type="text" th:field="*{serviceDescription}" required>
+            </div>
+
+            <div class="form-row">
+                <label>Bank Name:</label>
+                <input type="text" th:field="*{bankName}">
+            </div>
+
+            <div class="form-row">
+                <label>Account Number:</label>
+                <input type="text" th:field="*{accountNumber}">
+            </div>
+
+            <div class="form-row">
+                <label>Sort Code:</label>
+                <input type="text" th:field="*{sortCode}">
+            </div>
+
+            <div class="form-row">
+                <label>Email:</label>
+                <input type="email" th:field="*{email}">
+            </div>
+
+            <div class="form-row">
+                <label>Phone:</label>
+                <input type="tel" th:field="*{phone}">
+            </div>
+
+            <div class="form-row">
+                <label>VAT Number:</label>
+                <input type="text" th:field="*{vatNumber}">
+            </div>
+
+            <div class="form-row">
+                <label>Tax ID:</label>
+                <input type="text" th:field="*{taxId}">
+            </div>
+
+            <div class="form-row">
+                <label>Company Registration Number:</label>
+                <input type="text" th:field="*{companyRegistrationNumber}">
+            </div>
+
+            <div class="form-row">
+                <label>Legal Form:</label>
+                <input type="text" th:field="*{legalForm}">
+            </div>
+
+            <input type="hidden" th:field="*{active}" th:value="true"/>
+
+            <div class="button-container">
+                <button type="submit" class="save-button">Save Seller</button>
+                <button type="button" class="nav-button" onclick="window.location.href='/sellers';">Back to Sellers
+                    List
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -71,12 +71,13 @@ public class BillingServiceImpl implements BillingService {
 
     @Transactional
     public InvoiceDto createInvoice(Long clientId, LocalDate issueDate, List<Long> timesheetIds) {
-        // TODO FAZA 2: Use authenticated user's defaultSeller instead of first active seller
-        Seller defaultSeller = sellerRepository.findByActiveTrue().stream()
-                .findFirst()
-                .orElseThrow(() -> new BusinessRuleViolationException("No active seller found. Please create an active seller first."));
+        // Use system default seller for CRON-generated invoices
+        Seller systemDefaultSeller = sellerRepository.findByIsSystemDefaultTrue()
+                .orElseGet(() -> sellerRepository.findByActiveTrue().stream()
+                        .findFirst()
+                        .orElseThrow(() -> new BusinessRuleViolationException("No active seller found. Please create an active seller first.")));
 
-        return invoiceCreationService.createInvoice(clientId, defaultSeller.getId(), issueDate, timesheetIds);
+        return invoiceCreationService.createInvoice(clientId, systemDefaultSeller.getId(), issueDate, timesheetIds);
     }
 
     @Transactional(readOnly = true)

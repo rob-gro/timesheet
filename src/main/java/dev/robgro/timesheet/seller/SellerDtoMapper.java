@@ -24,7 +24,8 @@ public class SellerDtoMapper implements Function<Seller, SellerDto> {
             seller.getLegalForm(),
             seller.getVatNumber(),
             seller.getTaxId(),
-            seller.isActive()
+            seller.isActive(),
+            seller.isSystemDefault()
         );
     }
 }

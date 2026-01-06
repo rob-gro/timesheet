@@ -27,6 +27,18 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<SellerDto> getAllSellers(boolean includeInactive) {
+        List<Seller> sellers = includeInactive
+                ? sellerRepository.findAllOrderByActiveAndName()
+                : sellerRepository.findAllActiveOrderByName();
+
+        return sellers.stream()
+                .map(sellerDtoMapper)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public SellerDto getSellerById(Long id) {
         return sellerDtoMapper.apply(getSellerOrThrow(id));
     }
@@ -83,6 +95,17 @@ public class SellerServiceImpl implements SellerService {
         seller.setLegalForm(dto.legalForm());
         seller.setVatNumber(dto.vatNumber());
         seller.setTaxId(dto.taxId());
+
+        // Handle system default seller logic
+        if (dto.systemDefault() && !seller.isSystemDefault()) {
+            // Clear system default from all other sellers
+            sellerRepository.findByIsSystemDefaultTrue()
+                    .ifPresent(currentDefault -> {
+                        currentDefault.setSystemDefault(false);
+                        sellerRepository.save(currentDefault);
+                    });
+        }
+        seller.setSystemDefault(dto.systemDefault());
     }
 
     @Transactional
@@ -110,13 +133,31 @@ public class SellerServiceImpl implements SellerService {
         }
     }
 
+    @Transactional
+    @Override
+    public OperationResult setActiveStatus(Long id, boolean active) {
+        try {
+            Seller seller = getSellerOrThrow(id);
+            seller.setActive(active);
+            sellerRepository.save(seller);
+
+            String action = active ? "reactivated" : "deactivated";
+            log.info("Seller with id {} has been {}", id, action);
+            return new OperationResult(true,
+                    String.format("Seller has been successfully %s", action));
+        } catch (Exception e) {
+            log.error("Failed to set active status for seller id: {}", id, e);
+            return new OperationResult(false, "Unable to update seller status");
+        }
+    }
+
     @Override
     @Transactional(readOnly = true)
     public SellerDto createEmptySellerDto() {
         return new SellerDto(
                 null, "", "", "", "", "",
                 null, null, null, null,
-                null, null, null, null, null, true
+                null, null, null, null, null, true, false
         );
     }
 }

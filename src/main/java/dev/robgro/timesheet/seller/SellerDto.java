@@ -36,5 +36,6 @@ public record SellerDto(
     String vatNumber,
     String taxId,
 
-    boolean active
+    boolean active,
+    boolean systemDefault
 ) {}

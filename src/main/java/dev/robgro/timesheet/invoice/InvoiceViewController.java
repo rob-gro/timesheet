@@ -6,9 +6,12 @@ import dev.robgro.timesheet.client.ClientService;
 import dev.robgro.timesheet.timesheet.TimesheetService;
 import dev.robgro.timesheet.seller.SellerDto;
 import dev.robgro.timesheet.seller.SellerService;
+import dev.robgro.timesheet.user.User;
+import dev.robgro.timesheet.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,14 +29,21 @@ public class InvoiceViewController {
     private final TimesheetService timesheetService;
     private final ClientService clientService;
     private final SellerService sellerService;
+    private final UserService userService;
 
     @GetMapping
-    public String showItemsForm(Model model) {
+    public String showItemsForm(Model model, Authentication authentication) {
         log.debug("Showing invoice items form");
         model.addAttribute("timesheets", getUnbilledTimesheets());
         model.addAttribute("clients", clientService.getAllClients());
         model.addAttribute("sellers", sellerService.getAllSellers());
         model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, null, List.of(), null));
+
+        // Add current user for default seller pre-selection
+        if (authentication != null) {
+            User currentUser = userService.findByUsername(authentication.getName());
+            model.addAttribute("currentUser", currentUser);
+        }
         return "invoices/items";
     }
 
