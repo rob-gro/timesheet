@@ -16,4 +16,7 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
 
     @Query("SELECT c FROM Client c WHERE c.active = true ORDER BY c.clientName ASC")
     List<Client> findAllActiveOrderByName();
+
+    @Query("SELECT c FROM Client c ORDER BY c.active DESC, c.clientName ASC")
+    List<Client> findAllOrderByActiveAndName();
 }

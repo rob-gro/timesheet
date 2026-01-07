@@ -27,6 +27,17 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ClientDto> getAllClients(boolean includeInactive) {
+        List<Client> clients = includeInactive
+                ? clientRepository.findAllOrderByActiveAndName()
+                : clientRepository.findAllActiveOrderByName();
+        return clients.stream()
+                .map(clientDtoMapper)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ClientDto getClientById(Long id) {
         return clientDtoMapper.apply(getClientOrThrow(id));
     }
@@ -100,6 +111,22 @@ public class ClientServiceImpl implements ClientService {
         } catch (Exception e) {
             log.error("Failed to deactivate client with id: {}", id, e);
             return new OperationResult(false, "Unable to deactivate client");
+        }
+    }
+
+    @Transactional
+    @Override
+    public OperationResult setActiveStatus(Long id, boolean active) {
+        try {
+            Client client = getClientOrThrow(id);
+            client.setActive(active);
+            clientRepository.save(client);
+            String action = active ? "reactivated" : "deactivated";
+            log.info("Client {} has been {}", id, action);
+            return new OperationResult(true, "Client has been successfully " + action);
+        } catch (Exception e) {
+            log.error("Failed to set active status for client {}", id, e);
+            return new OperationResult(false, "Unable to update client status");
         }
     }
 

@@ -19,5 +19,9 @@ public interface ClientService {
 
     OperationResult deactivateClient(Long id);
 
+    OperationResult setActiveStatus(Long id, boolean active);
+
+    List<ClientDto> getAllClients(boolean includeInactive);
+
     ClientDto createEmptyClientDto();
 }

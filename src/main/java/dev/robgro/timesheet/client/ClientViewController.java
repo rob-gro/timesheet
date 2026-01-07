@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,8 +20,10 @@ public class ClientViewController {
     private final ClientService clientService;
 
     @GetMapping
-    public String showClientList(Model model) {
-        model.addAttribute("clients", clientService.getAllClients());
+    public String showClientList(Model model, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        model.addAttribute("clients", clientService.getAllClients(isAdmin));
         return "clients/list";
     }
 
@@ -52,6 +55,20 @@ public class ClientViewController {
     public String deleteClient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         log.info("Deactivating client ID: {}", id);
         OperationResult result = clientService.deactivateClient(id);
+        redirectAttributes.addFlashAttribute(result.success() ? "success" : "error", result.message());
+        return "redirect:/clients";
+    }
+
+    @PostMapping("/{id}/activate")
+    public String activateClient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        OperationResult result = clientService.setActiveStatus(id, true);
+        redirectAttributes.addFlashAttribute(result.success() ? "success" : "error", result.message());
+        return "redirect:/clients";
+    }
+
+    @PostMapping("/{id}/deactivate")
+    public String deactivateClient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        OperationResult result = clientService.setActiveStatus(id, false);
         redirectAttributes.addFlashAttribute(result.success() ? "success" : "error", result.message());
         return "redirect:/clients";
     }
