@@ -7,7 +7,7 @@ The **Timesheet** application is designed for managing work hours and automatica
 
 - **Timesheet Creation**: Employees record their working hours in the application, which allows tracking of worked time.
 - **Invoice Generation**: Based on the timesheets, invoices are automatically generated and sent to the client's email.
-- **Automated Monthly Invoicing**: Configurable CRON scheduler that automatically generates invoices for all clients on the 3rd day of each month, creates PDFs, uploads to FTP, and sends email notifications with admin summary reports.
+- **Automated Monthly Invoicing**: Configurable CRON scheduler that automatically generates invoices for all clients on the 1st day of each month, creates PDFs, uploads to FTP, and sends email notifications with admin summary reports.
 - **Payment Statuses**: Ability to enter payment statuses for completed services, which allows easy tracking of unpaid invoices.
 - **Reporting**: At the end of the fiscal year, reports for accounting are generated, containing all the necessary data for settlements.
 - **Security**: The application uses JWT (JSON Web Tokens) for user authorization and security.
