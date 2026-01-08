@@ -41,7 +41,7 @@
                         </a>
                         <a th:href="@{/clients}"
                            class="nav-button text-center text-decoration-none"
-                           sec:authorize="hasRole('ADMIN')">
+                           sec:authorize="hasAnyRole('ADMIN', 'USER')">
                             Clients
                         </a>
                         <a th:href="@{/sellers}"
