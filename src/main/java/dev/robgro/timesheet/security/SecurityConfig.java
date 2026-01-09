@@ -86,12 +86,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/track/**").permitAll() // Email tracking pixel (public)
 
                         // API endpoints - access levels
-                        .requestMatchers("/api/v1/clients/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/clients/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/invoices/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/timesheets/**").hasAnyRole("ADMIN", "USER", "GUEST")
 
                         // Web UI endpoints
-                        .requestMatchers("/clients/**").hasRole("ADMIN")
+                        .requestMatchers("/clients/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/invoices/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/timesheets/**").hasAnyRole("ADMIN", "USER", "GUEST")
 
