@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -146,9 +147,52 @@ public class UserServiceImpl implements UserService {
 
         String tempPassword = generateRandomPassword();
         user.setPassword(passwordEncoder.encode(tempPassword));
+        user.setRequiresPasswordChange(true);
+        user.setTempPasswordExpiresAt(LocalDateTime.now().plusMinutes(30));
 
         userRepository.save(user);
+        log.info("Password reset for user {}, temp password expires in 30 minutes", id);
         return tempPassword;
+    }
+
+    @Override
+    @Transactional
+    public void changePasswordAfterReset(String username, PasswordChangeRequiredDto passwordDto) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + username));
+
+        // Check if user requires password change
+        if (!user.isRequiresPasswordChange()) {
+            throw new IllegalStateException("User does not require password change");
+        }
+
+        // Check if temporary password has expired
+        if (user.getTempPasswordExpiresAt() == null || LocalDateTime.now().isAfter(user.getTempPasswordExpiresAt())) {
+            throw new IllegalStateException("Temporary password has expired. Please request a new password reset from administrator");
+        }
+
+        // Verify current (temporary) password
+        if (!passwordEncoder.matches(passwordDto.currentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        // Verify new password confirmation
+        if (!passwordDto.newPassword().equals(passwordDto.confirmPassword())) {
+            throw new IllegalArgumentException("New password and confirmation do not match");
+        }
+
+        // Set new password and clear temporary flags
+        user.setPassword(passwordEncoder.encode(passwordDto.newPassword()));
+        user.setRequiresPasswordChange(false);
+        user.setTempPasswordExpiresAt(null);
+        user.setLastPasswordChangedAt(LocalDateTime.now());
+
+        // Increment token version to invalidate all JWT tokens
+        user.setTokenVersion(user.getTokenVersion() + 1);
+
+        userRepository.save(user);
+        log.info("Password successfully changed for user {}, token version incremented to {}",
+                username, user.getTokenVersion());
     }
 
     @Override

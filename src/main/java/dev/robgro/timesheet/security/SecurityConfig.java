@@ -33,6 +33,8 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationSuccessHandler successHandler;
+    private final PasswordChangeRequiredFilter passwordChangeRequiredFilter;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -76,14 +78,15 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // Public endpoints - Web UI
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/change-password-required").permitAll() // Web form for password change
                         .requestMatchers("/manifest/**", "/icons/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Public endpoints - API (explicit, no wildcards)
+                        .requestMatchers("/api/auth/login").permitAll() // Only JWT login is public
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/track/**").permitAll() // Email tracking pixel (public)
+                        .requestMatchers("/api/track/**").permitAll() // Email tracking pixel
 
                         // API endpoints - access levels
                         .requestMatchers("/api/v1/clients/**").hasAnyRole("ADMIN", "USER")
@@ -99,7 +102,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
+                        .successHandler(successHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -112,6 +115,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(passwordChangeRequiredFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .build();
     }

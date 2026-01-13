@@ -33,6 +33,8 @@ public interface UserService {
     @Transactional
     String resetPassword(Long id);
 
+    void changePasswordAfterReset(String username, PasswordChangeRequiredDto passwordDto);
+
     User findByUsername(String username);
 
     void setDefaultSeller(Long userId, Long sellerId);

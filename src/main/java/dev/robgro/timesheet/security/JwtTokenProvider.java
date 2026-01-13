@@ -39,7 +39,7 @@ public class JwtTokenProvider {
     }
 
     public String createToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
 
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -49,8 +49,10 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
+                .setSubject(principal.getUsername())
                 .claim("auth", authorities)
+                .claim("userId", principal.getUserId())
+                .claim("tv", principal.getTokenVersion()) // Token version
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS512)
@@ -72,6 +74,11 @@ public class JwtTokenProvider {
 
     public String getUsername(String token) {
         return getClaims(token).getSubject();
+    }
+
+    public Integer getTokenVersionFromToken(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("tv", Integer.class);
     }
 
     public boolean validateToken(String token) {

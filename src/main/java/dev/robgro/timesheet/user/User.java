@@ -5,6 +5,7 @@ import dev.robgro.timesheet.seller.Seller;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,6 +29,18 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "default_seller_id")
     private Seller defaultSeller;
+
+    @Column(name = "requires_password_change", nullable = false)
+    private boolean requiresPasswordChange = false;
+
+    @Column(name = "temp_password_expires_at")
+    private LocalDateTime tempPasswordExpiresAt;
+
+    @Column(name = "last_password_changed_at")
+    private LocalDateTime lastPasswordChangedAt;
+
+    @Column(name = "token_version", nullable = false)
+    private Integer tokenVersion = 1;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
