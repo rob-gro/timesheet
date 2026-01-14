@@ -26,6 +26,9 @@ public class PasswordResetEmailService {
     @Value("${app.base-url}")
     private String baseUrl;
 
+    @Value("${app.email.from:noreply@robgro.dev}")
+    private String emailFrom;
+
     @Value("${app.support.email:contact@robgro.dev}")
     private String supportEmail;
 
@@ -62,7 +65,7 @@ public class PasswordResetEmailService {
         MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
 
         helper.setTo(recipientEmail);
-        helper.setFrom(supportEmail);
+        helper.setFrom(emailFrom);  // noreply@robgro.dev
         helper.setSubject("Password Reset - Timesheet App");
         helper.setText(emailContent, true);  // true = HTML content
 
