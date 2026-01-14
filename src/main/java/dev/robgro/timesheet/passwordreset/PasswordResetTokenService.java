@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,7 @@ public class PasswordResetTokenService {
     private final PasswordResetTokenRepository tokenRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SessionRegistry sessionRegistry;
 
     @Value("${app.password-reset.token-ttl-minutes:30}")
     private int tokenTtlMinutes;
@@ -188,8 +191,14 @@ public class PasswordResetTokenService {
         token.setUsedAt(LocalDateTime.now());
         tokenRepository.save(token);
 
-        log.info("Password reset successful for user {} (token requested by {})",
-                 user.getUsername(), token.getRequestedBy());
+        // Invalidate all web sessions for this user
+        // CRITICAL: principal must be username (String) for this to work
+        // If using custom UserDetails, verify principal.equals() works correctly
+        List<SessionInformation> sessions = sessionRegistry.getAllSessions(user.getUsername(), false);
+        sessions.forEach(SessionInformation::expireNow);
+
+        log.info("Password reset successful for user {} (token requested by {}) - {} sessions invalidated",
+                 user.getUsername(), token.getRequestedBy(), sessions.size());
     }
 
     /**
