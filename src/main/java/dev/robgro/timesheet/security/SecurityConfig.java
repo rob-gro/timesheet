@@ -81,10 +81,13 @@ public class SecurityConfig {
                         // Public endpoints - Web UI
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/change-password-required").permitAll() // Web form for password change
+                        .requestMatchers("/forgot-password", "/reset-password").permitAll() // Password reset flow
                         .requestMatchers("/manifest/**", "/icons/**").permitAll()
 
                         // Public endpoints - API (explicit, no wildcards)
                         .requestMatchers("/api/auth/login").permitAll() // Only JWT login is public
+                        .requestMatchers("/api/auth/forgot-password").permitAll() // Password reset request
+                        .requestMatchers("/api/auth/reset-password").permitAll() // Password reset submit
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/track/**").permitAll() // Email tracking pixel
 
