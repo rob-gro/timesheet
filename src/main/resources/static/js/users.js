@@ -81,7 +81,7 @@ function renderUsersTable(users) {
         const buttons = [
             {text: 'Edit', class: 'save-button', onClick: () => showEditUserForm(user.id)},
             {text: 'Password', class: 'save-button', onClick: () => showPasswordForm(user.id)},
-            {text: 'Reset Pass', class: 'save-button', onClick: () => resetUserPassword(user.id)},
+            {text: 'Email Reset', class: 'save-button', onClick: () => resetPassword(user.id)},
             {text: 'Roles', class: 'save-button', onClick: () => showRolesForm(user.id)},
             {
                 text: user.active ? 'Deactivate' : 'Activate',
@@ -312,6 +312,39 @@ function toggleUserActive(userId, active) {
         });
 }
 
+/**
+ * Send password reset email (new flow - Step 10)
+ * Uses token-based reset link instead of temporary password
+ */
+function resetPassword(userId) {
+    if (confirm('Send password reset email to this user?')) {
+        const csrfToken = getCsrfToken();
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+        fetch(`/api/admin/users/${userId}/reset-password`, {
+            method: 'POST',
+            headers: { [csrfHeader]: csrfToken }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('✓ ' + data.message);
+            }
+            loadUsers();
+        })
+        .catch(error => {
+            console.error('Reset password error:', error);
+            alert('Failed to send reset email. Check console.');
+        });
+    }
+}
+
+/**
+ * Reset user password with temporary password (legacy flow)
+ * DEPRECATED: Use resetPassword() for new token-based flow
+ */
 function resetUserPassword(userId) {
     if (confirm('Are you sure you want to reset this user\'s password? The temporary password will be displayed only once.')) {
         fetch(`${API_BASE_URL}/${userId}/reset-password`, {
