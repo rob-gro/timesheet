@@ -37,6 +37,7 @@ public class EmailMessageService {
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setTo(request.recipientEmail());
+        helper.setFrom("invoice.aga.cleaning@gmail.com");  // Explicit FROM for invoices
         helper.setCc(request.ccEmail());
         helper.setSubject("Invoice " + request.invoiceNumber() + " from Aga");
 
