@@ -33,12 +33,28 @@ public class User {
     @Column(name = "requires_password_change", nullable = false)
     private boolean requiresPasswordChange = false;
 
+    /**
+     * @deprecated Legacy field for old temp password flow. Will be removed in future version.
+     * New password reset flow uses PasswordResetToken table instead.
+     */
+    @Deprecated
     @Column(name = "temp_password_expires_at")
     private LocalDateTime tempPasswordExpiresAt;
 
     @Column(name = "last_password_changed_at")
     private LocalDateTime lastPasswordChangedAt;
 
+    /**
+     * Timestamp of last successful password reset via token link.
+     * Used for audit trail.
+     */
+    @Column(name = "last_password_reset_at")
+    private LocalDateTime lastPasswordResetAt;
+
+    /**
+     * Token version for JWT invalidation.
+     * Incremented when password is reset to invalidate all existing JWTs.
+     */
     @Column(name = "token_version", nullable = false)
     private Integer tokenVersion = 1;
 
