@@ -30,9 +30,6 @@ public class User {
     @JoinColumn(name = "default_seller_id")
     private Seller defaultSeller;
 
-    @Column(name = "last_password_changed_at")
-    private LocalDateTime lastPasswordChangedAt;
-
     /**
      * Timestamp of last successful password reset via token link.
      * Used for audit trail.
