@@ -14,7 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Slf4j
 @Controller
 @RequestMapping("/clients")
-@PreAuthorize("hasAnyRole('ADMIN','USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'USER')")
 @RequiredArgsConstructor
 public class ClientViewController {
     private final ClientService clientService;

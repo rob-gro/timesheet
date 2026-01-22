@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -25,7 +26,11 @@ public class EmailMessageService {
     @Value("${app.base-url}")
     private String baseUrl;
 
-    public EmailMessageService(JavaMailSender emailSender) {
+    /**
+     * Uses Gmail SMTP bean for invoice emails
+     * TO REMOVE IN FUTURE: Remove @Qualifier when migrating to unified SMTP
+     */
+    public EmailMessageService(@Qualifier("gmailMailSender") JavaMailSender emailSender) {
         this.emailSender = emailSender;
     }
 

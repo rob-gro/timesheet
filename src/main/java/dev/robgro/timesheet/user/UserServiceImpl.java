@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -123,32 +124,6 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-    }
-
-    private String generateRandomPassword() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-
-        for (int i = 0; i < 10; i++) {
-            int index = random.nextInt(chars.length());
-            sb.append(chars.charAt(index));
-        }
-
-        return sb.toString();
-    }
-
-    @Transactional
-    @Override
-    public String resetPassword(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User ", id));
-
-        String tempPassword = generateRandomPassword();
-        user.setPassword(passwordEncoder.encode(tempPassword));
-
-        userRepository.save(user);
-        return tempPassword;
     }
 
     @Override

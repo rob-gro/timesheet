@@ -12,6 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -19,6 +21,7 @@ import org.springframework.security.web.header.writers.PermissionsPolicyHeaderWr
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,6 +36,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationSuccessHandler successHandler;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -76,14 +80,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // Public endpoints - Web UI
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/forgot-password", "/reset-password").permitAll() // Password reset flow
                         .requestMatchers("/manifest/**", "/icons/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Public endpoints - API (explicit, no wildcards)
+                        .requestMatchers("/api/auth/login").permitAll() // Only JWT login is public
+                        .requestMatchers("/api/auth/forgot-password").permitAll() // Password reset request
+                        .requestMatchers("/api/auth/reset-password").permitAll() // Password reset submit
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/track/**").permitAll() // Email tracking pixel (public)
+                        .requestMatchers("/api/track/**").permitAll() // Email tracking pixel
 
                         // API endpoints - access levels
                         .requestMatchers("/api/v1/clients/**").hasAnyRole("ADMIN", "USER")
@@ -99,17 +106,21 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
+                        .successHandler(successHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/")
+                        .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
                 )
-                // API JWT config
+                // API JWT config + session tracking
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(10)  // Allow multiple sessions per user
+                                .sessionRegistry(sessionRegistry())
+                                .maxSessionsPreventsLogin(false)  // Allow new login, expire oldest
+                                .expiredUrl("/login?expired=true")  // Redirect when session expired
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
@@ -132,5 +143,23 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * SessionRegistry for tracking active user sessions.
+     * Required for session invalidation on password reset.
+     */
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    /**
+     * HttpSessionEventPublisher for SessionRegistry to work correctly.
+     * CRITICAL: Without this, SessionRegistry won't track sessions.
+     */
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 }

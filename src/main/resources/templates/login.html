@@ -5,55 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Timesheet Management</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        @media (max-width: 768px) {
-            .card {
-                width: 95% !important;
-                margin: 10px auto !important;
-            }
-            form {
-                max-width: 100% !important;
-                padding: 0 15px !important;
-                display: flex;
-                box-sizing: border-box;
-                flex-direction: column;
-                align-items: center;
-            }
-        }
-
-        .form-row {
-            max-width: 280px;
-            margin: 0 auto 20px auto;
-        }
-
-        .form-control {
-            width: 100%;
-        }
-
-        .container .card .form-control {
-            width: 100% !important;
-            max-width: none !important;
-            box-sizing: border-box !important;
-            padding: 8px 12px !important;
-            margin: 0 !important;
-            border: 1px solid #ccc !important;
-        }
-
-        .container .card form {
-            max-width: 400px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container .card .nav-button {
-            width: 280px !important;
-            margin-bottom: 20px;
-        }
-    </style>
 </head>
-<body>
+<body class="login-page">
 <div class="container mt-5">
     <div class="card">
         <div class="container my-auto mx-auto">
@@ -66,13 +19,18 @@
                 <p th:text="${message}">Success message</p>
             </div>
 
-            <form th:action="@{/login}" method="post" style="max-width: 400px; margin: 0 auto;">
-                <div class="form-row" style="width: 280px; margin: 0 auto 20px auto;">
+            <!-- Password Reset Success Message -->
+            <div th:if="${param.resetSuccess}" class="alert alert-info">
+                Password updated successfully. Please login with your new password.
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="form-row">
                     <label for="username">Username:</label>
                     <input type="text" id="username" name="username" class="form-control" required autofocus>
                 </div>
 
-                <div class="form-row" style="width: 280px; margin: 0 auto 20px auto;">
+                <div class="form-row">
                     <label for="password">Password:</label>
                     <input type="password" id="password" name="password" class="form-control" required>
                 </div>
@@ -80,9 +38,13 @@
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
                 <div class="button-container">
-                    <button type="submit" class="nav-button" style="width: 40%; margin-bottom: 20px;">Login</button>
+                    <button type="submit" class="nav-button">Login</button>
                 </div>
             </form>
+
+            <div class="forgot-password-container">
+                <a th:href="@{/forgot-password}" class="forgot-password-button">🔑 Forgot Password?</a>
+            </div>
         </div>
     </div>
 </div>

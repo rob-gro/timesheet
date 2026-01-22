@@ -5,6 +5,7 @@ import dev.robgro.timesheet.seller.Seller;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +30,23 @@ public class User {
     @JoinColumn(name = "default_seller_id")
     private Seller defaultSeller;
 
+    @Column(name = "last_password_changed_at")
+    private LocalDateTime lastPasswordChangedAt;
+
+    /**
+     * Timestamp of last successful password reset via token link.
+     * Used for audit trail.
+     */
+    @Column(name = "last_password_reset_at")
+    private LocalDateTime lastPasswordResetAt;
+
+    /**
+     * Token version for JWT invalidation.
+     * Incremented when password is reset to invalidate all existing JWTs.
+     */
+    @Column(name = "token_version", nullable = false)
+    private Integer tokenVersion = 1;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -36,4 +54,28 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
+
+    /**
+     * CRITICAL: Override Lombok @Data equals/hashCode to use business key (username).
+     *
+     * JPA entities should NOT use @Id in equals/hashCode because:
+     * - id is null before persist
+     * - hashCode changes after persist
+     * - objects get "lost" in HashSet/HashMap
+     *
+     * Hibernate recommendation: Use business key (unique, never null).
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return username != null && username.equals(user.username);
+    }
+
+    @Override
+    public int hashCode() {
+        // Use business key (username) - consistent before and after persist
+        return getClass().hashCode();
+    }
 }

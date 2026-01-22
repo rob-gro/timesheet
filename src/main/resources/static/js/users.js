@@ -81,7 +81,7 @@ function renderUsersTable(users) {
         const buttons = [
             {text: 'Edit', class: 'save-button', onClick: () => showEditUserForm(user.id)},
             {text: 'Password', class: 'save-button', onClick: () => showPasswordForm(user.id)},
-            {text: 'Reset Pass', class: 'save-button', onClick: () => resetUserPassword(user.id)},
+            {text: 'Email Reset', class: 'save-button', onClick: () => resetPassword(user.id)},
             {text: 'Roles', class: 'save-button', onClick: () => showRolesForm(user.id)},
             {
                 text: user.active ? 'Deactivate' : 'Activate',
@@ -312,43 +312,32 @@ function toggleUserActive(userId, active) {
         });
 }
 
-function resetUserPassword(userId) {
-    if (confirm('Are you sure you want to reset this user\'s password? The temporary password will be displayed only once.')) {
-        fetch(`${API_BASE_URL}/${userId}/reset-password`, {
-            method: 'PUT'
+/**
+ * Send password reset email (new flow - Step 10)
+ * Uses token-based reset link instead of temporary password
+ */
+function resetPassword(userId) {
+    if (confirm('Send password reset email to this user?')) {
+        const csrfToken = getCsrfToken();
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+        fetch(`/api/admin/users/${userId}/reset-password`, {
+            method: 'POST',
+            headers: { [csrfHeader]: csrfToken }
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to reset password');
-                }
-                return response.json();
-            })
-            .then(data => {
-                const tempPassword = data.tempPassword;
-
-                const modal = document.createElement('div');
-                modal.className = 'modal';
-
-                modal.innerHTML = `
-                    <h3>Temporary Password for ${data.username}</h3>
-                    <p>The new password is:</p>
-                    <div class="password-container">${tempPassword}</div>
-                    <p class="warning">
-                        Please copy this password now. It will not be shown again.<br>
-                        <span>SECURITY WARNING: Instruct the user to change this password immediately after first login!</span>
-                    </p>
-                    <button id="closeModal">Close</button>
-                `;
-
-                document.body.appendChild(modal);
-
-                document.getElementById('closeModal').addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                });
-            })
-            .catch(error => {
-                console.error('Error resetting password:', error);
-                alert('Failed to reset password. Please try again.');
-            });
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('✓ ' + data.message);
+            }
+            loadUsers();
+        })
+        .catch(error => {
+            console.error('Reset password error:', error);
+            alert('Failed to send reset email. Check console.');
+        });
     }
 }
+

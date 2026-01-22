@@ -89,23 +89,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Reset user password")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password reset successfully"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
-    @PutMapping("/{id}/reset-password")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> resetPassword(@PathVariable Long id) {
-        UserDto user = userService.getUserById(id);
-        String tempPassword = userService.resetPassword(id);
-        return ResponseEntity.ok(Map.of(
-                "tempPassword", tempPassword,
-                "username", user.username(),
-                "message", "Password has been reset. Please ensure the user changes it immediately."
-        ));
-    }
-
     @Operation(summary = "Update user roles")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Roles updated successfully"),

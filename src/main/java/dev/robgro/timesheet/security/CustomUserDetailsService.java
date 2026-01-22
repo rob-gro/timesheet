@@ -45,19 +45,19 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.debug("Authorities (count): {}", authorities.size());
         authorities.forEach(auth -> log.debug("Authority: {}", auth.getAuthority()));
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .authorities(authorities)
-                .accountExpired(false)
-                .accountLocked(false)
-                .credentialsExpired(false)
-                .disabled(!user.isActive())
-                .build();
+        CustomUserPrincipal principal = new CustomUserPrincipal(
+                user.getId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getTokenVersion(),
+                authorities,
+                user.isActive()
+        );
 
-        log.debug("Created UserDetails: {}", userDetails);
+        log.debug("Created CustomUserPrincipal for user: {}, tokenVersion: {}",
+                user.getUsername(), user.getTokenVersion());
 
-        return userDetails;
+        return principal;
     }
 
     private Collection<SimpleGrantedAuthority> getAuthorities(Set<Role> roles) {
