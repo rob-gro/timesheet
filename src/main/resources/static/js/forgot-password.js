@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('forgotPasswordForm');
     const errorDiv = document.getElementById('errorMessage');
     const successDiv = document.getElementById('successMessage');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
 
     // Get CSRF token from meta tags
     const csrfToken = document.querySelector('meta[name="_csrf"]').content;
@@ -18,6 +20,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         errorDiv.style.display = 'none';
         successDiv.style.display = 'none';
+
+        // Disable button and show loading state
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
 
         const email = document.getElementById('email').value;
 
@@ -42,6 +48,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error:', error);
             showError('An error occurred. Please try again.');
+        } finally {
+            // Re-enable button and restore original text
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
         }
     });
 

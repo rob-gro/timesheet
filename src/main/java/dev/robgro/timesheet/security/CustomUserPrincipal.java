@@ -12,7 +12,6 @@ public class CustomUserPrincipal implements UserDetails {
     private final Long userId;
     private final String username;
     private final String password;
-    private final boolean requiresPasswordChange;
     private final Integer tokenVersion;
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean accountNonExpired;
@@ -24,7 +23,6 @@ public class CustomUserPrincipal implements UserDetails {
             Long userId,
             String username,
             String password,
-            boolean requiresPasswordChange,
             Integer tokenVersion,
             Collection<? extends GrantedAuthority> authorities,
             boolean enabled) {
@@ -32,7 +30,6 @@ public class CustomUserPrincipal implements UserDetails {
         this.userId = userId;
         this.username = username;
         this.password = password;
-        this.requiresPasswordChange = requiresPasswordChange;
         this.tokenVersion = tokenVersion;
         this.authorities = authorities;
         this.enabled = enabled;
@@ -74,5 +71,47 @@ public class CustomUserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    /**
+     * CRITICAL for SessionRegistry.getAllSessions() to work!
+     * SessionRegistry compares principals using equals().
+     * We compare by username (unique identifier).
+     *
+     * This allows:
+     * - sessionRegistry.getAllSessions(user.getUsername(), false) to work with String
+     * - sessionRegistry.getAllSessions(principal, false) to work with CustomUserPrincipal
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+
+        // Support comparison with String (username)
+        if (obj instanceof String) {
+            return username.equals(obj);
+        }
+
+        // Support comparison with other CustomUserPrincipal
+        if (obj instanceof CustomUserPrincipal other) {
+            return username.equals(other.username);
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        // Hash based on username only (for SessionRegistry lookups)
+        return username != null ? username.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "CustomUserPrincipal{" +
+               "username='" + username + '\'' +
+               ", userId=" + userId +
+               ", tokenVersion=" + tokenVersion +
+               '}';
     }
 }

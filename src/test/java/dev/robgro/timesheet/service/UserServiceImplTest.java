@@ -361,41 +361,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void resetPassword_WhenUserExists_ShouldResetPasswordAndReturnTempPassword() {
-        // Given
-        String encodedTempPassword = "encodedTempPassword";
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.encode(anyString())).thenReturn(encodedTempPassword);
-
-        // When
-        String tempPassword = userService.resetPassword(1L);
-
-        // Then
-        assertThat(tempPassword)
-                .isNotNull()
-                .hasSize(10);
-        verify(userRepository).findById(1L);
-        verify(passwordEncoder).encode(tempPassword);
-        verify(userRepository).save(testUser);
-        assertThat(testUser.getPassword()).isEqualTo(encodedTempPassword);
-    }
-
-    @Test
-    void resetPassword_WhenUserNotExists_ShouldThrowEntityNotFoundException() {
-        // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> userService.resetPassword(1L))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("User ")
-                .hasMessageContaining("1");
-
-        verify(userRepository).findById(1L);
-        verifyNoInteractions(passwordEncoder);
-    }
-
-    @Test
     void updateUserRoles_ShouldUpdateRolesSuccessfully() {
         // Given
         Set<String> roleNames = Set.of("ROLE_ADMIN", "ROLE_USER");

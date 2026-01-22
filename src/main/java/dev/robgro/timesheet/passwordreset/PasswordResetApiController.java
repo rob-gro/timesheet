@@ -42,7 +42,7 @@ public class PasswordResetApiController {
     /**
      * Admin-initiated password reset.
      * No rate limiting by design (ADMIN role required, fully audited).
-     *
+     * <p>
      * WARNING: If this endpoint is ever made public or accessible to
      * non-admin roles, add rate limiting immediately!
      *
@@ -59,6 +59,13 @@ public class PasswordResetApiController {
         try {
             User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User", userId));
+
+            // Validate user has email address
+            if (user.getEmail() == null || user.getEmail().isBlank()) {
+                log.warn("Admin attempted password reset for user without email: userId={}", userId);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Cannot send password reset - user has no email address"));
+            }
 
             String ip = getClientIp(request);
             String userAgent = request.getHeader("User-Agent");
@@ -110,13 +117,14 @@ public class PasswordResetApiController {
         if (rateLimitService.isRateLimited(ip, emailHash)) {
             log.warn("Rate limit exceeded for forgot password: ip={}, emailHash={}", ip, emailHash);
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(Map.of("error", "Too many requests. Please try again later."));
+                .body(Map.of("error", "Too many requests. Please try again in 5 minutes."));
         }
 
         rateLimitService.recordAttempt(ip, emailHash);
 
-        // Generic response (anti-enumeration)
-        String genericMessage = "If that email exists in our system, a reset link has been sent.";
+        // Generic response (anti-enumeration with helpful hint)
+        String genericMessage = "If that email exists in our system, a reset link has been sent. " +
+                                "If you don't receive an email within 5 minutes, please check the email address and try again.";
 
         try {
             Optional<User> userOpt = userRepository.findByEmailIgnoreCase(dto.email());

@@ -30,17 +30,6 @@ public class User {
     @JoinColumn(name = "default_seller_id")
     private Seller defaultSeller;
 
-    @Column(name = "requires_password_change", nullable = false)
-    private boolean requiresPasswordChange = false;
-
-    /**
-     * @deprecated Legacy field for old temp password flow. Will be removed in future version.
-     * New password reset flow uses PasswordResetToken table instead.
-     */
-    @Deprecated
-    @Column(name = "temp_password_expires_at")
-    private LocalDateTime tempPasswordExpiresAt;
-
     @Column(name = "last_password_changed_at")
     private LocalDateTime lastPasswordChangedAt;
 
@@ -65,4 +54,28 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
+
+    /**
+     * CRITICAL: Override Lombok @Data equals/hashCode to use business key (username).
+     *
+     * JPA entities should NOT use @Id in equals/hashCode because:
+     * - id is null before persist
+     * - hashCode changes after persist
+     * - objects get "lost" in HashSet/HashMap
+     *
+     * Hibernate recommendation: Use business key (unique, never null).
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return username != null && username.equals(user.username);
+    }
+
+    @Override
+    public int hashCode() {
+        // Use business key (username) - consistent before and after persist
+        return getClass().hashCode();
+    }
 }

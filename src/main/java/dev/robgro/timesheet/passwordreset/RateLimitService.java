@@ -28,7 +28,7 @@ public class RateLimitService {
 
     private static final int MAX_IP_ATTEMPTS = 5;
     private static final int MAX_EMAIL_ATTEMPTS = 3;
-    private static final long ONE_HOUR_MS = 60 * 60 * 1000;
+    private static final long RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
     /**
      * Check if request is rate limited.
@@ -64,7 +64,7 @@ public class RateLimitService {
         long now = System.currentTimeMillis();
 
         // Remove expired attempts (synchronized list handles concurrent modifications)
-        attempts.removeIf(timestamp -> now - timestamp > ONE_HOUR_MS);
+        attempts.removeIf(timestamp -> now - timestamp > RATE_LIMIT_WINDOW_MS);
 
         return attempts.size() >= maxAttempts;
     }
@@ -88,10 +88,10 @@ public class RateLimitService {
         long now = System.currentTimeMillis();
 
         ipAttempts.forEach((key, attempts) ->
-            attempts.removeIf(timestamp -> now - timestamp > ONE_HOUR_MS));
+            attempts.removeIf(timestamp -> now - timestamp > RATE_LIMIT_WINDOW_MS));
 
         emailHashAttempts.forEach((key, attempts) ->
-            attempts.removeIf(timestamp -> now - timestamp > ONE_HOUR_MS));
+            attempts.removeIf(timestamp -> now - timestamp > RATE_LIMIT_WINDOW_MS));
 
         log.debug("Rate limit cache cleaned up");
     }

@@ -23,6 +23,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Service for password reset token management.
@@ -70,7 +72,7 @@ public class PasswordResetTokenService {
             byte[] hash = digest.digest(plainToken.getBytes(StandardCharsets.UTF_8));
             return Hex.encodeHexString(hash);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not available", e);
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
         }
     }
 
@@ -192,10 +194,36 @@ public class PasswordResetTokenService {
         tokenRepository.save(token);
 
         // Invalidate all web sessions for this user
-        // CRITICAL: principal must be username (String) for this to work
-        // If using custom UserDetails, verify principal.equals() works correctly
-        List<SessionInformation> sessions = sessionRegistry.getAllSessions(user.getUsername(), false);
-        sessions.forEach(SessionInformation::expireNow);
+        // CRITICAL: SessionRegistry uses HashMap lookup - need matching principal object, not String!
+
+        // DEBUG: Check what principals are registered (production-clean: count + types only)
+        List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
+        log.debug("SessionRegistry contains {} principals", allPrincipals.size());
+
+        if (log.isDebugEnabled() && !allPrincipals.isEmpty()) {
+            Map<String, Long> principalTypes = allPrincipals.stream()
+                .collect(Collectors.groupingBy(p -> p.getClass().getSimpleName(), Collectors.counting()));
+            log.debug("Principal types: {}", principalTypes);
+        }
+
+        // Find matching principal from registry (CRITICAL for hashCode-based lookup)
+        Object matchingPrincipal = allPrincipals.stream()
+            .filter(p -> p instanceof dev.robgro.timesheet.security.CustomUserPrincipal &&
+                         ((dev.robgro.timesheet.security.CustomUserPrincipal)p).getUsername().equals(user.getUsername()))
+            .findFirst()
+            .orElse(null);
+
+        // Fallback to String if CustomUserPrincipal not found (some configs store String)
+        Object queryPrincipal = matchingPrincipal != null ? matchingPrincipal : user.getUsername();
+        List<SessionInformation> sessions = sessionRegistry.getAllSessions(queryPrincipal, false);
+
+        log.info("Found {} active sessions for username: {}", sessions.size(), user.getUsername());
+
+        sessions.forEach(session -> {
+            log.info("Invalidating session: {} (principal: {})",
+                     session.getSessionId(), session.getPrincipal());
+            session.expireNow();
+        });
 
         log.info("Password reset successful for user {} (token requested by {}) - {} sessions invalidated",
                  user.getUsername(), token.getRequestedBy(), sessions.size());
@@ -210,7 +238,7 @@ public class PasswordResetTokenService {
      * @param userId User ID
      */
     @Transactional
-    public void invalidateUserTokens(Long userId) {
+    void invalidateUserTokens(Long userId) {
         List<PasswordResetToken> tokens = tokenRepository.findByUserIdAndUsedAtIsNull(userId);
         LocalDateTime now = LocalDateTime.now();
         tokens.forEach(t -> t.setUsedAt(now));

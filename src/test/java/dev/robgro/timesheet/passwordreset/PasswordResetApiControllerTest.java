@@ -151,7 +151,7 @@ class PasswordResetApiControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsEntry(
                 "message",
-                "If that email exists in our system, a reset link has been sent."
+                "If that email exists in our system, a reset link has been sent. If you don't receive an email within 5 minutes, please check the email address and try again."
         );
 
         verify(rateLimitService).recordAttempt(anyString(), anyString());
@@ -181,7 +181,7 @@ class PasswordResetApiControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsEntry(
                 "message",
-                "If that email exists in our system, a reset link has been sent."
+                "If that email exists in our system, a reset link has been sent. If you don't receive an email within 5 minutes, please check the email address and try again."
         );
 
         verify(rateLimitService).recordAttempt(anyString(), anyString());
@@ -230,7 +230,7 @@ class PasswordResetApiControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsEntry(
                 "message",
-                "If that email exists in our system, a reset link has been sent."
+                "If that email exists in our system, a reset link has been sent. If you don't receive an email within 5 minutes, please check the email address and try again."
         );
     }
 

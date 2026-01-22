@@ -89,47 +89,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Reset user password")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password reset successfully"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
-    @PutMapping("/{id}/reset-password")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> resetPassword(@PathVariable Long id) {
-        UserDto user = userService.getUserById(id);
-        String tempPassword = userService.resetPassword(id);
-        return ResponseEntity.ok(Map.of(
-                "tempPassword", tempPassword,
-                "username", user.username(),
-                "message", "Password has been reset. Please ensure the user changes it immediately."
-        ));
-    }
-
-    @Operation(summary = "Change password after reset (required)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password changed successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid password or passwords do not match"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
-    @PutMapping("/{id}/change-password-required")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    @Deprecated // Use /api/auth/change-password-required instead (no userId in URL, uses Principal)
-    public ResponseEntity<Map<String, String>> changePasswordRequired(
-            @PathVariable Long id,
-            @Valid @RequestBody PasswordChangeRequiredDto passwordDto) {
-        log.debug("REST request to change password after reset for User : {}", id);
-        log.warn("DEPRECATED: Using userId in URL for password change. Use /api/auth/change-password-required instead.");
-
-        // Get username from user ID
-        UserDto userDto = userService.getUserById(id);
-        userService.changePasswordAfterReset(userDto.username(), passwordDto);
-
-        return ResponseEntity.ok(Map.of(
-                "message", "Password changed successfully. You can now use your new password to login."
-        ));
-    }
-
     @Operation(summary = "Update user roles")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Roles updated successfully"),

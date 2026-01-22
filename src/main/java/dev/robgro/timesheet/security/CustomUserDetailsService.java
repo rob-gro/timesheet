@@ -49,14 +49,13 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
-                user.isRequiresPasswordChange(),
                 user.getTokenVersion(),
                 authorities,
                 user.isActive()
         );
 
-        log.debug("Created CustomUserPrincipal for user: {}, requiresPasswordChange: {}, tokenVersion: {}",
-                user.getUsername(), user.isRequiresPasswordChange(), user.getTokenVersion());
+        log.debug("Created CustomUserPrincipal for user: {}, tokenVersion: {}",
+                user.getUsername(), user.getTokenVersion());
 
         return principal;
     }

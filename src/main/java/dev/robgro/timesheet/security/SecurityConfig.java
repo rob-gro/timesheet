@@ -37,7 +37,6 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationSuccessHandler successHandler;
-    private final PasswordChangeRequiredFilter passwordChangeRequiredFilter;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -83,7 +82,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - Web UI
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/change-password-required").permitAll() // Web form for password change
                         .requestMatchers("/forgot-password", "/reset-password").permitAll() // Password reset flow
                         .requestMatchers("/manifest/**", "/icons/**").permitAll()
 
@@ -113,17 +111,18 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/")
+                        .logoutSuccessUrl("/login?logout=true")
                         .permitAll()
                 )
                 // API JWT config + session tracking
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .maximumSessions(10)  // Allow multiple sessions per user
-                        .sessionRegistry(sessionRegistry())
+                                .sessionRegistry(sessionRegistry())
+                                .maxSessionsPreventsLogin(false)  // Allow new login, expire oldest
+                                .expiredUrl("/login?expired=true")  // Redirect when session expired
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(passwordChangeRequiredFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .build();
     }

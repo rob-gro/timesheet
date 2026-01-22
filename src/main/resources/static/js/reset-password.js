@@ -71,11 +71,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (response.ok) {
-                showSuccess(data.message || 'Password updated successfully');
-                setTimeout(() => {
-                    window.location.href = '/login?message=' +
-                        encodeURIComponent('Password updated. Please login.');
-                }, 2000);
+                // Hide form and show success with instructions
+                // Do NOT redirect - would overwrite session if another user is logged in
+                form.style.display = 'none';
+                showSuccessWithLoginOption(data.message || 'Password updated successfully.');
             } else {
                 showError(data.error || 'Failed to update password');
             }
@@ -99,6 +98,23 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function showSuccess(message) {
         successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        errorDiv.style.display = 'none';
+    }
+
+    /**
+     * Display success message with login option.
+     * Opens login in NEW WINDOW to avoid overwriting current session.
+     */
+    function showSuccessWithLoginOption(message) {
+        successDiv.innerHTML = `
+            <p><strong>${message}</strong></p>
+            <p style="margin-top: 10px;">You can now close this tab and login with your new password.</p>
+            <button type="button" onclick="window.open('/login', '_blank')"
+                    style="margin-top: 15px; padding: 10px 20px; cursor: pointer;">
+                Open Login Page (new window)
+            </button>
+        `;
         successDiv.style.display = 'block';
         errorDiv.style.display = 'none';
     }

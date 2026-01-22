@@ -30,11 +30,6 @@ public interface UserService {
 
     Page<UserDto> searchUsers(Boolean active, String username, Pageable pageable);
 
-    @Transactional
-    String resetPassword(Long id);
-
-    void changePasswordAfterReset(String username, PasswordChangeRequiredDto passwordDto);
-
     User findByUsername(String username);
 
     void setDefaultSeller(Long userId, Long sellerId);

@@ -20,18 +20,7 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                        Authentication authentication) throws IOException, ServletException {
 
         if (authentication.getPrincipal() instanceof CustomUserPrincipal principal) {
-
-            // Check if password change required
-            if (principal.isRequiresPasswordChange()) {
-                log.info("User {} requires password change, redirecting", principal.getUsername());
-
-                // Check if temporary password expired
-                // Note: We don't have tempPasswordExpiresAt in principal (not needed for every request)
-                // Expiry check will happen in the change-password endpoint
-
-                getRedirectStrategy().sendRedirect(request, response, "/change-password-required");
-                return;
-            }
+            log.info("User {} logged in successfully", principal.getUsername());
         }
 
         // Default success URL

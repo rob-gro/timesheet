@@ -15,8 +15,10 @@ public class LoginController {
     public String showLoginForm(@RequestParam(value = "error", required = false) String error,
                                 @RequestParam(value = "logout", required = false) String logout,
                                 @RequestParam(value = "message", required = false) String message,
+                                @RequestParam(value = "expired", required = false) String expired,
                                 Model model) {
-        if (SecurityUtils.isAuthenticated()) {
+        // Don't redirect if session expired - user needs to see the message
+        if (SecurityUtils.isAuthenticated() && expired == null) {
             return "redirect:/";
         }
         if (error != null) {
