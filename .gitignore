@@ -47,3 +47,20 @@ docs/
 
 ### Large files ###
 Timesheet.jpg
+
+### Security - Certificates ###
+*.pem
+alwaysdata-smtp.pem
+
+### Logs ###
+application.log*
+*.log
+test-output.log
+
+### Test Reports ###
+test-coverage-report.html
+
+### Temporary Files ###
+nul
+er.name)*
+*.bak
