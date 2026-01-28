@@ -3,7 +3,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.detachTimesheet = function(id) {
         if (confirm('Are you sure you want to detach this timesheet from invoice?')) {
             fetch(`/api/v1/timesheets/${id}/detach`, {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    ...getCsrfHeaders()
+                }
             })
                 .then(response => {
                     if (response.ok) {
@@ -22,7 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.deleteTimesheet = function(id) {
         if (confirm('Are you sure you want to delete this timesheet?')) {
             fetch(`/api/v1/timesheets/${id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    ...getCsrfHeaders()
+                }
             })
                 .then(response => {
                     if (response.ok) {

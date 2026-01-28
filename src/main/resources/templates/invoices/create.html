@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Invoice</title>
-    <link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+<head th:replace="~{head :: head}">
+    <!-- Fallback content -->
 </head>
 <body>
+<!-- Page-specific CSS -->
+<link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
 <div class="container">
     <div class="header">
         <div class="invoice-info">

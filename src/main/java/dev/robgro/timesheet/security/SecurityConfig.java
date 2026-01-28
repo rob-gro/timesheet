@@ -3,6 +3,7 @@ package dev.robgro.timesheet.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -16,7 +17,10 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.web.header.writers.PermissionsPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter;
@@ -74,10 +78,24 @@ public class SecurityConfig {
                         .addHeaderWriter(new PermissionsPolicyHeaderWriter("geolocation=(self), microphone=()"))
                 )
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")
-                        .ignoringRequestMatchers("/login"))
+                        .ignoringRequestMatchers(
+                            "/api/auth/login", // JWT login (stateless)
+                            "/api/auth/forgot-password", // Password reset request
+                            "/api/auth/reset-password",  // Password reset submit
+                            "/api/track/**",             // Email tracking (external clients)
+                            "/login"
+                        )
+                )
 
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // Exception handling - return 403 for API endpoints instead of redirect
+                .exceptionHandling(exception -> exception
+                        .defaultAuthenticationEntryPointFor(
+                                new HttpStatusEntryPoint(HttpStatus.FORBIDDEN),
+                                new AntPathRequestMatcher("/api/**")
+                        )
+                )
 
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - Web UI
@@ -90,7 +108,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/forgot-password").permitAll() // Password reset request
                         .requestMatchers("/api/auth/reset-password").permitAll() // Password reset submit
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/track/**").permitAll() // Email tracking pixel
+
+                        // Email tracking: GET-only enforcement (CRITICAL SECURITY)
+                        .requestMatchers(HttpMethod.GET, "/api/track/**").permitAll()
+                        .requestMatchers("/api/track/**").denyAll() // Block POST/PUT/DELETE/PATCH
 
                         // API endpoints - access levels
                         .requestMatchers("/api/v1/clients/**").hasAnyRole("ADMIN", "USER")

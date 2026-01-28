@@ -128,7 +128,8 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`/api/v1/invoices/${invoiceId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...getCsrfHeaders()
             },
             body: JSON.stringify(formData)
         })

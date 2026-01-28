@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Invoice Report</title>
-    <link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
+<head th:replace="~{head :: head}">
+    <!-- Fallback content -->
 </head>
 <body>
+<!-- Page-specific CSS -->
+<link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
 <div class="container">
     <div class="report-header">
         <div class="title">Report for period:</div>

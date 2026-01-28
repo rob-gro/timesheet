@@ -33,8 +33,11 @@ class EmailTrackingServiceTest {
     @Mock
     private EmailTrackingNotificationService notificationService;
 
+    @Mock
+    private EmailTrackingStatsService statsService;
+
     @InjectMocks
-    private EmailTrackingService emailTrackingService;
+    private EmailTrackingServiceImpl emailTrackingService;
 
     @Mock
     private HttpServletRequest request;

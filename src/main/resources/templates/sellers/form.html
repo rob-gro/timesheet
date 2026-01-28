@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Seller Details</title>
-    <link rel="stylesheet" th:href="@{/css/client-form-style.css}">
+<head th:replace="~{head :: head}">
+    <!-- Fallback content -->
 </head>
 <body>
+<!-- Page-specific CSS -->
+<link rel="stylesheet" th:href="@{/css/client-form-style.css}">
 
 <div class="container mt-5">
     <div class="card">
