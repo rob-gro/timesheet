@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,9 +31,11 @@ class JwtTokenProviderTest {
                 new SimpleGrantedAuthority("ROLE_USER"),
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         );
-        UserDetails userDetails = new User("testuser", "password", authorities);
+        CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
+                1L, "testuser", "password", 1, authorities, true
+        );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails, null, authorities
+                userPrincipal, null, authorities
         );
 
         // when
@@ -50,8 +50,9 @@ class JwtTokenProviderTest {
     @Test
     void shouldCreateDifferentTokens_forDifferentUsers() {
         // given
-        UserDetails user1 = new User("user1", "pass", List.of(new SimpleGrantedAuthority("ROLE_USER")));
-        UserDetails user2 = new User("user2", "pass", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        CustomUserPrincipal user1 = new CustomUserPrincipal(1L, "user1", "pass", 1, authorities, true);
+        CustomUserPrincipal user2 = new CustomUserPrincipal(2L, "user2", "pass", 1, authorities, true);
 
         Authentication auth1 = new UsernamePasswordAuthenticationToken(user1, null, user1.getAuthorities());
         Authentication auth2 = new UsernamePasswordAuthenticationToken(user2, null, user2.getAuthorities());
@@ -69,10 +70,12 @@ class JwtTokenProviderTest {
     @Test
     void shouldValidateToken_whenTokenIsValid() {
         // given
-        UserDetails userDetails = new User("testuser", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
+                1L, "testuser", "password", 1, authorities, true
+        );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities()
+                userPrincipal, null, userPrincipal.getAuthorities()
         );
         String token = jwtTokenProvider.createToken(authentication);
 
@@ -116,10 +119,12 @@ class JwtTokenProviderTest {
     @Test
     void shouldReturnFalse_whenTokenIsModified() {
         // given
-        UserDetails userDetails = new User("testuser", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
+                1L, "testuser", "password", 1, authorities, true
+        );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities()
+                userPrincipal, null, userPrincipal.getAuthorities()
         );
         String token = jwtTokenProvider.createToken(authentication);
         String modifiedToken = token.substring(0, token.length() - 5) + "XXXXX";
@@ -137,10 +142,12 @@ class JwtTokenProviderTest {
     void shouldExtractUsername_whenTokenIsValid() {
         // given
         String expectedUsername = "testuser";
-        UserDetails userDetails = new User(expectedUsername, "password",
-                List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
+                1L, expectedUsername, "password", 1, authorities, true
+        );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities()
+                userPrincipal, null, userPrincipal.getAuthorities()
         );
         String token = jwtTokenProvider.createToken(authentication);
 
@@ -161,9 +168,11 @@ class JwtTokenProviderTest {
                 new SimpleGrantedAuthority("ROLE_USER"),
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         );
-        UserDetails userDetails = new User(expectedUsername, "password", expectedAuthorities);
+        CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
+                1L, expectedUsername, "password", 1, expectedAuthorities, true
+        );
         Authentication originalAuth = new UsernamePasswordAuthenticationToken(
-                userDetails, null, expectedAuthorities
+                userPrincipal, null, expectedAuthorities
         );
         String token = jwtTokenProvider.createToken(originalAuth);
 
@@ -187,8 +196,10 @@ class JwtTokenProviderTest {
                 new SimpleGrantedAuthority("ROLE_MANAGER"),
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         );
-        UserDetails userDetails = new User("admin", "password", authorities);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+        CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
+                1L, "admin", "password", 1, authorities, true
+        );
+        Authentication auth = new UsernamePasswordAuthenticationToken(userPrincipal, null, authorities);
 
         // when
         String token = jwtTokenProvider.createToken(auth);

@@ -3,6 +3,8 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+.env
+.env.*
 
 ### STS ###
 .apt_generated
@@ -65,3 +67,4 @@ test-coverage-report.html
 nul
 er.name)*
 *.bak
+/.env

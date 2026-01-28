@@ -209,7 +209,8 @@ function saveUser() {
     fetch(url, {
         method: method,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...getCsrfHeaders()
         },
         body: JSON.stringify(userData)
     })
@@ -241,7 +242,8 @@ function changePassword() {
     fetch(`${API_BASE_URL}/${userId}/password`, {
         method: 'PUT',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...getCsrfHeaders()
         },
         body: JSON.stringify(passwordData)
     })
@@ -269,7 +271,8 @@ function saveUserRoles() {
     fetch(`${API_BASE_URL}/${userId}/roles`, {
         method: 'PUT',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...getCsrfHeaders()
         },
         body: JSON.stringify({roleNames: roles})
     })
@@ -294,7 +297,10 @@ function toggleUserActive(userId, active) {
     const url = `${API_BASE_URL}/${userId}/${active ? 'activate' : 'deactivate'}`;
 
     fetch(url, {
-        method: 'PUT'
+        method: 'PUT',
+        headers: {
+            ...getCsrfHeaders()
+        }
     })
         .then(response => {
             if (!response.ok) {

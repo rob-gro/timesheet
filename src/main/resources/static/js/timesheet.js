@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(url, {
             method: timesheetId ? 'PUT' : 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...getCsrfHeaders()
             },
             body: JSON.stringify(formData)
         })

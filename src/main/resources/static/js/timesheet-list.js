@@ -50,7 +50,10 @@ document.addEventListener('DOMContentLoaded', function () {
     window.deleteTimesheet = function (id) {
         if (confirm('Are you sure you want to delete this timesheet?')) {
             fetch(`/api/v1/timesheets/${id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    ...getCsrfHeaders()
+                }
             })
                 .then(response => {
                     if (response.ok) {
@@ -78,7 +81,8 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(`/api/v1/timesheets/${timesheetId}/payment`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...getCsrfHeaders()
                 },
                 body: JSON.stringify({
                     paymentDate: null
@@ -102,7 +106,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 fetch(`/api/v1/timesheets/${timesheetId}/payment`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        ...getCsrfHeaders()
                     },
                     body: JSON.stringify({
                         paymentDate: selectedDate

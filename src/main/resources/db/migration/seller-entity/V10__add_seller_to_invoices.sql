@@ -2,7 +2,9 @@
 -- Links each invoice to a seller
 
 ALTER TABLE invoices
-ADD COLUMN seller_id BIGINT AFTER client_id,
+ADD COLUMN seller_id BIGINT;
+
+ALTER TABLE invoices
 ADD CONSTRAINT fk_invoice_seller
     FOREIGN KEY (seller_id) REFERENCES sellers(id)
     ON DELETE RESTRICT;
