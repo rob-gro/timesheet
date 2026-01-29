@@ -3,10 +3,3 @@
 
 ALTER TABLE invoices
 ADD COLUMN seller_id BIGINT;
-
-ALTER TABLE invoices
-ADD CONSTRAINT fk_invoice_seller
-    FOREIGN KEY (seller_id) REFERENCES sellers(id)
-    ON DELETE RESTRICT;
-
-CREATE INDEX idx_invoice_seller ON invoices(seller_id);
