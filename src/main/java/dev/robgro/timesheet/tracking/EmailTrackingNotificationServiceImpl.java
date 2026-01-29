@@ -28,6 +28,8 @@ public class EmailTrackingNotificationServiceImpl implements EmailTrackingNotifi
     @Value("${app.base-url}")
     private String baseUrl;
 
+    @Value("${app.email.from}")
+    private String emailFrom;
     /**
      * Sends instant tracking notification to admin
      */
@@ -89,6 +91,7 @@ public class EmailTrackingNotificationServiceImpl implements EmailTrackingNotifi
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setTo(trackingProperties.getNotificationEmail());
+        helper.setFrom(emailFrom);
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
 
