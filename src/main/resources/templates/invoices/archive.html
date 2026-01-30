@@ -8,6 +8,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-material-ui/material-ui.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Back button icon (mobile only, fixed position) -->
+<button type="button" class="mobile-back-btn" onclick="window.location.href='/'" aria-label="Back to main menu">
+    ←
+</button>
+
 <div class="container-fluid my-3">
     <div class="card">
         <div class="card-body p-4">
@@ -98,7 +104,7 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table">
+                <table class="table invoices-table">
                     <thead>
                     <tr class="text-center">
                         <th>
@@ -150,21 +156,30 @@
                     </thead>
                     <tbody>
                     <tr th:each="invoice : ${invoices}">
-                        <td th:text="${invoice.invoiceNumber}"></td>
-                        <td class="text-center" th:text="${#temporals.format(invoice.issueDate, 'yyyy-MM-dd')}"></td>
-                        <td th:text="${invoice.clientName}"></td>
-                        <td class="text-end" th:text="${'£ ' + invoice.totalAmount}"></td>
-                        <td class="text-center">
-                            <button class="save-button"
-                                    th:onclick="'window.location.href=\'/invoices/create/' + ${invoice.id} + '\''">View
-                            </button>
-                            <!-- W archive.html -->
-                            <button class="save-button"
-                                    th:onclick="'window.location.href=\'/invoices/items/edit/' + ${invoice.id} + '\''">Edit
-                            </button>
-                            <button class="del-button"
-                                    th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete
-                            </button>
+                        <td data-label="Invoice #">
+                            <span class="cell-value" th:text="${invoice.invoiceNumber}"></span>
+                        </td>
+                        <td data-label="Date">
+                            <span class="cell-value" th:text="${#temporals.format(invoice.issueDate, 'yyyy-MM-dd')}"></span>
+                        </td>
+                        <td data-label="Client">
+                            <span class="cell-value" th:text="${invoice.clientName}"></span>
+                        </td>
+                        <td data-label="Amount">
+                            <span class="cell-value" th:text="${'£ ' + invoice.totalAmount}"></span>
+                        </td>
+                        <td data-label="Actions">
+                            <div class="cell-actions">
+                                <button class="save-button"
+                                        th:onclick="'window.location.href=\'/invoices/create/' + ${invoice.id} + '\''">View
+                                </button>
+                                <button class="save-button"
+                                        th:onclick="'window.location.href=\'/invoices/items/edit/' + ${invoice.id} + '\''">Edit
+                                </button>
+                                <button class="del-button"
+                                        th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     </tbody>

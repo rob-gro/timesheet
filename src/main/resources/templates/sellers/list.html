@@ -5,6 +5,11 @@
     <!-- Fallback content -->
 </head>
 <body>
+<!-- Back button icon (mobile only, fixed position) -->
+<button type="button" class="mobile-back-btn" onclick="window.location.href='/'" aria-label="Back to main menu">
+    ←
+</button>
+
 <div class="container-fluid my-3">
     <div class="card">
         <div class="card-body p-4">
@@ -13,11 +18,10 @@
             <div class="mb-3">
                 <button type="button" class="nav-button" onclick="window.location.href='/sellers/new';">Add New Seller
                 </button>
-                <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main Page</button>
             </div>
 
             <div>
-                <table class="table">
+                <table class="table sellers-table">
                     <colgroup>
                         <col style="width: 8%">
                         <col style="width: 20%">
@@ -42,40 +46,54 @@
                     <tr th:each="seller : ${sellers}"
                         th:data-seller-id="${seller.id}"
                         th:style="${!seller.active} ? 'opacity: 0.6; background-color: #2a2a2a;' : ''">
-                        <td>
-                            <span th:if="${seller.systemDefault}">Yes</span>
-                            <button th:if="${!seller.systemDefault && seller.active}"
-                                    class="save-button"
-                                    th:onclick="'setSystemDefault(' + ${seller.id} + ')'">
-                                Set
-                            </button>
+                        <td data-label="Default">
+                            <span class="cell-value">
+                                <span th:if="${seller.systemDefault}">Yes</span>
+                                <button th:if="${!seller.systemDefault && seller.active}"
+                                        class="save-button"
+                                        th:onclick="'setSystemDefault(' + ${seller.id} + ')'">
+                                    Set
+                                </button>
+                            </span>
                         </td>
-                        <td th:text="${seller.name}"></td>
-                        <td th:text="${seller.city}"></td>
-                        <td th:text="${seller.email}"></td>
-                        <td th:text="${seller.vatNumber}"></td>
-                        <td>
-                            <span th:if="${seller.active}" class="badge-success">Active</span>
-                            <span th:unless="${seller.active}" class="badge-danger">Inactive</span>
+                        <td data-label="Seller Name">
+                            <span class="cell-value" th:text="${seller.name}"></span>
                         </td>
-                        <td>
-                            <button class="save-button"
-                                    th:onclick="'window.location.href=\'/sellers/edit/' + ${seller.id} + '\''">
-                                Edit
-                            </button>
+                        <td data-label="City">
+                            <span class="cell-value" th:text="${seller.city}"></span>
+                        </td>
+                        <td data-label="Email">
+                            <span class="cell-value" th:text="${seller.email}"></span>
+                        </td>
+                        <td data-label="VAT Number">
+                            <span class="cell-value" th:text="${seller.vatNumber}"></span>
+                        </td>
+                        <td data-label="Status">
+                            <span class="cell-value">
+                                <span th:if="${seller.active}" class="badge-success">Active</span>
+                                <span th:unless="${seller.active}" class="badge-danger">Inactive</span>
+                            </span>
+                        </td>
+                        <td data-label="Actions">
+                            <div class="cell-actions">
+                                <button class="save-button"
+                                        th:onclick="'window.location.href=\'/sellers/edit/' + ${seller.id} + '\''">
+                                    Edit
+                                </button>
 
-                            <button th:if="${seller.active}"
-                                    class="del-button"
-                                    th:onclick="'toggleSellerActive(' + ${seller.id} + ', false)'">
-                                Deactivate
-                            </button>
+                                <button th:if="${seller.active}"
+                                        class="del-button"
+                                        th:onclick="'toggleSellerActive(' + ${seller.id} + ', false)'">
+                                    Deactivate
+                                </button>
 
-                            <button th:unless="${seller.active}"
-                                    class="save-button"
-                                    th:onclick="'toggleSellerActive(' + ${seller.id} + ', true)'"
-                                    sec:authorize="hasRole('ADMIN')">
-                                Activate
-                            </button>
+                                <button th:unless="${seller.active}"
+                                        class="save-button"
+                                        th:onclick="'toggleSellerActive(' + ${seller.id} + ', true)'"
+                                        sec:authorize="hasRole('ADMIN')">
+                                    Activate
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     </tbody>

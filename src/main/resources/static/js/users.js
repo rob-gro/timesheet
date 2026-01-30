@@ -57,9 +57,15 @@ function createActionButton(label, className, onClick) {
     return btn;
 }
 
-function appendTextCell(row, text) {
+function appendTextCell(row, text, label) {
     const cell = document.createElement('td');
-    cell.textContent = text;
+    cell.setAttribute('data-label', label);
+
+    const span = document.createElement('span');
+    span.className = 'cell-value';
+    span.textContent = text;
+
+    cell.appendChild(span);
     row.appendChild(cell);
 }
 
@@ -71,12 +77,15 @@ function renderUsersTable(users) {
     users.forEach(user => {
         const row = document.createElement('tr');
 
-        appendTextCell(row, user.username);
-        appendTextCell(row, user.email || '-');
-        appendTextCell(row, user.roles ? Array.from(user.roles).join(', ').replace(/ROLE_/g, '') : '-');
+        appendTextCell(row, user.username, 'Username');
+        appendTextCell(row, user.email || '-', 'Email');
+        appendTextCell(row, user.roles ? Array.from(user.roles).join(', ').replace(/ROLE_/g, '') : '-', 'Roles');
 
         const actionsCell = document.createElement('td');
-        actionsCell.className = 'text-center';
+        actionsCell.setAttribute('data-label', 'Actions');
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'cell-actions';
 
         const buttons = [
             {text: 'Edit', class: 'save-button', onClick: () => showEditUserForm(user.id)},
@@ -96,9 +105,10 @@ function renderUsersTable(users) {
             btn.className = button.class;
             btn.style.margin = '0 3px';
             btn.addEventListener('click', button.onClick);
-            actionsCell.appendChild(btn);
+            actionsDiv.appendChild(btn);
         });
 
+        actionsCell.appendChild(actionsDiv);
         row.appendChild(actionsCell);
         tableBody.appendChild(row);
     });

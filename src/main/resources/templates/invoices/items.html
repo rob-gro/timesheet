@@ -4,9 +4,14 @@
     <!-- Fallback content -->
 </head>
 <body>
+<!-- Back button icon (mobile only, fixed position) -->
+<button type="button" class="mobile-back-btn" onclick="window.location.href='/'" aria-label="Back to main menu">
+    ←
+</button>
+
 <div class="container my-3">
     <div class="row justify-content-center">
-        <div class="col-9">
+        <div class="col-12 col-md-9">
             <div class="card">
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4">Check Invoice Items</h2>
@@ -49,7 +54,7 @@
                         </div>
 
                         <div class="table-responsive mb-4">
-                            <table class="table">
+                            <table class="table invoice-items-table">
                                 <thead>
                                 <tr>
                                     <th>Select</th>
@@ -63,19 +68,31 @@
                                 <tbody>
                                 <tr th:each="timesheet : ${timesheets}"
                                     th:data-clientId="${timesheet.clientId}">
-                                    <td>
-                                        <input type="checkbox"
-                                               class="timesheet-select"
-                                               name="timesheetIds"
-                                               th:value="${timesheet.id}"
-                                               th:data-duration="${timesheet.duration}"
-                                               th:data-rate="${timesheet.hourlyRate}">
+                                    <td data-label="Select">
+                                        <span class="cell-value">
+                                            <input type="checkbox"
+                                                   class="timesheet-select"
+                                                   name="timesheetIds"
+                                                   th:value="${timesheet.id}"
+                                                   th:data-duration="${timesheet.duration}"
+                                                   th:data-rate="${timesheet.hourlyRate}">
+                                        </span>
                                     </td>
-                                    <td class="text-center" th:text="${timesheet.clientName}"></td>
-                                    <td th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
-                                    <td th:text="${timesheet.duration}"></td>
-                                    <td class="hourly-rate" th:text="${#numbers.formatDecimal(timesheet.hourlyRate, 1, 2)}">0.00</td>
-                                    <td class="amount" th:text="${#numbers.formatDecimal(timesheet.value, 1, 2)}">0.00</td>
+                                    <td data-label="Client">
+                                        <span class="cell-value" th:text="${timesheet.clientName}"></span>
+                                    </td>
+                                    <td data-label="Service Date">
+                                        <span class="cell-value" th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></span>
+                                    </td>
+                                    <td data-label="Duration">
+                                        <span class="cell-value" th:text="${timesheet.duration}"></span>
+                                    </td>
+                                    <td data-label="Rate" class="hourly-rate">
+                                        <span class="cell-value" th:text="${#numbers.formatDecimal(timesheet.hourlyRate, 1, 2)}">0.00</span>
+                                    </td>
+                                    <td data-label="Amount" class="amount">
+                                        <span class="cell-value" th:text="${#numbers.formatDecimal(timesheet.value, 1, 2)}">0.00</span>
+                                    </td>
                                 </tr>
                                 </tbody>
 

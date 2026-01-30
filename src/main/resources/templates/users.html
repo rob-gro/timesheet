@@ -6,6 +6,12 @@
 <body>
 <!-- Page-specific CSS -->
 <link rel="stylesheet" th:href="@{/css/modal.css}">
+
+<!-- Back button icon (mobile only, fixed position) -->
+<button type="button" class="mobile-back-btn" onclick="window.location.href='/'" aria-label="Back to main menu">
+    ←
+</button>
+
 <div class="container mt-5">
     <div class="card">
         <div class="container my-auto mx-auto">
@@ -13,13 +19,12 @@
 
             <div class="mb-3">
                 <button type="button" class="nav-button" onclick="showAddUserForm()">Add New User</button>
-                <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main Page</button>
-                <button type="button" class="nav-button" style="float: right;" onclick="logout()">Logout</button>
+                <button type="button" class="nav-button desktop-only-btn" onclick="window.location.href='/';">Back to Main Page</button>
             </div>
 
             <!-- User List Table -->
             <div id="userListSection">
-                <table class="table">
+                <table class="table users-table">
                     <colgroup>
                         <col style="width: 15%">
                         <col style="width: 25%">

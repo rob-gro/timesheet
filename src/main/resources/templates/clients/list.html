@@ -4,6 +4,11 @@
     <!-- Fallback content -->
 </head>
 <body>
+<!-- Back button icon (mobile only, fixed position) -->
+<button type="button" class="mobile-back-btn" onclick="window.location.href='/'" aria-label="Back to main menu">
+    ←
+</button>
+
 <div class="container mt-5">
     <div class="card">
         <div class="container my-auto mx-auto">
@@ -12,11 +17,10 @@
             <div class="mb-3">
                 <button type="button" class="nav-button" onclick="window.location.href='/clients/new';">Add New Client
                 </button>
-                <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main Page</button>
             </div>
 
             <div>
-                <table class="table">
+                <table class="table clients-table">
                     <colgroup>
                         <col style="width: 30%">
                         <col style="width: 20%">
@@ -37,31 +41,41 @@
                     <tr th:each="client : ${clients}"
                         th:data-client-id="${client.id}"
                         th:style="${!client.active} ? 'opacity: 0.6; background-color: #2a2a2a;' : ''">
-                        <td th:text="${client.clientName}"></td>
-                        <td th:text="${client.email}"></td>
-                        <td th:text="${client.hourlyRate}"></td>
-                        <td>
-                            <span th:if="${client.active}" class="badge-success">Active</span>
-                            <span th:unless="${client.active}" class="badge-danger">Inactive</span>
+                        <td data-label="Client Name">
+                            <span class="cell-value" th:text="${client.clientName}"></span>
                         </td>
-                        <td>
-                            <button class="save-button"
-                                    th:onclick="'window.location.href=\'/clients/edit/' + ${client.id} + '\''">
-                                Edit
-                            </button>
+                        <td data-label="Email">
+                            <span class="cell-value" th:text="${client.email}"></span>
+                        </td>
+                        <td data-label="Rate (£)">
+                            <span class="cell-value" th:text="${client.hourlyRate}"></span>
+                        </td>
+                        <td data-label="Status">
+                            <span class="cell-value">
+                                <span th:if="${client.active}" class="badge-success">Active</span>
+                                <span th:unless="${client.active}" class="badge-danger">Inactive</span>
+                            </span>
+                        </td>
+                        <td data-label="Actions">
+                            <div class="cell-actions">
+                                <button class="save-button"
+                                        th:onclick="'window.location.href=\'/clients/edit/' + ${client.id} + '\''">
+                                    Edit
+                                </button>
 
-                            <button th:if="${client.active}"
-                                    class="del-button"
-                                    th:onclick="'toggleClientActive(' + ${client.id} + ', false)'">
-                                Deactivate
-                            </button>
+                                <button th:if="${client.active}"
+                                        class="del-button"
+                                        th:onclick="'toggleClientActive(' + ${client.id} + ', false)'">
+                                    Deactivate
+                                </button>
 
-                            <button th:unless="${client.active}"
-                                    class="save-button"
-                                    th:onclick="'toggleClientActive(' + ${client.id} + ', true)'"
-                                    sec:authorize="hasRole('ADMIN')">
-                                Activate
-                            </button>
+                                <button th:unless="${client.active}"
+                                        class="save-button"
+                                        th:onclick="'toggleClientActive(' + ${client.id} + ', true)'"
+                                        sec:authorize="hasRole('ADMIN')">
+                                    Activate
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     </tbody>

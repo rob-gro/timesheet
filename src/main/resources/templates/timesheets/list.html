@@ -8,6 +8,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <body>
 <div class="container-fluid my-3">
+    <!-- Back button icon (mobile) -->
+    <button type="button" class="mobile-back-btn" onclick="window.location.href='/'" aria-label="Back to main menu">
+        ←
+    </button>
+
     <div class="card">
         <div class="card-body p-4">
             <h2 class="text-center mb-4">Timesheets</h2>
@@ -127,39 +132,48 @@
                     </thead>
                     <tbody>
                     <tr th:each="timesheet : ${timesheets}">
-                        <td th:text="${timesheet.clientName}"></td>
-                        <td th:class="text-center"
-                            th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></td>
-                        <td th:text="${timesheet.duration}"></td>
-
-                        <td th:text="${#numbers.formatDecimal(timesheet.value, 1, 2)}"></td>
-
-                        <td th:text="${timesheet.invoiced ? timesheet.invoiceNumber : '---'}"></td>
-                        <td class="text-center">
-                            <div class="payment-status" th:if="${timesheet.paymentDate == null}">
-                                <div class="date-input-container" style="display: none;">
-                                    <input type="date" class="payment-date-input form-control"
-                                           th:data-timesheet-id="${timesheet.id}">
-                                    <button class="save-button confirm-date-btn">✓</button>
+                        <td data-label="Client">
+                            <span class="cell-value" th:text="${timesheet.clientName}"></span>
+                        </td>
+                        <td data-label="Service Date">
+                            <span class="cell-value" th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}"></span>
+                        </td>
+                        <td data-label="Duration">
+                            <span class="cell-value" th:text="${timesheet.duration}"></span>
+                        </td>
+                        <td data-label="Value">
+                            <span class="cell-value" th:text="${#numbers.formatDecimal(timesheet.value, 1, 2)}"></span>
+                        </td>
+                        <td data-label="Invoice #">
+                            <span class="cell-value" th:text="${timesheet.invoiced ? timesheet.invoiceNumber : '---'}"></span>
+                        </td>
+                        <td data-label="Paid">
+                            <div class="cell-value">
+                                <div class="payment-status" th:if="${timesheet.paymentDate == null}">
+                                    <div class="date-input-container" style="display: none;">
+                                        <input type="date" class="payment-date-input form-control"
+                                               th:data-timesheet-id="${timesheet.id}">
+                                        <button class="save-button confirm-date-btn">✓</button>
+                                    </div>
+                                    <button class="nav-button payment-date-btn"
+                                            onclick="showDatePicker(this)"
+                                            title="Click to set payment date">Set Date
+                                    </button>
                                 </div>
-                                <button class="nav-button payment-date-btn"
-                                        onclick="showDatePicker(this)"
-                                        title="Click to set payment date">Set Date
-                                </button>
-                            </div>
-                            <div th:unless="${timesheet.paymentDate == null}" class="payment-date-display">
-                                <span th:text="${#temporals.format(timesheet.paymentDate, 'yyyy-MM-dd')}"></span>
-                                <button class="del-button clear-date-btn"
-                                        th:onclick="'clearPaymentDate(' + ${timesheet.id} + ')'"
-                                        title="Clear payment date">✕
-                                </button>
+                                <div th:unless="${timesheet.paymentDate == null}" class="payment-date-display">
+                                    <span th:text="${#temporals.format(timesheet.paymentDate, 'yyyy-MM-dd')}"></span>
+                                    <button class="del-button clear-date-btn"
+                                            th:onclick="'clearPaymentDate(' + ${timesheet.id} + ')'"
+                                            title="Clear payment date">✕
+                                    </button>
+                                </div>
                             </div>
                         </td>
-                        <td>
-                            <button class="save-button" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit
-                            </button>
-                            <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete
-                            </button>
+                        <td data-label="Actions">
+                            <div class="cell-actions">
+                                <button class="save-button" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit</button>
+                                <button class="del-button" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete</button>
+                            </div>
                         </td>
                     </tr>
                     </tbody>

@@ -8,6 +8,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-material-ui/material-ui.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Back button icon (mobile only, fixed position) -->
+<button type="button" class="mobile-back-btn" onclick="window.location.href='/'" aria-label="Back to main menu">
+    ←
+</button>
+
 <div class="container-fluid my-3">
     <div class="card">
         <div class="card-body p-4">
@@ -59,7 +65,7 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table">
+                <table class="table pdf-list-table">
                     <thead>
                     <tr class="text-center">
                         <th>
@@ -111,16 +117,26 @@
                     </thead>
                     <tbody>
                     <tr th:each="invoice : ${invoices}" th:if="${invoice.pdfPath != null}">
-                        <td th:text="${invoice.invoiceNumber}"></td>
-                        <td th:text="${invoice.clientName}"></td>
-                        <td class="text-center" th:text="${#temporals.format(invoice.issueDate, 'yyyy-MM-dd')}"></td>
-                        <td class="text-end" th:text="${'£ ' + invoice.totalAmount}"></td>
-                        <td class="text-center">
-                            <a th:href="@{'/api/v1/invoices/' + ${invoice.id} + '/pdf'}"
-                               target="_blank"
-                               class="save-button">
-                                View PDF
-                            </a>
+                        <td data-label="Invoice #">
+                            <span class="cell-value" th:text="${invoice.invoiceNumber}"></span>
+                        </td>
+                        <td data-label="Client">
+                            <span class="cell-value" th:text="${invoice.clientName}"></span>
+                        </td>
+                        <td data-label="Issue Date">
+                            <span class="cell-value" th:text="${#temporals.format(invoice.issueDate, 'yyyy-MM-dd')}"></span>
+                        </td>
+                        <td data-label="Amount">
+                            <span class="cell-value" th:text="${'£ ' + invoice.totalAmount}"></span>
+                        </td>
+                        <td data-label="Actions">
+                            <span class="cell-value">
+                                <a th:href="@{'/api/v1/invoices/' + ${invoice.id} + '/pdf'}"
+                                   target="_blank"
+                                   class="save-button">
+                                    View PDF
+                                </a>
+                            </span>
                         </td>
                     </tr>
                     </tbody>

@@ -67,26 +67,29 @@ body {
     transition: background-color 0.2s ease;
 }
 
-.table td:nth-child(1) { /* checkbox */
-    width: 10%;
-    text-align: center;
-}
+/* Szerokości kolumn .table - TYLKO na desktop */
+@media (min-width: 768px) {
+    .table td:nth-child(1) { /* checkbox */
+        width: 10%;
+        text-align: center;
+    }
 
-.table td:nth-child(2) { /* client */
-    width: 15%;
-    text-align: center;
-}
+    .table td:nth-child(2) { /* client */
+        width: 15%;
+        text-align: center;
+    }
 
-.table td:nth-child(3) { /* service date */
-    width: 15%;
-    text-align: center;
-}
+    .table td:nth-child(3) { /* service date */
+        width: 15%;
+        text-align: center;
+    }
 
-.table td:nth-child(4), /* duration */
-.table td:nth-child(5), /* rate */
-.table td:nth-child(6) { /* amount */
-    width: 15%;
-    text-align: center;
+    .table td:nth-child(4), /* duration */
+    .table td:nth-child(5), /* rate */
+    .table td:nth-child(6) { /* amount */
+        width: 15%;
+        text-align: center;
+    }
 }
 
 label {
@@ -774,47 +777,49 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     vertical-align: middle;
 }
 
-/* szerokości kolumn */
-.timesheet-table th:nth-child(1),
-.timesheet-table td:nth-child(1) { /* Client */
-    width: 25%;
-}
+/* szerokości kolumn - TYLKO na desktop (≥768px) */
+@media (min-width: 768px) {
+    .timesheet-table th:nth-child(1),
+    .timesheet-table td:nth-child(1) { /* Client */
+        width: 25%;
+    }
 
-.timesheet-table th:nth-child(2),
-.timesheet-table td:nth-child(2) { /* Service Date */
-    width: 12%;
-    text-align: center;
-}
+    .timesheet-table th:nth-child(2),
+    .timesheet-table td:nth-child(2) { /* Service Date */
+        width: 12%;
+        text-align: center;
+    }
 
-.timesheet-table th:nth-child(3),
-.timesheet-table td:nth-child(3) { /* Duration */
-    width: 8%;
-    text-align: center;
-}
+    .timesheet-table th:nth-child(3),
+    .timesheet-table td:nth-child(3) { /* Duration */
+        width: 8%;
+        text-align: center;
+    }
 
-.timesheet-table th:nth-child(4),
-.timesheet-table td:nth-child(4) { /* Value */
-    width: 10%;
-    text-align: center;
-}
+    .timesheet-table th:nth-child(4),
+    .timesheet-table td:nth-child(4) { /* Value */
+        width: 10%;
+        text-align: center;
+    }
 
-.timesheet-table th:nth-child(5),
-.timesheet-table td:nth-child(5) { /* Invoice # */
-    width: 15%;
-    text-align: center;
-}
+    .timesheet-table th:nth-child(5),
+    .timesheet-table td:nth-child(5) { /* Invoice # */
+        width: 15%;
+        text-align: center;
+    }
 
-.timesheet-table th:nth-child(6),
-.timesheet-table td:nth-child(6) { /* Paid */
-    width: 15%;
-    text-align: center;
-}
+    .timesheet-table th:nth-child(6),
+    .timesheet-table td:nth-child(6) { /* Paid */
+        width: 15%;
+        text-align: center;
+    }
 
-.timesheet-table th:nth-child(7),
-.timesheet-table td:nth-child(7) { /* Actions */
-    width: 15%;
-    text-align: center;
-    white-space: nowrap; /* żeby przyciski były w jednym wierszu */
+    .timesheet-table th:nth-child(7),
+    .timesheet-table td:nth-child(7) { /* Actions */
+        width: 15%;
+        text-align: center;
+        white-space: nowrap; /* żeby przyciski były w jednym wierszu */
+    }
 }
 
 /* Password Toggle (Show/Hide Password) */
@@ -1242,4 +1247,868 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .reset-password-page .button-container {
     margin-bottom: 20px;
+}
+
+/* ===========================
+   HAMBURGER MENU - MOBILE
+   =========================== */
+
+.hamburger-btn {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1001;
+    background-color: var(--my-bg);
+    border: 2px solid var(--my-yellow);
+    border-radius: 8px;
+    width: 50px;
+    height: 50px;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.hamburger-btn:hover {
+    background-color: rgba(255, 192, 8, 0.1);
+}
+
+.hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+}
+
+.hamburger-icon span {
+    display: block;
+    height: 3px;
+    background-color: var(--my-yellow);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+/* Animated X transformation */
+.hamburger-btn.active .hamburger-icon span:nth-child(1) {
+    transform: translateY(10px) rotate(45deg);
+}
+
+.hamburger-btn.active .hamburger-icon span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-btn.active .hamburger-icon span:nth-child(3) {
+    transform: translateY(-10px) rotate(-45deg);
+}
+
+/* Overlay */
+.menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.menu-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Slide-in menu */
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 280px;
+    height: 100%;
+    background-color: #161b22;
+    border-right: 2px solid var(--my-yellow);
+    z-index: 1000;
+    overflow-y: auto;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-menu.active {
+    left: 0;
+}
+
+.mobile-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--my-yellow);
+    background-color: var(--my-bg);
+}
+
+.mobile-menu-header h2 {
+    color: var(--my-yellow);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.close-menu-btn {
+    background: none;
+    border: none;
+    color: var(--my-yellow);
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-menu-btn:hover {
+    color: #ffffff;
+}
+
+.mobile-menu-content {
+    padding: 0;
+}
+
+.mobile-menu-user-info {
+    padding: 15px 20px;
+    background-color: rgba(255, 192, 8, 0.1);
+    border-bottom: 1px solid rgba(255, 192, 8, 0.3);
+}
+
+.mobile-menu-user-info p {
+    color: var(--my-yellow);
+    font-size: 0.9rem;
+    margin: 5px 0;
+}
+
+.mobile-menu-item {
+    display: block;
+    padding: 15px 20px;
+    color: var(--my-yellow);
+    text-decoration: none;
+    border-bottom: 1px solid #21262d;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+}
+
+.mobile-menu-item:hover {
+    background-color: rgba(255, 192, 8, 0.1);
+    padding-left: 30px;
+}
+
+.mobile-menu-logout {
+    margin: 0;
+    padding: 0;
+}
+
+.mobile-menu-item.logout-btn {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--my-red);
+    font-weight: bold;
+}
+
+.mobile-menu-item.logout-btn:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #ffffff;
+}
+
+.desktop-nav-container {
+    display: block;
+}
+
+/* Mobile back button (shows only on mobile) */
+.mobile-back-btn {
+    display: none;
+}
+
+/* Desktop-only buttons (hidden on mobile) */
+@media (max-width: 767px) {
+    .desktop-only-btn {
+        display: none !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .mobile-back-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background-color: var(--my-bg);
+        border: 2px solid var(--my-yellow);
+        border-radius: 8px;
+        width: 50px;
+        height: 50px;
+        font-size: 2rem;
+        color: var(--my-yellow);
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .mobile-back-btn:hover {
+        background-color: rgba(255, 192, 8, 0.1);
+    }
+
+    .hamburger-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .desktop-nav-container {
+        display: none;
+    }
+
+    body.menu-open {
+        overflow: hidden;
+    }
+
+    /* ===========================
+       CARD LAYOUT - TABLE TO CARD
+       =========================== */
+
+    .table-responsive {
+        border-radius: 0;
+        box-shadow: none;
+        background-color: transparent;
+    }
+
+    .table thead {
+        display: none;
+    }
+
+    .table tbody {
+        display: block;
+    }
+
+    .table tbody tr {
+        display: block;
+        background-color: var(--my-bg);
+        border: 1px solid var(--my-yellow);
+        border-radius: 10px;
+        margin-bottom: 20px;
+        padding: 15px;
+        position: relative;
+    }
+
+    .table tbody tr:nth-child(odd) td,
+    .table tbody tr:nth-child(even) td {
+        background-color: transparent;
+    }
+
+    .table tbody tr:hover td {
+        background-color: transparent;
+    }
+
+    /* ===========================
+       TIMESHEETS: MOBILE CARDS
+       =========================== */
+
+    .timesheet-table thead {
+        display: none;
+    }
+
+    .timesheet-table,
+    .timesheet-table tbody,
+    .timesheet-table tr,
+    .timesheet-table td {
+        display: block;
+        width: 100%;
+    }
+
+    /* ONE timesheet = ONE card */
+    .timesheet-table tbody tr {
+        background: var(--my-bg);
+        border: 1px solid var(--my-yellow);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 12px 0;
+    }
+
+    /* Each field = one row inside card: label | value */
+    .timesheet-table tbody td {
+        padding: 10px 0;
+        border-bottom: 1px solid #21262d;
+    }
+
+    .timesheet-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .timesheet-table tbody td::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 38%;
+        color: var(--my-grey);
+        font-weight: 600;
+        padding-right: 10px;
+        vertical-align: top;
+    }
+
+    .timesheet-table tbody td .cell-value {
+        display: inline-block;
+        width: 60%;
+        color: var(--my-yellow);
+        text-align: right;
+        word-break: break-word;
+    }
+
+    /* Actions: buttons side by side */
+    .timesheet-table .cell-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+    }
+
+    .timesheet-table .cell-actions button {
+        min-height: 44px;
+        padding: 10px 16px !important;
+        flex: 1;
+        max-width: 48%;
+    }
+
+    /* ===========================
+       CLIENTS: MOBILE CARDS
+       =========================== */
+
+    .clients-table thead {
+        display: none;
+    }
+
+    .clients-table,
+    .clients-table tbody,
+    .clients-table tr,
+    .clients-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .clients-table tbody tr {
+        background: var(--my-bg);
+        border: 1px solid var(--my-yellow);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 12px 0;
+    }
+
+    .clients-table tbody td {
+        padding: 10px 0;
+        border-bottom: 1px solid #21262d;
+    }
+
+    .clients-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .clients-table tbody td::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 38%;
+        color: var(--my-grey);
+        font-weight: 600;
+        padding-right: 10px;
+        vertical-align: top;
+    }
+
+    .clients-table tbody td .cell-value {
+        display: inline-block;
+        width: 60%;
+        color: var(--my-yellow);
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .clients-table .cell-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+    }
+
+    .clients-table .cell-actions button {
+        min-height: 44px;
+        padding: 10px 12px !important;
+        flex: 1;
+        font-size: 0.9rem;
+    }
+
+    /* ===========================
+       SELLERS: MOBILE CARDS
+       =========================== */
+
+    .sellers-table thead {
+        display: none;
+    }
+
+    .sellers-table,
+    .sellers-table tbody,
+    .sellers-table tr,
+    .sellers-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .sellers-table tbody tr {
+        background: var(--my-bg);
+        border: 1px solid var(--my-yellow);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 12px 0;
+    }
+
+    .sellers-table tbody td {
+        padding: 10px 0;
+        border-bottom: 1px solid #21262d;
+    }
+
+    .sellers-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .sellers-table tbody td::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 38%;
+        color: var(--my-grey);
+        font-weight: 600;
+        padding-right: 10px;
+        vertical-align: top;
+    }
+
+    .sellers-table tbody td .cell-value {
+        display: inline-block;
+        width: 60%;
+        color: var(--my-yellow);
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .sellers-table .cell-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+    }
+
+    .sellers-table .cell-actions button {
+        min-height: 44px;
+        padding: 10px 12px !important;
+        flex: 1;
+        font-size: 0.9rem;
+    }
+
+    /* ===========================
+       INVOICES: MOBILE CARDS
+       =========================== */
+
+    .invoices-table thead {
+        display: none;
+    }
+
+    .invoices-table,
+    .invoices-table tbody,
+    .invoices-table tr,
+    .invoices-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .invoices-table tbody tr {
+        background: var(--my-bg);
+        border: 1px solid var(--my-yellow);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 12px 0;
+    }
+
+    .invoices-table tbody td {
+        padding: 10px 0;
+        border-bottom: 1px solid #21262d;
+    }
+
+    .invoices-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .invoices-table tbody td::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 38%;
+        color: var(--my-grey);
+        font-weight: 600;
+        padding-right: 10px;
+        vertical-align: top;
+    }
+
+    .invoices-table tbody td .cell-value {
+        display: inline-block;
+        width: 60%;
+        color: var(--my-yellow);
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .invoices-table .cell-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .invoices-table .cell-actions button {
+        min-height: 44px;
+        padding: 10px 8px !important;
+        flex: 1 1 30%;
+        font-size: 0.85rem;
+    }
+
+    /* ===========================
+       INVOICE ITEMS: MOBILE CARDS
+       =========================== */
+
+    .invoice-items-table thead {
+        display: none;
+    }
+
+    .invoice-items-table,
+    .invoice-items-table tbody,
+    .invoice-items-table tr,
+    .invoice-items-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .invoice-items-table tbody tr {
+        background: var(--my-bg);
+        border: 1px solid var(--my-yellow);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 12px 0;
+    }
+
+    .invoice-items-table tbody td {
+        padding: 10px 0;
+        border-bottom: 1px solid #21262d;
+    }
+
+    .invoice-items-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .invoice-items-table tbody td::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 38%;
+        color: var(--my-grey);
+        font-weight: 600;
+        padding-right: 10px;
+        vertical-align: top;
+    }
+
+    .invoice-items-table tbody td .cell-value {
+        display: inline-block;
+        width: 60%;
+        color: var(--my-yellow);
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .invoice-items-table .timesheet-select {
+        width: 30px;
+        height: 30px;
+        transform: scale(1.8);
+    }
+
+    /* ===========================
+       PDF LIST: MOBILE CARDS
+       =========================== */
+
+    .pdf-list-table thead {
+        display: none;
+    }
+
+    .pdf-list-table,
+    .pdf-list-table tbody,
+    .pdf-list-table tr,
+    .pdf-list-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .pdf-list-table tbody tr {
+        background: var(--my-bg);
+        border: 1px solid var(--my-yellow);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 12px 0;
+    }
+
+    .pdf-list-table tbody td {
+        padding: 10px 0;
+        border-bottom: 1px solid #21262d;
+    }
+
+    .pdf-list-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .pdf-list-table tbody td::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 38%;
+        color: var(--my-grey);
+        font-weight: 600;
+        padding-right: 10px;
+        vertical-align: top;
+    }
+
+    .pdf-list-table tbody td .cell-value {
+        display: inline-block;
+        width: 60%;
+        color: var(--my-yellow);
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .pdf-list-table .save-button {
+        width: 100%;
+        min-height: 44px;
+    }
+
+    /* ===========================
+       USERS: MOBILE CARDS
+       =========================== */
+
+    .users-table thead {
+        display: none;
+    }
+
+    .users-table,
+    .users-table tbody,
+    .users-table tr,
+    .users-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .users-table tbody tr {
+        background: var(--my-bg);
+        border: 1px solid var(--my-yellow);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 12px 0;
+    }
+
+    .users-table tbody td {
+        padding: 10px 0;
+        border-bottom: 1px solid #21262d;
+    }
+
+    .users-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .users-table tbody td::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 38%;
+        color: var(--my-grey);
+        font-weight: 600;
+        padding-right: 10px;
+        vertical-align: top;
+    }
+
+    .users-table tbody td .cell-value {
+        display: inline-block;
+        width: 60%;
+        color: var(--my-yellow);
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .users-table .cell-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .users-table .cell-actions button {
+        min-height: 44px;
+        padding: 10px 8px !important;
+        flex: 1 1 45%;
+        font-size: 0.85rem;
+        margin: 0 !important;
+    }
+
+    /* ===========================
+       FILTER FORMS - VERTICAL STACKING
+       =========================== */
+
+    #filterForm .row {
+        flex-direction: column;
+    }
+
+    #filterForm .col-md-8,
+    #filterForm .col-md-4,
+    #filterForm .col-5,
+    #filterForm .col-12 {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #filterForm .d-flex {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    #filterForm .form-select {
+        width: 100% !important;
+        min-height: 44px;
+        font-size: 1.1rem;
+        padding: 12px;
+    }
+
+    #filterForm .save-button {
+        width: 100% !important;
+        min-height: 44px;
+        padding: 12px;
+        margin: 0;
+    }
+
+    /* Date Range Filter - Complex Layout (Invoices Archive) */
+    #filterForm .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    #filterForm .d-flex.justify-content-between > div {
+        width: 100%;
+        text-align: center;
+    }
+
+    #filterForm .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #filterForm #fromYear,
+    #filterForm #fromMonth,
+    #filterForm #toYear,
+    #filterForm #toMonth {
+        width: 100% !important;
+        min-height: 44px;
+    }
+
+    #filterForm label {
+        text-align: center;
+        display: block;
+        width: 100%;
+    }
+
+    /* ===========================
+       TOUCH TARGETS - MINIMUM 44PX
+       =========================== */
+
+    .nav-button,
+    .save-button,
+    .del-button {
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 1.1rem;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 44px;
+        padding: 12px;
+        font-size: 1.1rem;
+    }
+
+    input[type="date"] {
+        min-height: 50px;
+        padding: 12px;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        width: 30px;
+        height: 30px;
+        margin-right: 10px;
+    }
+
+    .timesheet-select {
+        width: 30px !important;
+        height: 30px !important;
+        transform: scale(1.8);
+        cursor: pointer;
+    }
+
+    .pagination .page-link {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        padding: 12px 16px;
+    }
+
+    /* Payment Date Picker (Timesheets) */
+    .payment-status,
+    .payment-date-display {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .payment-date-input {
+        width: 100% !important;
+        min-height: 44px;
+    }
+
+    .payment-date-btn,
+    .clear-date-btn {
+        width: 100% !important;
+        min-height: 44px;
+        padding: 12px !important;
+    }
+
+    .date-input-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .confirm-date-btn {
+        min-height: 44px;
+    }
+
+    /* Invoice Items - Checkbox in Cards */
+    .table tbody td:has(.timesheet-select) {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
+
+    .table tbody td:has(.timesheet-select)::before {
+        order: 2;
+        margin-left: 15px;
+    }
 }
