@@ -14,21 +14,57 @@ body {
     padding: 0;
 }
 
+/* BASE TABLE */
 .table {
-    color: var(--my-yellow);
     width: 100%;
+    border-collapse: collapse;
 }
 
+/* HEAD */
 .table th {
+    background-color: #0d1117;
     color: var(--my-grey);
     padding: 15px;
     border-bottom: 1px solid var(--my-yellow);
 }
 
+/* CELLS */
 .table td {
+    color: var(--my-yellow);
     padding: 12px 15px;
     vertical-align: middle;
     horiz-align: center;
+    border-bottom: 1px solid #21262d;
+}
+
+/* Actions column - buttons side by side */
+.table td button {
+    display: inline-block;
+    margin: 5px;
+    white-space: nowrap;
+}
+
+/* ZEBRA STRIPING – WŁASNY, PEWNY */
+.table tbody tr:nth-child(odd) td {
+    background-color: #161b22;
+}
+
+.table tbody tr:nth-child(even) td {
+    background-color: #1a1f26;
+}
+
+/* TFOOT (Total Amount row) */
+.table tfoot td {
+    background-color: #0d1117;
+    color: var(--my-yellow);
+    font-weight: bold;
+    border-top: 2px solid var(--my-yellow);
+}
+
+/* HOVER */
+.table tbody tr:hover td {
+    background-color: #21262d;
+    transition: background-color 0.2s ease;
 }
 
 .table td:nth-child(1) { /* checkbox */
@@ -58,8 +94,8 @@ label {
 }
 
 .card {
-    max-width: none;
-    width: 70%;
+    max-width: 1400px;
+    width: 93%;
     margin: 20px auto;
     background-color: #161b22;
     border: 1px solid var(--my-yellow);

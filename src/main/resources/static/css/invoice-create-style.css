@@ -11,6 +11,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: system-ui, -apple-system, sans-serif;
+    background-color: white;
     color: var(--text-color);
     font-size: 0.875rem;
     line-height: 1.25rem;
@@ -60,10 +61,6 @@ body {
 
 .invoice-info .label {
     color: var(--my-grey);
-}
-
-.invoice-info div:not(.label) {
-    color: var(--my-yellow);
 }
 
 .data-label {
