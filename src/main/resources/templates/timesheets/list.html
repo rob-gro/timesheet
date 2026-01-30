@@ -78,7 +78,7 @@
                                 <span class="sort-icon"
                                       data-column="serviceDate"
                                       data-direction="desc"
-                                      th:classappend="${param.sortBy == 'serviceDate' && param.sortDir == 'desc'} ? 'active'"
+                                      th:classappend="${(param.sortBy == null || (param.sortBy == 'serviceDate' && param.sortDir == 'desc'))} ? 'active'"
                                       onclick="sortTable('serviceDate', 'desc')">▼</span>
                             </div>
                         </th>

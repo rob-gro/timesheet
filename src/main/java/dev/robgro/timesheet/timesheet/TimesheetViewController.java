@@ -37,7 +37,7 @@ public class TimesheetViewController {
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) String paymentStatus,
             @RequestParam(required = false, defaultValue = "serviceDate") String sortBy,
-            @RequestParam(required = false, defaultValue = "asc") String sortDir,
+            @RequestParam(required = false, defaultValue = "desc") String sortDir,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
