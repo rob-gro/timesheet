@@ -14,6 +14,20 @@ body {
     padding: 0;
 }
 
+/* Display toggles for desktop/mobile */
+.mobile-only {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    .mobile-only {
+        display: block;
+    }
+}
+
 /* BASE TABLE */
 .table {
     width: 100%;
@@ -1515,72 +1529,272 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         background-color: transparent;
     }
 
-    /* ===========================
-       TIMESHEETS: MOBILE CARDS
-       =========================== */
+    /* ======================================
+       TIMESHEETS: MOBILE COMPACT LIST
+       ====================================== */
 
-    .timesheet-table thead {
-        display: none;
-    }
-
-    .timesheet-table,
-    .timesheet-table tbody,
-    .timesheet-table tr,
-    .timesheet-table td {
-        display: block;
-        width: 100%;
-    }
-
-    /* ONE timesheet = ONE card */
-    .timesheet-table tbody tr {
-        background: var(--my-bg);
-        border: 1px solid var(--my-yellow);
-        border-radius: 12px;
-        padding: 12px 14px;
-        margin: 12px 0;
-    }
-
-    /* Each field = one row inside card: label | value */
-    .timesheet-table tbody td {
-        padding: 10px 0;
-        border-bottom: 1px solid #21262d;
-    }
-
-    .timesheet-table tbody td:last-child {
-        border-bottom: none;
-    }
-
-    .timesheet-table tbody td::before {
-        content: attr(data-label);
-        display: inline-block;
-        width: 38%;
-        color: var(--my-grey);
-        font-weight: 600;
-        padding-right: 10px;
-        vertical-align: top;
-    }
-
-    .timesheet-table tbody td .cell-value {
-        display: inline-block;
-        width: 60%;
-        color: var(--my-yellow);
-        text-align: right;
-        word-break: break-word;
-    }
-
-    /* Actions: buttons side by side */
-    .timesheet-table .cell-actions {
+    .timesheet-list {
         display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        flex-wrap: nowrap;
+        flex-direction: column;
+        gap: 0;
     }
 
-    .timesheet-table .cell-actions button {
-        min-height: 44px;
-        padding: 10px 16px !important;
+    /* Each timesheet item */
+    .timesheet-item {
+        background: var(--my-bg); /* #232424 */
+        border: 1px solid var(--my-yellow);
+        border-radius: 16px;
+        margin-bottom: 14px;
+        overflow: hidden;
+    }
+
+    /* Compact Row - Always Visible */
+    .timesheet-item .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 6px 12px;
+        align-items: center;
+        padding: 12px 14px;
+        cursor: pointer;
+        user-select: none;
+        background: linear-gradient(180deg, rgba(22, 27, 34, .95), rgba(22, 27, 34, .70));
+        transition: background 0.12s ease;
+    }
+
+    .timesheet-item .row:hover {
+        background: linear-gradient(180deg, rgba(22, 27, 34, 1), rgba(22, 27, 34, .82));
+    }
+
+    /* Left Column: Client Block */
+    .client-block {
+        grid-column: 1;
+        grid-row: 1 / 3;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .client-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .client-name {
+        font-weight: 800;
+        color: var(--my-yellow);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+        font-size: 1.1rem;
+    }
+
+    .service-date {
+        font-size: 0.95rem;
+        color: var(--my-grey);
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .warn {
+        margin-left: 6px;
+        font-size: 0.85rem;
+        color: var(--my-yellow);
+        opacity: 0.85;
+    }
+
+    /* Right Top: Value */
+    .value {
+        grid-column: 2;
+        grid-row: 1;
+        text-align: right;
+        padding-right: 6px;
+        font-weight: 800;
+        color: #c9d1d9;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        font-size: 1.1rem;
+    }
+
+    /* Right Bottom: Status Badge */
+    .status {
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: end;
+        margin-right: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 999px;
+        border: 1px solid rgba(48, 54, 61, .9);
+        background: rgba(13, 17, 23, .35);
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+    }
+
+    .status:hover {
+        transform: scale(1.05);
+    }
+
+    .status.unpaid {
+        border-color: rgba(255, 140, 0, .55); /* Orange #ff8c00 */
+        color: #ff8c00;
+    }
+
+    .status.paid {
+        border-color: rgba(34, 211, 238, .45);
+        color: #22d3ee;
+    }
+
+    .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #ff8c00; /* Orange for UNPAID */
+        box-shadow: 0 0 0 3px rgba(255, 140, 0, .15);
+        flex: 0 0 auto;
+    }
+
+    .dot.cyan {
+        background: #22d3ee;
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, .14);
+    }
+
+    /* Expandable Details Section */
+    .details {
+        padding: 12px 14px 14px;
+        border-top: 1px solid rgba(48, 54, 61, .55);
+        background: rgba(13, 17, 23, .35);
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 14px;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+    }
+
+    .kv {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid rgba(48, 54, 61, .7);
+        border-radius: 12px;
+        background: rgba(22, 27, 34, .55);
+    }
+
+    .k {
+        color: var(--my-grey);
+        font-size: 0.8rem;
+    }
+
+    .v {
+        color: #c9d1d9;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    /* Payment Date Picker (inside details) */
+    .payment-picker {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 8px;
+        border: 1px solid rgba(255, 140, 0, .4);
+        border-radius: 12px;
+        background: rgba(255, 140, 0, .08);
+    }
+
+    .payment-date-input {
         flex: 1;
-        max-width: 48%;
+        min-width: 0;
+        background: rgba(13, 17, 23, .6);
+        border: 1px solid rgba(255, 140, 0, .3);
+        color: #c9d1d9;
+        padding: 8px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+    }
+
+    .payment-picker .save-button,
+    .payment-picker .del-button {
+        min-width: 40px;
+        max-width: 40px;
+        min-height: 40px;
+        padding: 8px !important;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    /* Actions Buttons */
+    .actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        border: 1px solid rgba(48, 54, 61, .9);
+        background: transparent;
+        color: var(--my-grey);
+        padding: 10px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-weight: 700;
+        font-size: 0.9rem;
+        user-select: none;
+        min-height: 44px;
+    }
+
+    .btn.edit {
+        background: rgba(34, 211, 238, .12);
+        border-color: rgba(34, 211, 238, .6);
+        color: #22d3ee;
+    }
+
+    .btn.edit:hover {
+        background: rgba(34, 211, 238, .2);
+    }
+
+    .btn.delete {
+        background: rgba(239, 68, 68, .12);
+        border-color: rgba(239, 68, 68, .6);
+        color: #ef4444;
+    }
+
+    .btn.delete:hover {
+        background: rgba(239, 68, 68, .2);
+    }
+
+    /* Smaller screens adjustment */
+    @media (max-width: 360px) {
+        .timesheet-item .row {
+            padding: 10px 12px;
+        }
+
+        .status {
+            padding: 5px 8px;
+            gap: 5px;
+            font-size: 0.7rem;
+        }
+
+        .client-name, .value {
+            font-size: 1rem;
+        }
     }
 
     /* ===========================

@@ -69,6 +69,116 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Accordion: Toggle details on row click (MOBILE only)
+    document.querySelectorAll('.timesheet-item .row').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't toggle if clicking status badge (handled separately)
+            if (e.target.closest('.status')) {
+                return;
+            }
+
+            const details = this.nextElementSibling;
+            if (!details || !details.classList.contains('details')) return;
+
+            const isOpen = this.getAttribute('data-open') === 'true';
+            this.setAttribute('data-open', String(!isOpen));
+            details.style.display = isOpen ? 'none' : 'block';
+        });
+    });
+
+    // Status badge click handler (MOBILE only) - using event delegation
+    document.querySelectorAll('.status').forEach(badge => {
+        badge.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent row accordion toggle
+
+            const timesheetId = this.getAttribute('data-timesheet-id');
+            const isPaid = this.getAttribute('data-is-paid') === 'true';
+
+            if (isPaid) {
+                // PAID → UNPAID (clear date)
+                if (confirm('Are you sure you want to clear the payment date?')) {
+                    fetch(`/api/v1/timesheets/${timesheetId}/payment`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...getCsrfHeaders()
+                        },
+                        body: JSON.stringify({ paymentDate: null })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error clearing payment date:', error);
+                        alert('Failed to clear payment date');
+                    });
+                }
+            } else {
+                // UNPAID → Show date picker
+                const picker = document.getElementById(`payment-picker-${timesheetId}`);
+                if (picker) {
+                    picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+
+                    // Expand details if not already open
+                    const row = this.closest('.row');
+                    const details = row.nextElementSibling;
+                    if (details && details.style.display === 'none') {
+                        details.style.display = 'block';
+                        row.setAttribute('data-open', 'true');
+                    }
+                }
+            }
+        });
+    });
+
+    // Confirm payment date from picker - MOBILE
+    document.querySelectorAll('.confirm-payment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const timesheetId = this.getAttribute('data-timesheet-id');
+            const input = document.getElementById(`payment-input-${timesheetId}`);
+            const selectedDate = input.value;
+
+            if (!selectedDate) {
+                alert('Please select a date');
+                return;
+            }
+
+            fetch(`/api/v1/timesheets/${timesheetId}/payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getCsrfHeaders()
+                },
+                body: JSON.stringify({ paymentDate: selectedDate })
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    throw new Error('Failed to set payment date');
+                }
+            })
+            .catch(error => {
+                console.error('Error setting payment date:', error);
+                alert('Failed to set payment date');
+            });
+        });
+    });
+
+    // Cancel payment date picker - MOBILE
+    document.querySelectorAll('.cancel-payment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const timesheetId = this.getAttribute('data-timesheet-id');
+            const picker = document.getElementById(`payment-picker-${timesheetId}`);
+            if (picker) {
+                picker.style.display = 'none';
+            }
+        });
+    });
+
+    // DESKTOP: Old payment date handlers (keep for desktop table)
     window.showDatePicker = function (btn) {
         const container = btn.parentElement;
         const dateContainer = container.querySelector('.date-input-container');
