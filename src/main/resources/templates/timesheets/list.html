@@ -66,8 +66,8 @@
             </form>
 
             <div class="table-responsive">
-                <!-- -->
-                <table class="table timesheet-table">
+                <!-- Desktop: Table view -->
+                <table class="table timesheet-table desktop-only">
 
                     <thead>
                     <tr class="text-center">
@@ -178,6 +178,82 @@
                     </tr>
                     </tbody>
                 </table>
+
+                <!-- Mobile: Compact list with accordion -->
+                <div class="timesheet-list mobile-only">
+                    <div th:each="timesheet : ${timesheets}" class="timesheet-item">
+
+                        <!-- Compact Row (Always Visible) -->
+                        <div class="row" data-open="false" th:data-timesheet-id="${timesheet.id}">
+
+                            <!-- Left Column: Client Block -->
+                            <div class="client-block">
+                                <div class="client-top">
+                                    <div class="client-name" th:text="${timesheet.clientName}">Client Name</div>
+                                </div>
+                                <div class="service-date">
+                                    <span th:text="${#temporals.format(timesheet.serviceDate, 'yyyy-MM-dd')}">2025-12-23</span>
+                                    <span class="warn"
+                                          th:if="${!timesheet.invoiced}"
+                                          title="Invoice not created yet">⚠</span>
+                                </div>
+                            </div>
+
+                            <!-- Right Top: Value -->
+                            <div class="value" th:text="${'£' + #numbers.formatDecimal(timesheet.value, 1, 2)}">£62.68</div>
+
+                            <!-- Right Bottom: Status Badge (Clickable) -->
+                            <div class="status"
+                                 th:classappend="${timesheet.paymentDate == null} ? 'unpaid' : 'paid'"
+                                 th:attr="data-timesheet-id=${timesheet.id},data-is-paid=${timesheet.paymentDate != null}">
+                                <span class="dot" th:classappend="${timesheet.paymentDate != null} ? 'cyan' : ''"></span>
+                                <span th:text="${timesheet.paymentDate == null} ? 'UNPAID' : 'PAID'">UNPAID</span>
+                            </div>
+                        </div>
+
+                        <!-- Expandable Details (Hidden by Default) -->
+                        <div class="details" style="display: none;">
+                            <div class="details-grid">
+                                <div class="kv">
+                                    <span class="k">Duration</span>
+                                    <span class="v" th:text="${timesheet.duration}">4.0</span>
+                                </div>
+                                <div class="kv">
+                                    <span class="k">Inv #:</span>
+                                    <span class="v" th:text="${timesheet.invoiced ? timesheet.invoiceNumber : '—'}">—</span>
+                                </div>
+                                <div class="kv">
+                                    <span class="k">Hourly rate</span>
+                                    <span class="v" th:text="${#numbers.formatDecimal(timesheet.hourlyRate, 1, 2)}">15.67</span>
+                                </div>
+                                <div class="kv">
+                                    <span class="k">Paid date</span>
+                                    <span class="v" th:text="${timesheet.paymentDate != null ? #temporals.format(timesheet.paymentDate, 'yyyy-MM-dd') : '—'}">—</span>
+                                </div>
+                            </div>
+
+                            <!-- Payment Date Picker (shown when UNPAID badge clicked) -->
+                            <div class="payment-picker" style="display: none;" th:id="'payment-picker-' + ${timesheet.id}">
+                                <input type="date"
+                                       class="payment-date-input form-control"
+                                       th:id="'payment-input-' + ${timesheet.id}"
+                                       th:data-timesheet-id="${timesheet.id}">
+                                <button class="save-button confirm-payment-btn"
+                                        th:data-timesheet-id="${timesheet.id}">✓</button>
+                                <button class="del-button cancel-payment-btn"
+                                        th:data-timesheet-id="${timesheet.id}">✕</button>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="actions">
+                                <button class="btn edit" th:onclick="'editTimesheet(' + ${timesheet.id} + ')'">Edit</button>
+                                <button class="btn delete" th:onclick="'deleteTimesheet(' + ${timesheet.id} + ')'">Delete</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
                 <div class="d-flex justify-content-center mt-3">
                     <nav aria-label="Page navigation">
                         <ul class="pagination" th:if="${totalPages > 1}">
