@@ -28,7 +28,7 @@ public class EmailTrackingNotificationServiceImpl implements EmailTrackingNotifi
     @Value("${app.base-url}")
     private String baseUrl;
 
-    @Value("${app.email.from}")
+    @Value("${app.email.from:noreply@robgro.dev}")
     private String emailFrom;
     /**
      * Sends instant tracking notification to admin

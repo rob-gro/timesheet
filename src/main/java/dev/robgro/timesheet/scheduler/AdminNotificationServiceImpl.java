@@ -5,6 +5,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
     private final JavaMailSender emailSender;
     private final InvoicingSchedulerProperties properties;
     private final TemplateEngine templateEngine;
+
+    @Value("${app.email.from:noreply@robgro.dev}")
+    private String emailFrom;
 
     /**
      * Sends error notification email using Thymeleaf template
@@ -56,6 +60,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             // Process template and return HTML
             String htmlContent = templateEngine.process("email/admin-error-notification", context);
 
+            helper.setFrom(emailFrom);
             helper.setText(htmlContent, true);
             emailSender.send(message);
 
@@ -95,6 +100,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             // Process template and return HTML
             String htmlContent = templateEngine.process("email/admin-summary-notification", context);
 
+            helper.setFrom(emailFrom);
             helper.setText(htmlContent, true);
             emailSender.send(message);
 
@@ -127,6 +133,7 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             // Process template and return HTML
             String htmlContent = templateEngine.process("email/admin-empty-client-warning", context);
 
+            helper.setFrom(emailFrom);
             helper.setText(htmlContent, true);
             emailSender.send(message);
 
