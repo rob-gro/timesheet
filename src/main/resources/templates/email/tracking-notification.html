@@ -118,38 +118,74 @@
     <!-- Overall Statistics -->
     <div class="section stats">
         <h2>📊 Overall Statistics (All Invoices)</h2>
-        <div class="stats-grid">
-            <div class="stat-card" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <div class="icon">📤</div>
-                <div class="value" th:text="${stats.totalSent}">10</div>
-                <div class="label">Sent</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <div class="icon">✅</div>
-                <div class="value" th:text="${stats.totalOpened}">8</div>
-                <div class="label">Opened</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <div class="icon">📈</div>
-                <div class="value" th:text="${#numbers.formatDecimal(stats.openRate, 1, 1) + '%'}">80.0%</div>
-                <div class="label">Open Rate</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <div class="icon">🕐</div>
-                <div class="value" th:text="${stats.openedLast24h}">2</div>
-                <div class="label">Last 24h</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <div class="icon">📅</div>
-                <div class="value" th:text="${stats.openedLast7days}">5</div>
-                <div class="label">Last 7 days</div>
-            </div>
-            <div class="stat-card" th:if="${stats.avgTimeToFirstOpenHours != null}" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <div class="icon">⏱️</div>
-                <div class="value" th:text="${#numbers.formatDecimal(stats.avgTimeToFirstOpenHours, 1, 1) + ' h'}">2.5 h</div>
-                <div class="label">Avg Time to Open</div>
-            </div>
-        </div>
+
+        <!-- TABLE layout for email client compatibility (CSS Grid not supported on mobile) -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 15px;">
+            <!-- Row 1: Sent, Opened, Open Rate -->
+            <tr>
+                <!-- Sent -->
+                <td width="33.33%" style="padding: 7px; vertical-align: top;">
+                    <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; padding: 20px; border-radius: 8px; text-align: center; mso-line-height-rule: exactly;" bgcolor="#0984e3">
+                        <div style="font-size: 32px; margin-bottom: 10px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">📤</div>
+                        <div style="font-size: 28px; font-weight: 700; margin: 10px 0; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" th:text="${stats.totalSent}">10</div>
+                        <div style="font-size: 13px; opacity: 0.9; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">Sent</div>
+                    </div>
+                </td>
+
+                <!-- Opened -->
+                <td width="33.33%" style="padding: 7px; vertical-align: top;">
+                    <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; padding: 20px; border-radius: 8px; text-align: center; mso-line-height-rule: exactly;" bgcolor="#0984e3">
+                        <div style="font-size: 32px; margin-bottom: 10px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">✅</div>
+                        <div style="font-size: 28px; font-weight: 700; margin: 10px 0; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" th:text="${stats.totalOpened}">8</div>
+                        <div style="font-size: 13px; opacity: 0.9; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">Opened</div>
+                    </div>
+                </td>
+
+                <!-- Open Rate -->
+                <td width="33.33%" style="padding: 7px; vertical-align: top;">
+                    <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; padding: 20px; border-radius: 8px; text-align: center; mso-line-height-rule: exactly;" bgcolor="#0984e3">
+                        <div style="font-size: 32px; margin-bottom: 10px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">📈</div>
+                        <div style="font-size: 28px; font-weight: 700; margin: 10px 0; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" th:text="${#numbers.formatDecimal(stats.openRate, 1, 1) + '%'}">80.0%</div>
+                        <div style="font-size: 13px; opacity: 0.9; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">Open Rate</div>
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Row 2: Last 24h, Last 7 days, Avg Time to Open -->
+            <tr>
+                <!-- Last 24h -->
+                <td width="33.33%" style="padding: 7px; vertical-align: top;">
+                    <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; padding: 20px; border-radius: 8px; text-align: center; mso-line-height-rule: exactly;" bgcolor="#0984e3">
+                        <div style="font-size: 32px; margin-bottom: 10px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">🕐</div>
+                        <div style="font-size: 28px; font-weight: 700; margin: 10px 0; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" th:text="${stats.openedLast24h}">2</div>
+                        <div style="font-size: 13px; opacity: 0.9; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">Last 24h</div>
+                    </div>
+                </td>
+
+                <!-- Last 7 days -->
+                <td width="33.33%" style="padding: 7px; vertical-align: top;">
+                    <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; padding: 20px; border-radius: 8px; text-align: center; mso-line-height-rule: exactly;" bgcolor="#0984e3">
+                        <div style="font-size: 32px; margin-bottom: 10px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">📅</div>
+                        <div style="font-size: 28px; font-weight: 700; margin: 10px 0; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" th:text="${stats.openedLast7days}">5</div>
+                        <div style="font-size: 13px; opacity: 0.9; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">Last 7 days</div>
+                    </div>
+                </td>
+
+                <!-- Avg Time to Open (conditional) -->
+                <td width="33.33%" style="padding: 7px; vertical-align: top;" th:if="${stats.avgTimeToFirstOpenHours != null}">
+                    <div style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); background-color: #0984e3 !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; padding: 20px; border-radius: 8px; text-align: center; mso-line-height-rule: exactly;" bgcolor="#0984e3">
+                        <div style="font-size: 32px; margin-bottom: 10px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">⏱️</div>
+                        <div style="font-size: 28px; font-weight: 700; margin: 10px 0; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" th:text="${#numbers.formatDecimal(stats.avgTimeToFirstOpenHours, 1, 1) + ' h'}">2.5 h</div>
+                        <div style="font-size: 13px; opacity: 0.9; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">Avg Time to Open</div>
+                    </div>
+                </td>
+
+                <!-- Empty cell if avgTime is null -->
+                <td width="33.33%" style="padding: 7px; vertical-align: top;" th:unless="${stats.avgTimeToFirstOpenHours != null}">
+                    <!-- Empty cell for layout consistency -->
+                </td>
+            </tr>
+        </table>
     </div>
 
     <!-- Insights -->
