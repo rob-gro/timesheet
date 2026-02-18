@@ -68,7 +68,9 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional(readOnly = true)
     public List<InvoiceDto> getAllInvoices() {
-        return invoiceRepository.findAll().stream()
+        // Sort by invoice number components (year DESC, month DESC, sequence DESC)
+        // NOT by ID or invoice_number string
+        return invoiceRepository.findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc().stream()
                 .map(invoiceDtoMapper)
                 .toList();
     }
@@ -76,7 +78,9 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional(readOnly = true)
     public List<InvoiceDto> getAllInvoicesOrderByDateDesc() {
-        return invoiceRepository.findAllByOrderByIssueDateDesc()
+        // Sort by invoice number components (year DESC, month DESC, sequence DESC)
+        // NOT by issue_date (allows backdated invoices in correct logical order)
+        return invoiceRepository.findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc()
                 .stream()
                 .map(invoiceDtoMapper)
                 .toList();
@@ -85,7 +89,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional(readOnly = true)
     public List<InvoiceDto> getInvoicesByDateRange(LocalDate startDate, LocalDate endDate) {
-        return invoiceRepository.findByIssueDateBetweenOrderByIssueDateDesc(startDate, endDate)
+        return invoiceRepository.findByIssueDateBetweenOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc(startDate, endDate)
                 .stream()
                 .map(invoiceDtoMapper)
                 .toList();
@@ -138,7 +142,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
 
         try {
-            String fileName = invoice.getInvoiceNumber() + ".pdf";
+            String fileName = sanitizeFilename(invoice.getInvoiceNumber()) + ".pdf";
             return ftpService.downloadPdfInvoice(fileName);
         } catch (Exception e) {
             log.error("Error downloading PDF for invoice: {}", invoiceId, e);
@@ -423,5 +427,14 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
 
         return Month.of(fromMonth) + " " + fromYear + " - " + Month.of(toMonth) + " " + toYear;
+    }
+
+    /**
+     * HOTFIX: Sanitize invoice number for safe filename usage.
+     * Replaces "/" with "-" to prevent treating invoice number as folder path.
+     * Example: "INV/2026/001" → "INV-2026-001.pdf"
+     */
+    private String sanitizeFilename(String invoiceNumber) {
+        return invoiceNumber.replace("/", "-");
     }
 }

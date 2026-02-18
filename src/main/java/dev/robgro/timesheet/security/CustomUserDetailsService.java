@@ -45,11 +45,14 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.debug("Authorities (count): {}", authorities.size());
         authorities.forEach(auth -> log.debug("Authority: {}", auth.getAuthority()));
 
+        Long sellerId = user.getDefaultSeller() != null ? user.getDefaultSeller().getId() : null;
+
         CustomUserPrincipal principal = new CustomUserPrincipal(
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
                 user.getTokenVersion(),
+                sellerId,
                 authorities,
                 user.isActive()
         );

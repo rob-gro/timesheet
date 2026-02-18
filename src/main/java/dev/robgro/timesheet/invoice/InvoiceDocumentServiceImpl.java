@@ -35,7 +35,7 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
             throw new EntityNotFoundException("PDF for invoice", invoiceId);
         }
         try {
-            String fileName = invoice.getInvoiceNumber() + ".pdf";
+            String fileName = sanitizeFilename(invoice.getInvoiceNumber()) + ".pdf";
             return ftpService.downloadPdfInvoice(fileName);
         } catch (Exception e) {
             log.error("Error downloading PDF for invoice: {}", invoiceId, e);
@@ -49,7 +49,7 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
         log.info(" 😁 Processing invoice PDF generation and email for invoice id: {}", invoiceId);
         Invoice invoice = getInvoiceOrThrow(invoiceId);
         Client client = invoice.getClient();
-        String fileName = invoice.getInvoiceNumber() + ".pdf";
+        String fileName = sanitizeFilename(invoice.getInvoiceNumber()) + ".pdf";
 
         ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
         pdfGenerator.generateInvoicePdf(invoice, pdfOutput);
@@ -59,6 +59,9 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
 
         invoice.setPdfPath(ftpService.getInvoicesDirectory() + "/" + fileName);
         invoice.setPdfGeneratedAt(LocalDateTime.now());
+
+        // HOTFIX: Save invoice BEFORE email (so pdf_path is persisted even if email fails)
+        invoiceRepository.save(invoice);
 
         // Create tracking token for email open tracking (90-day expiry)
         String trackingToken = trackingService.createTrackingToken(invoice);
@@ -97,5 +100,14 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
     private Invoice getInvoiceOrThrow(Long id) {
         return invoiceRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Invoice", id));
+    }
+
+    /**
+     * HOTFIX: Sanitize invoice number for safe filename usage.
+     * Replaces "/" with "-" to prevent treating invoice number as folder path.
+     * Example: "INV/2026/001" → "INV-2026-001.pdf"
+     */
+    private String sanitizeFilename(String invoiceNumber) {
+        return invoiceNumber.replace("/", "-");
     }
 }

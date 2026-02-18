@@ -32,7 +32,7 @@ class JwtTokenProviderTest {
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         );
         CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
-                1L, "testuser", "password", 1, authorities, true
+                1L, "testuser", "password", 1, 1L, authorities, true
         );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userPrincipal, null, authorities
@@ -51,8 +51,8 @@ class JwtTokenProviderTest {
     void shouldCreateDifferentTokens_forDifferentUsers() {
         // given
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-        CustomUserPrincipal user1 = new CustomUserPrincipal(1L, "user1", "pass", 1, authorities, true);
-        CustomUserPrincipal user2 = new CustomUserPrincipal(2L, "user2", "pass", 1, authorities, true);
+        CustomUserPrincipal user1 = new CustomUserPrincipal(1L, "user1", "pass", 1, 1L, authorities, true);
+        CustomUserPrincipal user2 = new CustomUserPrincipal(2L, "user2", "pass", 1, 2L, authorities, true);
 
         Authentication auth1 = new UsernamePasswordAuthenticationToken(user1, null, user1.getAuthorities());
         Authentication auth2 = new UsernamePasswordAuthenticationToken(user2, null, user2.getAuthorities());
@@ -72,7 +72,7 @@ class JwtTokenProviderTest {
         // given
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
-                1L, "testuser", "password", 1, authorities, true
+                1L, "testuser", "password", 1, 1L, authorities, true
         );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userPrincipal, null, userPrincipal.getAuthorities()
@@ -121,7 +121,7 @@ class JwtTokenProviderTest {
         // given
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
-                1L, "testuser", "password", 1, authorities, true
+                1L, "testuser", "password", 1, 1L, authorities, true
         );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userPrincipal, null, userPrincipal.getAuthorities()
@@ -144,7 +144,7 @@ class JwtTokenProviderTest {
         String expectedUsername = "testuser";
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
-                1L, expectedUsername, "password", 1, authorities, true
+                1L, expectedUsername, "password", 1, 1L, authorities, true
         );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userPrincipal, null, userPrincipal.getAuthorities()
@@ -169,7 +169,7 @@ class JwtTokenProviderTest {
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         );
         CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
-                1L, expectedUsername, "password", 1, expectedAuthorities, true
+                1L, expectedUsername, "password", 1, 1L, expectedAuthorities, true
         );
         Authentication originalAuth = new UsernamePasswordAuthenticationToken(
                 userPrincipal, null, expectedAuthorities
@@ -197,7 +197,7 @@ class JwtTokenProviderTest {
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         );
         CustomUserPrincipal userPrincipal = new CustomUserPrincipal(
-                1L, "admin", "password", 1, authorities, true
+                1L, "admin", "password", 1, 1L, authorities, true
         );
         Authentication auth = new UsernamePasswordAuthenticationToken(userPrincipal, null, authorities);
 

@@ -26,30 +26,34 @@
                         <span th:text="${success}"></span>
                     </div>
 
-                    <form method="post" th:action="@{/invoices/items}">
+                    <form th:object="${createInvoiceRequest}" method="post" th:action="@{/invoices/items}">
                         <div class="row mb-4">
                             <div class="col-md-8">
                                 <label>Invoice for:</label>
-                                <select class="form-control" id="clientId" name="clientId" required>
+                                <select class="form-control" th:field="*{clientId}" required>
                                     <option value="">Select client</option>
                                     <option th:each="client : ${clients}"
                                             th:value="${client.id}"
                                             th:text="${client.clientName}">
                                     </option>
                                 </select>
-                                <label>Seller:</label>
-                                <select class="form-control" id="sellerId" name="sellerId" required>
-                                    <option value="">Select seller</option>
-                                    <option th:each="seller : ${sellers}"
-                                            th:value="${seller.id}"
-                                            th:text="${seller.name}"
-                                            th:if="${seller.active}"
-                                            th:selected="${currentUser != null && currentUser.defaultSeller != null && currentUser.defaultSeller.id == seller.id}">
-                                    </option>
-                                </select>
+                                <label>Seller (Company):</label>
+                                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                    <input type="text"
+                                           th:value="${currentUser.defaultSeller != null ? currentUser.defaultSeller.name : 'No seller configured'}"
+                                           readonly
+                                           style="flex: 1; background-color: rgb(45, 48, 50); color: var(--my-yellow); border: 1px solid var(--my-yellow); border-radius: 10px; padding: 10px; cursor: not-allowed;">
+                                    <button type="button" class="save-button"
+                                            style="margin: 0; padding: 0.775rem 1.2rem; font-size: 0.9rem;"
+                                            th:onclick="'window.location.href=\'/sellers/edit/' + ${currentUser.defaultSeller.id} + '\''"
+                                            th:if="${currentUser.defaultSeller != null}">
+                                        Edit
+                                    </button>
+                                </div>
+                                <input type="hidden" th:field="*{sellerId}">
                                 <label>Invoice date:</label>
                                 <input type="date" class="form-control"
-                                       name="issueDate" required>
+                                       th:field="*{issueDate}" required>
                             </div>
                         </div>
 
@@ -72,7 +76,7 @@
                                         <span class="cell-value">
                                             <input type="checkbox"
                                                    class="timesheet-select"
-                                                   name="timesheetIds"
+                                                   th:field="*{timesheetIds}"
                                                    th:value="${timesheet.id}"
                                                    th:data-duration="${timesheet.duration}"
                                                    th:data-rate="${timesheet.hourlyRate}">

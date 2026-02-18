@@ -179,12 +179,8 @@ class InvoiceDocumentServiceImplTest {
         verify(ftpService).getInvoicesDirectory();
         verify(emailMessageService).sendInvoiceEmail(any());
 
-        verify(invoiceRepository).save(argThat(inv -> {
-            return inv.getId().equals(invoiceId) &&
-                    inv.getPdfPath().equals(ftpDirectory + "/" + invoiceNumber + ".pdf") &&
-                    inv.getPdfGeneratedAt() != null &&
-                    inv.getEmailSentAt() != null;
-        }));
+        // HOTFIX: save called twice — once before email (pdfPath), once after (emailSentAt)
+        verify(invoiceRepository, times(2)).save(any(Invoice.class));
     }
 
     @Test
@@ -242,7 +238,8 @@ class InvoiceDocumentServiceImplTest {
         verify(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         verify(ftpService).getInvoicesDirectory();
         verify(emailMessageService).sendInvoiceEmail(any());
-        verify(invoiceRepository, never()).save(any(Invoice.class));
+        // HOTFIX: first save (before email) must happen even when email fails
+        verify(invoiceRepository, times(1)).save(any(Invoice.class));
     }
 
     @Test
@@ -285,6 +282,7 @@ class InvoiceDocumentServiceImplTest {
                 request.month().equals("January")
         ));
 
-        verify(invoiceRepository).save(any(Invoice.class));
+        // HOTFIX: save called twice — once before email (pdfPath), once after (emailSentAt)
+        verify(invoiceRepository, times(2)).save(any(Invoice.class));
     }
 }

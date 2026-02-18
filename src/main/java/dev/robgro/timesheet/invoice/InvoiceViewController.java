@@ -37,11 +37,16 @@ public class InvoiceViewController {
         model.addAttribute("timesheets", getUnbilledTimesheets());
         model.addAttribute("clients", clientService.getAllClients());
         model.addAttribute("sellers", sellerService.getAllSellers());
-        model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, null, null, List.of(), null));
 
-        // Add current user for default seller pre-selection
+        // Get current user for default seller pre-selection
+        User currentUser = authentication != null ? userService.findByUsername(authentication.getName()) : null;
+        Long defaultSellerId = (currentUser != null && currentUser.getDefaultSeller() != null)
+                ? currentUser.getDefaultSeller().getId()
+                : null;
+
+        model.addAttribute("createInvoiceRequest", new CreateInvoiceRequest(null, defaultSellerId, null, List.of(), null));
+
         if (authentication != null) {
-            User currentUser = userService.findByUsername(authentication.getName());
             model.addAttribute("currentUser", currentUser);
         }
         return "invoices/items";

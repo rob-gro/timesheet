@@ -13,6 +13,7 @@ public class CustomUserPrincipal implements UserDetails {
     private final String username;
     private final String password;
     private final Integer tokenVersion;
+    private final Long sellerId;  // Added for SaaS tenant isolation
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean accountNonExpired;
     private final boolean accountNonLocked;
@@ -24,6 +25,7 @@ public class CustomUserPrincipal implements UserDetails {
             String username,
             String password,
             Integer tokenVersion,
+            Long sellerId,
             Collection<? extends GrantedAuthority> authorities,
             boolean enabled) {
 
@@ -31,6 +33,7 @@ public class CustomUserPrincipal implements UserDetails {
         this.username = username;
         this.password = password;
         this.tokenVersion = tokenVersion;
+        this.sellerId = sellerId;
         this.authorities = authorities;
         this.enabled = enabled;
         this.accountNonExpired = true;

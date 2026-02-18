@@ -81,7 +81,9 @@ class  InvoiceCreationServiceImplTest {
                 new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(150.0))
         );
 
-        String invoiceNumber = "001-01-2023";
+        GeneratedInvoiceNumber generatedNumber = new GeneratedInvoiceNumber(
+            1, 2023, 1, "001-01-2023", 10L
+        );
 
         Timesheet timesheet1 = new Timesheet();
         timesheet1.setId(1L);
@@ -93,7 +95,7 @@ class  InvoiceCreationServiceImplTest {
         savedInvoice.setId(1L);
         savedInvoice.setClient(client);
         savedInvoice.setIssueDate(issueDate);
-        savedInvoice.setInvoiceNumber(invoiceNumber);
+        savedInvoice.setInvoiceNumber(generatedNumber.getDisplayNumber());
         savedInvoice.setTotalAmount(BigDecimal.valueOf(250.0));
 
         InvoiceDto expectedDto = new InvoiceDto(
@@ -116,7 +118,7 @@ class  InvoiceCreationServiceImplTest {
         );
 
         when(clientRepository.getReferenceById(clientId)).thenReturn(client);
-        when(invoiceNumberGenerator.generateInvoiceNumber(issueDate)).thenReturn(invoiceNumber);
+        when(invoiceNumberGenerator.generateInvoiceNumber(issueDate, null)).thenReturn(generatedNumber);
         when(invoiceRepository.save(any(Invoice.class))).thenReturn(savedInvoice);
         when(timesheetRepository.findById(1L)).thenReturn(Optional.of(timesheet1));
         when(timesheetRepository.findById(2L)).thenReturn(Optional.of(timesheet2));
@@ -135,7 +137,7 @@ class  InvoiceCreationServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.clientName()).isEqualTo("Test Client");
-        assertThat(result.invoiceNumber()).isEqualTo(invoiceNumber);
+        assertThat(result.invoiceNumber()).isEqualTo(generatedNumber.getDisplayNumber());
 
         verify(invoiceRepository).save(any(Invoice.class));
         verify(timesheetRepository).saveAll(anyList());
@@ -317,7 +319,9 @@ class  InvoiceCreationServiceImplTest {
         TimesheetDto timesheet1 = new TimesheetDto(1L, "Test Client", LocalDate.now().minusDays(1), 2.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(100.0));
         TimesheetDto timesheet2 = new TimesheetDto(2L, "Test Client", LocalDate.now().minusDays(2), 3.0, false, clientId, 50.0, null, null, BigDecimal.valueOf(150.0));
 
-        String invoiceNumber = "001-01-2023";
+        GeneratedInvoiceNumber generatedNumber = new GeneratedInvoiceNumber(
+            1, 2023, 1, "001-01-2023", 10L
+        );
 
         dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
         seller.setId(1L);
@@ -327,7 +331,7 @@ class  InvoiceCreationServiceImplTest {
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
         when(sellerRepository.findById(1L)).thenReturn(java.util.Optional.of(seller));
-        when(invoiceNumberGenerator.generateInvoiceNumber(issueDate)).thenReturn(invoiceNumber);
+        when(invoiceNumberGenerator.peekNextInvoiceNumber(issueDate, null)).thenReturn(generatedNumber);
 
         // when
         InvoiceDto result = invoiceCreationService.buildInvoicePreview(clientId, 1L, issueDate, timesheetIds);
@@ -337,7 +341,7 @@ class  InvoiceCreationServiceImplTest {
         assertThat(result.id()).isNull(); // Preview has no ID
         assertThat(result.clientId()).isEqualTo(clientId);
         assertThat(result.clientName()).isEqualTo("Test Client");
-        assertThat(result.invoiceNumber()).isEqualTo(invoiceNumber);
+        assertThat(result.invoiceNumber()).isEqualTo(generatedNumber.getDisplayNumber());
         assertThat(result.issueDate()).isEqualTo(issueDate);
         assertThat(result.totalAmount()).isEqualTo(BigDecimal.valueOf(250.00).setScale(2, RoundingMode.HALF_UP));
         assertThat(result.pdfPath()).isNull(); // Preview has no PDF path
@@ -347,7 +351,7 @@ class  InvoiceCreationServiceImplTest {
 
         verify(clientService).getClientById(clientId);
         verify(timesheetService, times(2)).getTimesheetById(anyLong());
-        verify(invoiceNumberGenerator).generateInvoiceNumber(issueDate);
+        verify(invoiceNumberGenerator).peekNextInvoiceNumber(issueDate, null);
         verifyNoInteractions(invoiceRepository); // Preview should not save to DB
         verifyNoInteractions(timesheetRepository); // Preview should not modify timesheets
     }

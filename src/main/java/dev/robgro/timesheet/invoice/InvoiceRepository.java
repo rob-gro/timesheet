@@ -23,15 +23,16 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     long countByInvoiceNumberEndingWith(String yearMonth);
 
-    List<Invoice> findAllByOrderByIssueDateDesc();
+    // Sort by invoice number components (year DESC, month DESC, sequence DESC)
+    // NOT by invoice_number string (alphabetical) or ID (insertion order)
+    // Allows backdated invoices to appear in correct logical order
+    List<Invoice> findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc();
 
-    List<Invoice> findByIssueDateBetweenOrderByIssueDateDesc(LocalDate startDate, LocalDate endDate);
+    List<Invoice> findByIssueDateBetweenOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc(LocalDate startDate, LocalDate endDate);
 
-    List<Invoice> findByClientId(Long clientId);
+    List<Invoice> findByClientIdOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc(Long clientId);
 
     List<Invoice> findByInvoiceNumberEndingWith(String yearMonth);
-
-    List<Invoice> getInvoicesByClientId(Long clientId);
 
     @Modifying
     @Query("DELETE FROM InvoiceItem i WHERE i.id = :id")
@@ -54,7 +55,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     @Query("SELECT i FROM Invoice i WHERE " +
             "(:clientId IS NULL OR i.client.id = :clientId) AND " +
             "(:year IS NULL OR YEAR(i.issueDate) = :year) AND " +
-            "(:month IS NULL OR MONTH(i.issueDate) = :month)")
+            "(:month IS NULL OR MONTH(i.issueDate) = :month) " +
+            "ORDER BY i.periodYear DESC, i.periodMonth DESC, i.sequenceNumber DESC")
     List<Invoice> findFilteredInvoices(
             @Param("clientId") Long clientId,
             @Param("year") Integer year,
@@ -89,5 +91,59 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
             @Param("duration") double duration,
             @Param("amount") BigDecimal amount,
             @Param("timesheetId") Long timesheetId
+    );
+
+    // ===== Configurable Invoice Numbering =====
+
+    /**
+     * Find maximum sequence number for seller and period.
+     * Used for drift detection in observability endpoint (compares counter with actual MAX).
+     *
+     * <p>Note: Department does NOT affect sequence generation - only display.
+     * This query excludes department filtering as counters are scoped per (seller, period) only.
+     *
+     * @param sellerId Seller ID (tenant isolation)
+     * @param year Period year (e.g., 2026)
+     * @param month Period month: 1-12 for MONTHLY, 0 for YEARLY/NEVER (NOT NULL!)
+     * @return Maximum sequence number for this period, or null if no invoices exist
+     */
+    @Query("SELECT MAX(i.sequenceNumber) FROM Invoice i WHERE " +
+           "i.seller.id = :sellerId AND " +
+           "i.periodYear = :year AND " +
+           "i.periodMonth = :month")
+    Integer findMaxSequenceNumber(
+        @Param("sellerId") Long sellerId,
+        @Param("year") Integer year,
+        @Param("month") Integer month
+    );
+
+    /**
+     * Count total invoices for seller and period.
+     * Used for observability endpoint to show invoice count vs counter value.
+     *
+     * @param sellerId Seller ID (tenant isolation)
+     * @param year Period year (e.g., 2026)
+     * @param month Period month: 1-12 for MONTHLY, 0 for YEARLY/NEVER
+     * @return Total invoice count for this period
+     */
+    Long countBySellerIdAndPeriodYearAndPeriodMonth(
+        Long sellerId,
+        Integer year,
+        Integer month
+    );
+
+    /**
+     * Find last invoice for seller and period (by sequence number DESC).
+     * Used for observability endpoint to show last invoice display number.
+     *
+     * @param sellerId Seller ID (tenant isolation)
+     * @param year Period year (e.g., 2026)
+     * @param month Period month: 1-12 for MONTHLY, 0 for YEARLY/NEVER
+     * @return Last invoice (highest sequence number), or empty if no invoices
+     */
+    Optional<Invoice> findTopBySellerIdAndPeriodYearAndPeriodMonthOrderBySequenceNumberDesc(
+        Long sellerId,
+        Integer year,
+        Integer month
     );
 }

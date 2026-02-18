@@ -253,12 +253,16 @@ textarea.form-control {
 }
 
 .alert-success {
-    display: none;
+    display: block;
     background-color: transparent;
     color: var(--my-yellow);
-    border-color: var(--my-yellow);
+    border: 1px solid var(--my-yellow);
     border-radius: 10px;
-    margin-bottom: 1rem;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
 }
 
 .alert-danger {

@@ -62,7 +62,7 @@ public class PdfGenerator {
             separatorCell.setBorderColor(new Color(38, 134, 214));
             separatorCell.setFixedHeight(10);
             separatorCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-            headerTable.setWidthPercentage(15);
+            headerTable.setWidthPercentage(25);
 
             invoiceLabel.setBorder(Rectangle.NO_BORDER);
             invoiceValue.setBorder(Rectangle.NO_BORDER);
@@ -153,8 +153,12 @@ public class PdfGenerator {
                 numberCell.setBorderWidthBottom(1f);
                 numberCell.setBorderColor(new Color(241, 245, 249));
 
-                PdfPCell descCell = new PdfPCell(new Phrase("Cleaning services on " +
-                        item.getServiceDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), normalFont));
+                // HOTFIX: Use seller's service description + space + date
+                String serviceDesc = invoice.getSeller() != null && invoice.getSeller().getServiceDescription() != null
+                    ? invoice.getSeller().getServiceDescription()
+                    : "Services";
+                String fullDescription = serviceDesc + " " + item.getServiceDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                PdfPCell descCell = new PdfPCell(new Phrase(fullDescription, normalFont));
                 descCell.setBorder(Rectangle.NO_BORDER);
                 descCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
                 descCell.setPadding(10);

@@ -40,6 +40,19 @@
             </div>
 
             <div class="form-row">
+                <label>Invoice Numbering Format:</label>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <input type="text" th:value="${nextInvoicePreview}" readonly
+                           style="flex: 1; background-color: #2a2a2a; cursor: not-allowed;">
+                    <button type="button" class="save-button"
+                            style="margin: 0; padding: 0.5rem 1.2rem; font-size: 0.9rem;"
+                            onclick="window.location.href='/settings/invoice-numbering';">
+                        Edit
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-row">
                 <label>Bank Name:</label>
                 <input type="text" th:field="*{bankName}">
             </div>
@@ -84,16 +97,27 @@
                 <input type="text" th:field="*{legalForm}">
             </div>
 
-            <input type="hidden" th:field="*{active}" th:value="true"/>
+            <input type="hidden" th:field="*{active}"/>
+            <input type="hidden" th:field="*{systemDefault}"/>
 
             <div class="button-container">
                 <button type="submit" class="save-button">Save Seller</button>
-                <button type="button" class="nav-button" onclick="window.location.href='/sellers';">Back to Sellers
-                    List
+                <button type="button" class="nav-button" onclick="window.location.href='/invoices/items';">Back to Invoice Items
+                </button>
+                <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const successMessage = /*[[${success}]]*/ null;
+        if (successMessage) {
+            alert('😀 ' + successMessage + ' 😀');
+        }
+    });
+</script>
 </body>
 </html>
