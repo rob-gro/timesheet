@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{head :: head}"></head>
+
+<body>
+<button type="button" class="mobile-back-btn" onclick="window.location.href='/'" aria-label="Back to main menu">←</button>
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="container my-auto mx-auto">
+            <h2 class="text-center mb-4">Invoice Counter Health</h2>
+
+            <!-- Search bar -->
+            <div class="mb-3 d-flex gap-2 align-items-end flex-wrap">
+                <div>
+                    <label for="sellerIdInput" class="form-label">Seller ID</label>
+                    <input id="sellerIdInput"
+                           type="number"
+                           th:value="${defaultSellerId}"
+                           class="form-control"
+                           style="width: 160px;"
+                           placeholder="e.g. 123">
+                </div>
+                <button id="loadBtn" onclick="loadCounters()" class="nav-button">Check</button>
+                <button id="copyLinkBtn" onclick="copyLink()" class="nav-button" style="display:none">Copy link</button>
+                <button type="button" class="nav-button desktop-only-btn" onclick="window.location.href='/'">Back</button>
+            </div>
+
+            <!-- Template info -->
+            <div id="templateInfo" class="alert alert-info" style="display:none"></div>
+
+            <!-- Loading -->
+            <div id="loadingMessage" style="display:none; color: var(--my-yellow);">Loading...</div>
+
+            <!-- Error -->
+            <div id="errorMessage" class="alert alert-danger" style="display:none"></div>
+
+            <!-- Empty state -->
+            <div id="emptyMessage" class="alert alert-info" style="display:none">
+                No counters found for this seller.
+            </div>
+
+            <!-- Results table -->
+            <div id="tableContainer" style="display:none">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Reset</th>
+                        <th>Counter</th>
+                        <th>Invoices</th>
+                        <th>Expected</th>
+                        <th>Delta</th>
+                        <th>Last invoice</th>
+                        <th>Updated</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="countersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/invoice-counters-observability.js}"></script>
+</body>
+</html>

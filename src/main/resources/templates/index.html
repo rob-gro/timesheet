@@ -44,11 +44,25 @@
                            sec:authorize="hasAnyRole('ADMIN', 'USER')">
                             Clients
                         </a>
-                        <a th:href="@{/sellers}"
+                        <a th:href="@{/sellers/edit/{id}(id=${currentUser.defaultSeller.id})}"
                            class="nav-button text-center text-decoration-none"
                            sec:authorize="hasAnyRole('ADMIN', 'USER')">
-                            Sellers
+                            Seller
                         </a>
+
+                        <!-- Settings Section -->
+                        <div class="text-center text-muted small mt-3 mb-2"
+                             sec:authorize="hasAnyRole('ADMIN', 'USER')"
+                             style="font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                            Settings
+                        </div>
+                        <a th:href="@{/settings/invoice-numbering}"
+                           class="nav-button text-center text-decoration-none"
+                           sec:authorize="hasAnyRole('ADMIN', 'USER')">
+                            Invoice Numbering
+                        </a>
+                        <!-- Future settings links go here -->
+
                         <a th:href="@{/invoices/archive/pdf}"
                            class="nav-button text-center text-decoration-none">
                             Invoices PDF
@@ -57,6 +71,12 @@
                            class="nav-button text-center text-decoration-none"
                            sec:authorize="hasRole('ADMIN')">
                             Users Management
+                        </a>
+                        <a th:href="@{/admin/invoice-counters}"
+                           class="nav-button text-center text-decoration-none"
+                           sec:authorize="hasRole('ADMIN')"
+                           th:if="${counterObservabilityEnabled}">
+                            Counter Health
                         </a>
 
                         <form th:action="@{/logout}" method="post">
