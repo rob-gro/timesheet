@@ -42,7 +42,21 @@ public class InvoiceArchiveController {
         }
 
         DateRangeRequest dateRange = new DateRangeRequest(fromYear, fromMonth, toYear, toMonth);
-        Pageable pageable = PaginationUtils.createPageable(sortBy, sortDir, page, size);
+
+        // Invoice number sorting requires 3 fields (year, month, sequence) - not string!
+        Pageable pageable;
+        if ("invoiceNumber".equals(sortBy)) {
+            org.springframework.data.domain.Sort.Direction direction =
+                sortDir.equalsIgnoreCase("asc")
+                    ? org.springframework.data.domain.Sort.Direction.ASC
+                    : org.springframework.data.domain.Sort.Direction.DESC;
+            org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(direction, "periodYear")
+                .and(org.springframework.data.domain.Sort.by(direction, "periodMonth"))
+                .and(org.springframework.data.domain.Sort.by(direction, "sequenceNumber"));
+            pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+        } else {
+            pageable = PaginationUtils.createPageable(sortBy, sortDir, page, size);
+        }
 
         Page<InvoiceDto> invoicesPage = invoiceService.searchInvoices(dateRange, clientId, pageable);
 
@@ -64,7 +78,20 @@ public class InvoiceArchiveController {
         log.debug("Showing PDF invoice list with filters: clientId={}, year={}, month={}, sortBy={}, sortDir={}, page={}, size={}",
                 clientId, year, month, sortBy, sortDir, page, size);
 
-        Pageable pageable = PaginationUtils.createPageable(sortBy, sortDir, page, size);
+        // Invoice number sorting requires 3 fields (year, month, sequence) - not string!
+        Pageable pageable;
+        if ("invoiceNumber".equals(sortBy)) {
+            org.springframework.data.domain.Sort.Direction direction =
+                sortDir.equalsIgnoreCase("asc")
+                    ? org.springframework.data.domain.Sort.Direction.ASC
+                    : org.springframework.data.domain.Sort.Direction.DESC;
+            org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(direction, "periodYear")
+                .and(org.springframework.data.domain.Sort.by(direction, "periodMonth"))
+                .and(org.springframework.data.domain.Sort.by(direction, "sequenceNumber"));
+            pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+        } else {
+            pageable = PaginationUtils.createPageable(sortBy, sortDir, page, size);
+        }
         Page<InvoiceDto> invoicesPage = invoiceService.getAllInvoicesPageable(clientId, year, month, pageable);
 
         populateModel(model, invoicesPage, page, size, sortBy, sortDir);

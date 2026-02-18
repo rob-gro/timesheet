@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Service("dedicatedInvoiceCreationService")
 @RequiredArgsConstructor
-public class InvoiceCreationServiceImpl implements InvoiceCreationService {
+public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
 
     private final ClientService clientService;
     private final TimesheetService timesheetService;
@@ -43,7 +43,16 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
         invoice.setClient(clientRepository.getReferenceById(client.id()));
         invoice.setSeller(seller);
         invoice.setIssueDate(issueDate);
-        invoice.setInvoiceNumber(invoiceNumberGenerator.generateInvoiceNumber(issueDate));
+
+        // Generate invoice number using new configurable system
+        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.generateInvoiceNumber(issueDate, null);
+        invoice.setInvoiceNumberComponents(
+            generatedNumber.getSequenceNumber(),
+            generatedNumber.getPeriodYear(),
+            generatedNumber.getPeriodMonth(),
+            generatedNumber.getDisplayNumber(),
+            generatedNumber.getSchemeId()
+        );
 
         List<InvoiceItem> items = timesheets.stream()
                 .map(timesheet -> createInvoiceItem(timesheet, invoice))
@@ -111,8 +120,13 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
         InvoiceItem item = new InvoiceItem();
         item.setInvoice(invoice);
         item.setServiceDate(timesheet.serviceDate());
-        item.setDescription(String.format("Cleaning service - %s",
-                timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE)));
+
+        // HOTFIX: Use seller's service description + space + date
+        String serviceDesc = invoice.getSeller() != null && invoice.getSeller().getServiceDescription() != null
+            ? invoice.getSeller().getServiceDescription()
+            : "Service";
+        item.setDescription(serviceDesc + " " + timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
+
         item.setAmount(calculateAmount(timesheet.duration(), timesheet.hourlyRate()));
         item.setDuration(timesheet.duration());
         item.setHourlyRate(timesheet.hourlyRate());
@@ -164,16 +178,23 @@ public class InvoiceCreationServiceImpl implements InvoiceCreationService {
             throw new BusinessRuleViolationException("Cannot create invoice: selected timesheets belong to different clients");
         }
 
-        // Generate invoice number for preview (same as final invoice would get)
-        String invoiceNumber = invoiceNumberGenerator.generateInvoiceNumber(issueDate);
+        // HOTFIX: Peek invoice number for preview WITHOUT reserving it
+        // CRITICAL: Must use peekNextInvoiceNumber() not generateInvoiceNumber()
+        // to avoid incrementing counter twice (preview + actual creation)
+        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.peekNextInvoiceNumber(issueDate, null);
+        String invoiceNumber = generatedNumber.getDisplayNumber();
 
         // Build invoice items without persisting
+        // HOTFIX: Use seller's service description + space + date
+        String serviceDesc = seller != null && seller.getServiceDescription() != null
+            ? seller.getServiceDescription()
+            : "Service";
+
         List<InvoiceItemDto> items = selectedTimesheets.stream()
                 .map(timesheet -> new InvoiceItemDto(
                         null, // no ID for preview
                         timesheet.serviceDate(),
-                        String.format("Cleaning service - %s",
-                                timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE)),
+                        serviceDesc + " " + timesheet.serviceDate().format(DateTimeFormatter.ISO_LOCAL_DATE),
                         timesheet.duration(),
                         calculateAmount(timesheet.duration(), timesheet.hourlyRate()),
                         timesheet.hourlyRate()

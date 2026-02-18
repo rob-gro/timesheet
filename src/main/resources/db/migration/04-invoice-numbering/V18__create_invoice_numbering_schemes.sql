@@ -15,7 +15,7 @@ CREATE TABLE invoice_numbering_schemes (
     effective_from DATE NOT NULL COMMENT 'Scheme applies from this date',
 
     -- Status: ACTIVE (current), ARCHIVED (historical, for backdated), DRAFT (future)
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT 'ACTIVE, ARCHIVED, DRAFT',
+    status ENUM('ACTIVE', 'ARCHIVED', 'DRAFT') NOT NULL DEFAULT 'ACTIVE',
 
     -- Audit fields
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -48,6 +48,9 @@ email_preview.html
 docs/
 docs-temp/
 
+### Database Migration Archive ###
+src/main/resources/db/migration-archive/
+
 ### Large files ###
 Timesheet.jpg
 

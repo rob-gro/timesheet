@@ -24,7 +24,7 @@ WHERE invoice_number IS NOT NULL
   AND sequence_number IS NULL;
 
 -- ========================================
--- Step 3: Fallback for non-standard formats
+-- Step 3: Fallback for non-standard formats (FIXED: includes seller_id)
 -- ========================================
 -- For invoices that don't match NNN-MM-YYYY (manual edits, imports)
 -- Use issue_date + ranking to generate components safely
@@ -32,15 +32,17 @@ UPDATE invoices i
 JOIN (
     SELECT
         id,
-        YEAR(issue_date) as fallback_year,
-        MONTH(issue_date) as fallback_month,
+        seller_id,
+        YEAR(issue_date) AS fallback_year,
+        MONTH(issue_date) AS fallback_month,
         ROW_NUMBER() OVER (
-            PARTITION BY YEAR(issue_date), MONTH(issue_date)
+            PARTITION BY seller_id, YEAR(issue_date), MONTH(issue_date)
             ORDER BY issue_date, id
-        ) as fallback_seq
+        ) AS fallback_seq
     FROM invoices
     WHERE sequence_number IS NULL
       AND issue_date IS NOT NULL
+      AND seller_id IS NOT NULL
 ) fallback ON i.id = fallback.id
 SET
     i.sequence_number = fallback.fallback_seq,
@@ -52,7 +54,8 @@ SET
         fallback.fallback_year
     )
 WHERE i.sequence_number IS NULL
-  AND i.issue_date IS NOT NULL;
+  AND i.issue_date IS NOT NULL
+  AND i.seller_id IS NOT NULL;
 
 -- ========================================
 -- Step 4: Verification Query

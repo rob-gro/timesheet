@@ -8,11 +8,13 @@
 <link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
 <div class="container">
     <div class="header">
+        <div class="original-label">ORIGINAL</div>
         <div class="invoice-info">
             <div>
                 <div class="label">Date</div>
                 <div class="data-label" th:text="${#temporals.format(invoice.issueDate, 'dd.MM.yyyy')}">IssueDate</div>
             </div>
+            <div class="invoice-divider"></div>
             <div>
                 <div class="label">Invoice #</div>
                 <div class="data-label" th:text="${invoice.invoiceNumber}">invoiceNumber</div>
@@ -23,7 +25,7 @@
     <div class="addresses">
         <div class="address">
             <div>Invoice from:</div>
-            <div th:text="${seller.name}">Agnieszka Markiewicz</div>
+            <div th:text="${seller.name}">Robert Grodzki</div>
             <div th:text="${seller.street}">28 Ballater Place</div>
             <div>
                 <span th:text="${seller.postcode}">DD4 8SF</span>,
@@ -59,8 +61,7 @@
             <tr th:each="item, itemStat : ${invoice.itemsList}">
                 <td th:text="${itemStat.count}">1</td>
                 <td>
-                    <span th:text="${seller != null ? seller.serviceDescription : 'Services'}">Cleaning services</span> at
-                    <span th:text="${#temporals.format(item.serviceDate, 'yyyy-MM-dd')}"></span>
+                    <span th:text="${seller != null ? seller.serviceDescription : 'Services'}">Cleaning services</span> <span th:text="${#temporals.format(item.serviceDate, 'yyyy-MM-dd')}"></span>
                 </td>
                 <td class="right" th:text="${item.duration}">2.5</td>
                 <td class="right" th:text="${item.hourlyRate}">50.00</td>
@@ -99,6 +100,7 @@
 
         <!-- Store form data for invoice creation -->
         <input type="hidden" id="clientId" th:value="${createRequest.clientId}">
+        <input type="hidden" id="sellerId" th:value="${createRequest.sellerId}">
         <input type="hidden" id="issueDate" th:value="${createRequest.issueDate}">
         <input type="hidden" id="timesheetIds" th:value="${#strings.listJoin(createRequest.timesheetIds, ',')}">
         <input type="hidden" id="isPreview" value="true">

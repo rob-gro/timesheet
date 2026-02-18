@@ -1,5 +1,6 @@
 package dev.robgro.timesheet.seller;
 
+import dev.robgro.timesheet.invoice.InvoiceNumberGenerator;
 import dev.robgro.timesheet.user.User;
 import dev.robgro.timesheet.user.UserService;
 import jakarta.validation.Valid;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
@@ -21,6 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class SellerViewController {
     private final SellerService sellerService;
     private final UserService userService;
+    private final InvoiceNumberGenerator invoiceNumberGenerator;
 
     @GetMapping
     public String showSellerList(Model model, Authentication authentication) {
@@ -47,19 +51,29 @@ public class SellerViewController {
     @GetMapping("/edit/{id}")
     public String showEditSellerForm(@PathVariable Long id, Model model) {
         model.addAttribute("seller", sellerService.getSellerById(id));
+        try {
+            String preview = invoiceNumberGenerator
+                .peekNextInvoiceNumber(LocalDate.now(), null)
+                .getDisplayNumber();
+            model.addAttribute("nextInvoicePreview", preview);
+        } catch (Exception e) {
+            model.addAttribute("nextInvoicePreview", "—");
+        }
         return "sellers/form";
     }
 
     @PostMapping("/save")
     public String saveSeller(@Valid @ModelAttribute SellerDto seller,
                              BindingResult result,
+                             Model model,
                              RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            model.addAttribute("seller", seller);
             return "sellers/form";
         }
-        sellerService.saveSeller(seller);
+        SellerDto savedSeller = sellerService.saveSeller(seller);
         redirectAttributes.addFlashAttribute("success", "Seller saved successfully");
-        return "redirect:/sellers";
+        return "redirect:/sellers/edit/" + savedSeller.id();
     }
 
     @DeleteMapping("/delete/{id}")

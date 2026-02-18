@@ -2,6 +2,7 @@ package dev.robgro.timesheet.passwordreset;
 
 import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.exception.InvalidTokenException;
+import dev.robgro.timesheet.exception.ServiceOperationException;
 import dev.robgro.timesheet.exception.TokenAlreadyUsedException;
 import dev.robgro.timesheet.exception.TokenExpiredException;
 import dev.robgro.timesheet.user.User;
@@ -72,7 +73,7 @@ public class PasswordResetTokenService {
             byte[] hash = digest.digest(plainToken.getBytes(StandardCharsets.UTF_8));
             return Hex.encodeHexString(hash);
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 algorithm not available", e);
+            throw new ServiceOperationException("SHA-256 algorithm not available", e);
         }
     }
 

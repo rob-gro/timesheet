@@ -1,0 +1,202 @@
+/* Invoice Numbering Settings - Page-specific styles */
+
+/* Headers */
+h3 {
+    color: #ffffff;
+}
+
+/* Override Bootstrap text colors for better contrast */
+.text-muted {
+    color: #b1b3b5 !important;
+}
+
+.text-success {
+    color: var(--my-yellow) !important;
+}
+
+/* Tab styling */
+.nav-tabs {
+    border-bottom: 2px solid var(--my-yellow);
+}
+
+.nav-tabs .nav-link {
+    color: #b1b3b5;
+    background-color: transparent;
+    border: 2px solid transparent;
+    border-bottom: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--my-yellow);
+    border-color: transparent;
+    background-color: rgba(255, 192, 8, 0.05);
+}
+
+.nav-tabs .nav-link.active {
+    color: #000000;
+    background-color: var(--my-yellow);
+    border-color: var(--my-yellow) var(--my-yellow) transparent;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.tab-content {
+    border: 2px solid var(--my-yellow);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background-color: #161b22;
+}
+
+/* Preset gallery grid */
+.preset-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.preset-card {
+    border: 2px solid var(--my-grey);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #161b22;
+}
+
+.preset-card:hover {
+    border-color: var(--my-yellow);
+    box-shadow: 0 4px 12px rgba(255, 192, 8, 0.15);
+    transform: translateY(-2px);
+}
+
+.preset-card.selected {
+    border-color: var(--my-yellow);
+    background-color: rgba(255, 192, 8, 0.1);
+}
+
+.preset-example {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--my-yellow);
+    margin-bottom: 0.75rem;
+    font-family: 'Courier New', monospace;
+}
+
+.preset-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #ffffff;
+}
+
+.preset-desc {
+    font-size: 0.875rem;
+    color: #b1b3b5;
+}
+
+.custom-card {
+    border-style: dashed;
+}
+
+.custom-card .preset-example {
+    font-size: 2rem;
+    color: #b1b3b5;
+}
+
+/* Token documentation help box */
+.token-help {
+    background: #161b22;
+    border: 1px solid var(--my-grey);
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.token {
+    display: inline-block;
+    background: rgb(45, 48, 50);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    margin: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--my-yellow);
+}
+
+/* Live preview box */
+.preview-box {
+    background: #161b22;
+    border: 2px solid var(--my-yellow);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.preview-label {
+    font-size: 0.875rem;
+    color: #b1b3b5;
+    margin-bottom: 0.5rem;
+}
+
+.preview-number {
+    font-weight: bold;
+    color: var(--my-yellow);
+    font-family: 'Courier New', monospace;
+}
+
+/* Hierarchy: preview1 > preview2 > preview3 */
+#preview1 {
+    font-size: 2.5rem;
+}
+
+#preview2 {
+    font-size: 2rem;
+}
+
+#preview3 {
+    font-size: 1.5rem;
+}
+
+/* Submit button styling */
+.preview-box ~ .d-grid .save-button {
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 0.75rem;
+}
+
+/* Status badges */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 4px;
+}
+
+.status-active {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border: 1px solid #28a745;
+}
+
+.status-archived {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: var(--my-red);
+    border: 1px solid var(--my-red);
+}
+
+/* Current scheme info box - dark theme matching form fields */
+/* Active row highlight in history table — must target td, table-striped sets bg on td not tr */
+.row-active td {
+    background-color: rgb(45, 48, 50) !important;
+}
+
+.current-scheme-box {
+    background-color: rgb(45, 48, 50);
+    border: 1px solid var(--my-yellow);
+    border-radius: 10px;
+    padding: 1rem;
+    color: var(--my-grey);
+}

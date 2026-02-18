@@ -57,6 +57,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
+    @Transactional
     public SellerDto saveSeller(SellerDto sellerDto) {
         if (sellerDto.id() == null) {
             return createSeller(sellerDto);
@@ -66,6 +67,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
+    @Transactional
     public SellerDto createSeller(SellerDto sellerDto) {
         Seller seller = new Seller();
         seller.setActive(true);
@@ -74,6 +76,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
+    @Transactional
     public SellerDto updateSeller(Long id, SellerDto sellerDto) {
         Seller seller = getSellerOrThrow(id);
         updateSellerFields(seller, sellerDto);

@@ -99,7 +99,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - Web UI
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/forgot-password", "/reset-password").permitAll() // Password reset flow
                         .requestMatchers("/manifest/**", "/icons/**").permitAll()
 

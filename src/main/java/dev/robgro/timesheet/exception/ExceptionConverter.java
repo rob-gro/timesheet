@@ -29,7 +29,7 @@ public final class ExceptionConverter {
 
     public static EntityNotFoundException extractEntityNotFound(ResponseStatusException ex) {
         if (!ex.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-            throw new IllegalArgumentException("Exception is not a NOT_FOUND status: " + ex.getStatusCode());
+            throw new ValidationException("Exception is not a NOT_FOUND status: " + ex.getStatusCode());
         }
 
         String message = ex.getReason();

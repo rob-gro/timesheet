@@ -45,6 +45,7 @@ function createAndSendInvoice() {
 
     // Get form data from hidden fields
     const clientId = document.getElementById('clientId').value;
+    const sellerId = document.getElementById('sellerId').value;
     const issueDate = document.getElementById('issueDate').value;
     const timesheetIdsStr = document.getElementById('timesheetIds').value;
     const timesheetIds = timesheetIdsStr.split(',').map(id => parseInt(id.trim()));
@@ -66,6 +67,7 @@ function createAndSendInvoice() {
         credentials: 'same-origin',
         body: JSON.stringify({
             clientId: parseInt(clientId),
+            sellerId: parseInt(sellerId),
             issueDate: issueDate,
             timesheetIds: timesheetIds
         })

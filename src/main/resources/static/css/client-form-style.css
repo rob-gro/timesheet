@@ -70,10 +70,20 @@ h2 {
 
 .button-container {
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: center !important;
     gap: 20px;
+    flex-wrap: nowrap;
+}
+
+.button-container button,
+.button-container .nav-button,
+.button-container .save-button {
+    margin: 0 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
 }
 
 .save-button {

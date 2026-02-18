@@ -88,7 +88,7 @@ class InvoiceServiceImplTest {
         InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
         InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
 
-        when(invoiceRepository.findAll()).thenReturn(List.of(invoice1, invoice2));
+        when(invoiceRepository.findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc()).thenReturn(List.of(invoice1, invoice2));
         when(invoiceDtoMapper.apply(invoice1)).thenReturn(dto1);
         when(invoiceDtoMapper.apply(invoice2)).thenReturn(dto2);
 
@@ -98,7 +98,7 @@ class InvoiceServiceImplTest {
         // then
         assertThat(result).hasSize(2);
         assertThat(result).contains(dto1, dto2);
-        verify(invoiceRepository).findAll();
+        verify(invoiceRepository).findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc();
     }
 
     @Test
@@ -112,7 +112,7 @@ class InvoiceServiceImplTest {
         InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
         InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
 
-        when(invoiceRepository.findAllByOrderByIssueDateDesc()).thenReturn(List.of(invoice1, invoice2));
+        when(invoiceRepository.findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc()).thenReturn(List.of(invoice1, invoice2));
         when(invoiceDtoMapper.apply(invoice1)).thenReturn(dto1);
         when(invoiceDtoMapper.apply(invoice2)).thenReturn(dto2);
 
@@ -122,7 +122,7 @@ class InvoiceServiceImplTest {
         // then
         assertThat(result).hasSize(2);
         assertThat(result).contains(dto1, dto2);
-        verify(invoiceRepository).findAllByOrderByIssueDateDesc();
+        verify(invoiceRepository).findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc();
     }
 
     @Test
@@ -139,7 +139,7 @@ class InvoiceServiceImplTest {
         InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
         InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
 
-        when(invoiceRepository.findByIssueDateBetweenOrderByIssueDateDesc(startDate, endDate))
+        when(invoiceRepository.findByIssueDateBetweenOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc(startDate, endDate))
                 .thenReturn(List.of(invoice1, invoice2));
         when(invoiceDtoMapper.apply(invoice1)).thenReturn(dto1);
         when(invoiceDtoMapper.apply(invoice2)).thenReturn(dto2);
@@ -150,7 +150,7 @@ class InvoiceServiceImplTest {
         // then
         assertThat(result).hasSize(2);
         assertThat(result).contains(dto1, dto2);
-        verify(invoiceRepository).findByIssueDateBetweenOrderByIssueDateDesc(startDate, endDate);
+        verify(invoiceRepository).findByIssueDateBetweenOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc(startDate, endDate);
     }
 
     @Test

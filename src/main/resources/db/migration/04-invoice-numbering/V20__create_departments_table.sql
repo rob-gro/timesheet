@@ -1,5 +1,5 @@
 -- Create Departments Table (v1 Feature)
--- Enables multi-department sellers (e.g., DUT, DUI)
+-- Enables multi-department sellers (e.g., IT, HR)
 -- Structure only - implementation in future release
 
 CREATE TABLE departments (

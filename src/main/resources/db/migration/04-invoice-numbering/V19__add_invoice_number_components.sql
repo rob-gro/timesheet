@@ -1,11 +1,11 @@
 -- Add Component Columns to Invoices
--- Enables component-based invoice numbering (sortable, resetable)
+-- Enables component-based invoice numbering (sortable, resettable)
 
 ALTER TABLE invoices
 -- Component fields (nullable initially - backfill in V21, NOT NULL in V23)
 ADD COLUMN sequence_number INT COMMENT 'Sequence within period (e.g., 1, 2, 3...)',
-ADD COLUMN period_year SMALLINT COMMENT 'Year component for sorting/reset (e.g., 2026)',
-ADD COLUMN period_month TINYINT DEFAULT 0 COMMENT 'Month: 1-12 for MONTHLY reset, 0 for YEARLY/NEVER',
+ADD COLUMN period_year INT COMMENT 'Year component for sorting/reset (e.g., 2026)',
+ADD COLUMN period_month INT DEFAULT 0 COMMENT 'Month: 1-12 for MONTHLY reset, 0 for YEARLY/NEVER',
 ADD COLUMN department_id BIGINT COMMENT 'Department (v1 feature, FK added in V20)',
 ADD COLUMN invoice_number_display VARCHAR(64) COMMENT 'Human-readable formatted number (e.g., 001-01-2026)';
 
