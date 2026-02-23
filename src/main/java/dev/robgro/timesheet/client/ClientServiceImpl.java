@@ -137,7 +137,7 @@ public class ClientServiceImpl implements ClientService {
                 null,    // id
                 "",         // clientName
                 0.0,        // hourlyRate
-                0L,         // houseNo
+                "",         // houseNo
                 "",         // streetName
                 "",         // city
                 "",         // postCode

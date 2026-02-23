@@ -27,7 +27,7 @@ public interface InvoiceService {
 
     byte[] getInvoicePdfContent(Long invoiceId);
 
-    void savePdfAndSendInvoice(Long id);
+    void savePdfAndSendInvoice(Long id, PrintMode printMode);
 
     List<InvoiceDto> searchInvoices(Long clientId, Integer year, Integer month);
 

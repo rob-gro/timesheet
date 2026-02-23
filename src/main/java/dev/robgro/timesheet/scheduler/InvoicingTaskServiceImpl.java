@@ -6,6 +6,7 @@ import dev.robgro.timesheet.config.InvoicingSchedulerProperties;
 import dev.robgro.timesheet.invoice.BillingService;
 import dev.robgro.timesheet.invoice.InvoiceDto;
 import dev.robgro.timesheet.invoice.InvoiceService;
+import dev.robgro.timesheet.invoice.PrintMode;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
 import dev.robgro.timesheet.timesheet.TimesheetService;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +76,7 @@ public class InvoicingTaskServiceImpl implements InvoicingTaskService {
             log.info("Processing invoice: {}, client: {}",
                     invoice.invoiceNumber(), invoice.clientName());
 
-            invoiceService.savePdfAndSendInvoice(invoice.id());
+            invoiceService.savePdfAndSendInvoice(invoice.id(), PrintMode.ORIGINAL);
 
             log.info("Successfully processed invoice: {}", invoice.invoiceNumber());
             return InvoiceProcessingResult.success(invoice);

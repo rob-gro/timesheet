@@ -165,16 +165,16 @@ class InvoiceDocumentServiceImplTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(ftpService.getInvoicesDirectory()).thenReturn(ftpDirectory);
         when(trackingService.createTrackingToken(invoice)).thenReturn("test-tracking-token");
-        doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class));
+        doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class), any(PrintMode.class));
         doNothing().when(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         doNothing().when(emailMessageService).sendInvoiceEmail(any());
 
         // when
-        invoiceDocumentService.savePdfAndSendInvoice(invoiceId);
+        invoiceDocumentService.savePdfAndSendInvoice(invoiceId, PrintMode.ORIGINAL);
 
         // then
         verify(invoiceRepository).findById(invoiceId);
-        verify(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class));
+        verify(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class), any(PrintMode.class));
         verify(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         verify(ftpService).getInvoicesDirectory();
         verify(emailMessageService).sendInvoiceEmail(any());
@@ -190,7 +190,7 @@ class InvoiceDocumentServiceImplTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
 
         // when/then
-        assertThatThrownBy(() -> invoiceDocumentService.savePdfAndSendInvoice(invoiceId))
+        assertThatThrownBy(() -> invoiceDocumentService.savePdfAndSendInvoice(invoiceId, PrintMode.ORIGINAL))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Invoice with id 1 not found");
 
@@ -223,18 +223,18 @@ class InvoiceDocumentServiceImplTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(ftpService.getInvoicesDirectory()).thenReturn(ftpDirectory);
         when(trackingService.createTrackingToken(invoice)).thenReturn("test-tracking-token");
-        doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class));
+        doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class), any(PrintMode.class));
         doNothing().when(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         doThrow(new MessagingException("Email sending failed"))
                 .when(emailMessageService).sendInvoiceEmail(any());
 
         // when/then
-        assertThatThrownBy(() -> invoiceDocumentService.savePdfAndSendInvoice(invoiceId))
+        assertThatThrownBy(() -> invoiceDocumentService.savePdfAndSendInvoice(invoiceId, PrintMode.ORIGINAL))
                 .isInstanceOf(EmailException.class)
                 .hasMessageContaining("Failed to send invoice email for invoice 1");
 
         verify(invoiceRepository).findById(invoiceId);
-        verify(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class));
+        verify(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class), any(PrintMode.class));
         verify(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         verify(ftpService).getInvoicesDirectory();
         verify(emailMessageService).sendInvoiceEmail(any());
@@ -267,11 +267,11 @@ class InvoiceDocumentServiceImplTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(ftpService.getInvoicesDirectory()).thenReturn(ftpDirectory);
         when(trackingService.createTrackingToken(invoice)).thenReturn("test-tracking-token");
-        doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class));
+        doNothing().when(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class), any(PrintMode.class));
         doNothing().when(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
 
         // when
-        invoiceDocumentService.savePdfAndSendInvoice(invoiceId);
+        invoiceDocumentService.savePdfAndSendInvoice(invoiceId, PrintMode.ORIGINAL);
 
         // then
         verify(emailMessageService).sendInvoiceEmail(argThat(request ->

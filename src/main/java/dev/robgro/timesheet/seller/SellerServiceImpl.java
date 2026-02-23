@@ -98,6 +98,7 @@ public class SellerServiceImpl implements SellerService {
         seller.setLegalForm(dto.legalForm());
         seller.setVatNumber(dto.vatNumber());
         seller.setTaxId(dto.taxId());
+        seller.setWebsite(dto.website());
 
         // Handle system default seller logic
         if (dto.systemDefault() && !seller.isSystemDefault()) {
@@ -155,12 +156,23 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
+    @Transactional
+    public void updateFooterSettings(Long sellerId, String website, String email, String phone) {
+        Seller seller = getSellerOrThrow(sellerId);
+        seller.setWebsite(website);
+        seller.setEmail(email);
+        seller.setPhone(phone);
+        sellerRepository.save(seller);
+        log.info("Footer settings updated for seller id {}", sellerId);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public SellerDto createEmptySellerDto() {
         return new SellerDto(
                 null, "", "", "", "", "",
                 null, null, null, null,
-                null, null, null, null, null, true, false
+                null, null, null, null, null, null, true, false
         );
     }
 }

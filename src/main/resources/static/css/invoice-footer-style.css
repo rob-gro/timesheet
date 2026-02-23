@@ -1,0 +1,30 @@
+/* Invoice Footer Settings - Page-specific styles */
+
+.footer-preview-box {
+    background: #161b22;
+    border: 2px solid var(--my-yellow);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    margin: 1.5rem auto;
+    max-width: 900px;
+}
+
+.footer-preview-box .text-muted {
+    color: #b1b3b5 !important;
+}
+
+.footer-preview-label {
+    font-size: 0.875rem;
+    color: #b1b3b5;
+    margin-bottom: 0.5rem;
+}
+
+.footer-preview-content {
+    font-weight: bold;
+    color: var(--my-yellow);
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    min-height: 1.4em;
+    word-break: break-all;
+}

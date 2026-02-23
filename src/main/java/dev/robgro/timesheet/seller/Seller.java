@@ -64,6 +64,9 @@ public class  Seller {
     @Column(name = "tax_id", length = 50)
     private String taxId;
 
+    @Column(name = "website")
+    private String website;
+
     @Column(name = "active", nullable = false)
     private boolean active = true;
 

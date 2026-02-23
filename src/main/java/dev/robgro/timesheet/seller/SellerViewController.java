@@ -124,6 +124,7 @@ public class SellerViewController {
                     seller.legalForm(),
                     seller.vatNumber(),
                     seller.taxId(),
+                    seller.website(),
                     seller.active(),
                     true // systemDefault = true
             );

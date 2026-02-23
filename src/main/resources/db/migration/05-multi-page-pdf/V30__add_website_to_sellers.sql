@@ -1,0 +1,1 @@
+ALTER TABLE sellers ADD COLUMN website VARCHAR(255) NULL;

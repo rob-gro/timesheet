@@ -35,6 +35,7 @@ public record SellerDto(
     String legalForm,
     String vatNumber,
     String taxId,
+    String website,
 
     boolean active,
     boolean systemDefault

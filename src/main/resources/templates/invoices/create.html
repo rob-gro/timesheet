@@ -8,7 +8,8 @@
 <link rel="stylesheet" th:href="@{/css/invoice-create-style.css}">
 <div class="container">
     <div class="header">
-        <div class="original-label">ORIGINAL</div>
+        <div class="original-label" id="docTypeLabel"
+             th:text="${isPreview != null && isPreview ? 'ORIGINAL' : 'COPY'}">ORIGINAL</div>
         <div class="invoice-info">
             <div>
                 <div class="label">Date</div>
@@ -53,7 +54,7 @@
                 <th class="left">#</th>
                 <th class="left">Description</th>
                 <th class="right">Duration (h)</th>
-                <th class="right">Hourly Rate (£)</th>
+                <th class="right">Rate (£)</th>
                 <th class="right">Amount (£)</th>
             </tr>
             </thead>
@@ -80,23 +81,18 @@
 
     <div class="payment-details">
         <div class="section-title">PAYMENT DETAILS</div>
+        <div th:if="${seller != null && seller.name != null}" th:text="'Account owner: ' + ${seller.name}">Account owner: Agnieszka Markiewicz</div>
         <div th:if="${seller != null && seller.bankName != null}" th:text="'Bank: ' + ${seller.bankName}">Bank: TSB</div>
         <div th:if="${seller != null && seller.sortCode != null}" th:text="'Sort Code: ' + ${seller.sortCode}">Sort Code: 87-68-20</div>
         <div th:if="${seller != null && seller.accountNumber != null}" th:text="'Account Number: ' + ${seller.accountNumber}">Account Number: 75040460</div>
     </div>
-
-    <div class="notes">
-        <div class="section-title">Notes</div>
-        <div>________________________________________</div>
-    </div>
-    <br/>
 
     <!-- Preview mode: show Back and Generate buttons -->
     <div th:if="${isPreview != null && isPreview}" style="text-align: center; margin: 2rem 0;">
         <button onclick="window.location.href='/invoices/items';" class="save-button" style="background-color: #6c757d; margin-right: 10px;">
             Back to Edit
         </button>
-        <button onclick="createAndSendInvoice()" class="save-button">Generate & Send PDF Invoice</button>
+        <button onclick="createAndSendInvoice()" class="save-button">Generate &amp; Send Invoice (Original)</button>
 
         <!-- Store form data for invoice creation -->
         <input type="hidden" id="clientId" th:value="${createRequest.clientId}">
@@ -106,20 +102,35 @@
         <input type="hidden" id="isPreview" value="true">
     </div>
 
-    <!-- Existing invoice mode: show only Generate button -->
+    <!-- Archive mode: print mode selector + Back + Generate -->
     <div th:if="${isPreview == null || !isPreview}" style="text-align: center; margin: 2rem 0;">
-        <button onclick="savePdfAndSendEmail()" class="save-button">Generate & Send PDF Invoice</button>
+        <div style="margin-bottom: 1.2rem; font-size: 0.9rem;">
+            <label class="print-mode-label">
+                <input type="radio" name="printMode" value="ORIGINAL"> ORIGINAL
+            </label>
+            <label class="print-mode-label active">
+                <input type="radio" name="printMode" value="COPY" checked> COPY
+            </label>
+            <label class="print-mode-label">
+                <input type="radio" name="printMode" value="NONE"> none
+            </label>
+        </div>
+        <button onclick="window.location.href='/invoices/archive';" class="save-button" style="background-color: #6c757d; margin-right: 10px;">
+            ← Back to Archive
+        </button>
+        <button id="generateBtn" onclick="savePdfAndSendEmail()" class="save-button">Generate &amp; Send PDF</button>
         <input type="hidden" id="invoiceId" th:value="${invoice.id}">
     </div>
 
     <div class="footer">
-        <span class="separator">|</span>
-        <span>robgro.dev</span>
-        <span class="separator">|</span>
-        <span>+44 747 8385 228</span>
-        <span class="separator">|</span>
-        <span>contact@robgro.dev</span>
-        <span class="separator">|</span>
+        <div class="footer-separator-line"></div>
+        <div class="footer-contact">
+            <span th:if="${seller != null and seller.website != null and !#strings.isEmpty(seller.website)}">🌐 <span th:text="${seller.website}"></span></span>
+            <span th:if="${seller != null and seller.website != null and !#strings.isEmpty(seller.website) and seller.phone != null and !#strings.isEmpty(seller.phone)}"> | </span>
+            <span th:if="${seller != null and seller.phone != null and !#strings.isEmpty(seller.phone)}">📞 <span th:text="${seller.phone}"></span></span>
+            <span th:if="${seller != null and (seller.website != null and !#strings.isEmpty(seller.website) or seller.phone != null and !#strings.isEmpty(seller.phone)) and seller.email != null and !#strings.isEmpty(seller.email)}"> | </span>
+            <span th:if="${seller != null and seller.email != null and !#strings.isEmpty(seller.email)}">✉️ <span th:text="${seller.email}"></span></span>
+        </div>
     </div>
 
 </div>

@@ -44,7 +44,7 @@ class SchemeIdPersistenceTest {
         Client client = new Client();
         client.setClientName("Test Client");
         client.setHourlyRate(50.0);
-        client.setHouseNo(1L);
+        client.setHouseNo("1");
         client.setStreetName("High Street");
         client.setCity("London");
         client.setPostCode("EC1A 1BB");
@@ -86,7 +86,7 @@ class SchemeIdPersistenceTest {
         Client client = new Client();
         client.setClientName("Legacy Client");
         client.setHourlyRate(40.0);
-        client.setHouseNo(2L);
+        client.setHouseNo("2");
         client.setStreetName("Old Lane");
         client.setCity("Manchester");
         client.setPostCode("M1 1AA");
