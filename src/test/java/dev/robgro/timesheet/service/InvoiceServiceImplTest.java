@@ -577,10 +577,10 @@ class InvoiceServiceImplTest {
         Long invoiceId = 1L;
 
         // when
-        invoiceService.savePdfAndSendInvoice(invoiceId);
+        invoiceService.savePdfAndSendInvoice(invoiceId, PrintMode.ORIGINAL);
 
         // then
-        verify(invoiceDocumentService).savePdfAndSendInvoice(invoiceId);
+        verify(invoiceDocumentService).savePdfAndSendInvoice(invoiceId, PrintMode.ORIGINAL);
     }
 
     // ----- Invoice Deletion -----

@@ -6,6 +6,7 @@ import dev.robgro.timesheet.config.InvoicingSchedulerProperties;
 import dev.robgro.timesheet.invoice.BillingService;
 import dev.robgro.timesheet.invoice.InvoiceDto;
 import dev.robgro.timesheet.invoice.InvoiceService;
+import dev.robgro.timesheet.invoice.PrintMode;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
 import dev.robgro.timesheet.timesheet.TimesheetService;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,7 @@ class InvoicingTaskServiceImplTest {
                 1L,
                 "Test Client",
                 50.00,
-                123L,
+                "123",
                 "Test Street",
                 "Test City",
                 "12-345",
@@ -173,7 +174,7 @@ class InvoicingTaskServiceImplTest {
             when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
                     .thenReturn(List.of(testInvoice));
             when(clientService.getAllClients()).thenReturn(Collections.emptyList());
-            doNothing().when(invoiceService).savePdfAndSendInvoice(anyLong());
+            doNothing().when(invoiceService).savePdfAndSendInvoice(anyLong(), any());
 
             // when
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
@@ -184,7 +185,7 @@ class InvoicingTaskServiceImplTest {
             assertThat(summary.failedInvoices()).isEqualTo(0);
 
             verify(billingService).generateMonthlyInvoices(anyInt(), anyInt());
-            verify(invoiceService).savePdfAndSendInvoice(1L);
+            verify(invoiceService).savePdfAndSendInvoice(eq(1L), eq(PrintMode.ORIGINAL));
         }
 
         @Test
@@ -196,7 +197,7 @@ class InvoicingTaskServiceImplTest {
             when(clientService.getAllClients()).thenReturn(Collections.emptyList());
 
             doThrow(new RuntimeException("PDF generation failed"))
-                    .when(invoiceService).savePdfAndSendInvoice(anyLong());
+                    .when(invoiceService).savePdfAndSendInvoice(anyLong(), any());
 
             // when
             InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
@@ -240,7 +241,7 @@ class InvoicingTaskServiceImplTest {
         void shouldDetectActiveClientsWithoutTimesheets() {
             // given
             ClientDto clientWithoutTimesheets = new ClientDto(
-                    2L, "Empty Client", 50.00, 456L,
+                    2L, "Empty Client", 50.00, "456",
                     "Empty Street", "Empty City", "67-890",
                     "empty@client.com", true
             );
@@ -278,7 +279,7 @@ class InvoicingTaskServiceImplTest {
         void shouldNotCheckInactiveClientsForTimesheets() {
             // given
             ClientDto inactiveClient = new ClientDto(
-                    3L, "Inactive Client", 50.00, 789L,
+                    3L, "Inactive Client", 50.00, "789",
                     "Inactive Street", "Inactive City", "11-222",
                     "inactive@client.com", false  // inactive
             );

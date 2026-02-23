@@ -7,7 +7,7 @@ public class ClientTestDataBuilder {
     private Long id = 1L;
     private String clientName = "Test Client";
     private double hourlyRate = 50.0;
-    private long houseNo = 1L;
+    private String houseNo = "1";
     private String streetName = "Main Street";
     private String city = "Test City";
     private String postCode = "12345";
@@ -36,7 +36,7 @@ public class ClientTestDataBuilder {
         return this;
     }
 
-    public ClientTestDataBuilder withAddress(long houseNo, String streetName, String city, String postCode) {
+    public ClientTestDataBuilder withAddress(String houseNo, String streetName, String city, String postCode) {
         this.houseNo = houseNo;
         this.streetName = streetName;
         this.city = city;

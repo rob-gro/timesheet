@@ -10,7 +10,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
 @Controller
@@ -43,14 +42,12 @@ public class InvoiceCreateController {
     }
 
     @PostMapping("/{id}/save-and-send")
-    public String saveAndSendInvoice(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        log.info("Saving and sending invoice ID: {}", id);
-
-        invoiceService.savePdfAndSendInvoice(id);
-
+    @ResponseBody
+    public void saveAndSendInvoice(@PathVariable Long id,
+                                   @RequestParam(defaultValue = "COPY") PrintMode printMode) {
+        log.info("Saving and sending invoice ID: {}, printMode: {}", id, printMode);
+        invoiceService.savePdfAndSendInvoice(id, printMode);
         log.info("Successfully saved and sent invoice with ID: {}", id);
-        redirectAttributes.addFlashAttribute("success", "Invoice has been saved and sent");
-        return "redirect:/invoices/create/" + id;
     }
 
     @PostMapping("/confirm")
@@ -64,8 +61,8 @@ public class InvoiceCreateController {
         InvoiceDto invoice = invoiceService.createAndRedirectInvoice(request);
         log.info("Invoice created with ID: {}", invoice.id());
 
-        // Save PDF and send email
-        invoiceService.savePdfAndSendInvoice(invoice.id());
+        // New invoice always goes out as ORIGINAL
+        invoiceService.savePdfAndSendInvoice(invoice.id(), PrintMode.ORIGINAL);
         log.info("Successfully saved and sent invoice with ID: {}", invoice.id());
     }
 }

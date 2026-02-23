@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{head :: head}">
+    <!-- Fallback content -->
+</head>
+<body>
+<link rel="stylesheet" th:href="@{/css/invoice-footer-style.css}">
+    <div class="container mt-5">
+        <div class="card">
+            <div class="container my-auto mx-auto pb-4">
+                <!-- Page Header -->
+                <h2 class="text-center mb-4">Invoice Footer Settings</h2>
+                <p class="text-muted text-center">Configure the contact details shown in the invoice footer</p>
+
+                <!-- Navigation Buttons -->
+                <div class="mb-3">
+                    <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main</button>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✓ <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ✗ <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Footer Settings Form -->
+                <form th:action="@{/settings/invoice-footer}" method="post" class="mt-4">
+                    <div class="mb-3">
+                        <label for="website" class="form-label">Website URL</label>
+                        <input type="text" id="website" name="website" class="form-control"
+                               th:value="${seller.website()}"
+                               placeholder="https://example.com"
+                               oninput="updateFooterPreview()"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="text" id="phone" name="phone" class="form-control"
+                               th:value="${seller.phone()}"
+                               placeholder="+44 000 000 000"
+                               oninput="updateFooterPreview()"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-control"
+                               th:value="${seller.email()}"
+                               placeholder="contact@example.com"
+                               oninput="updateFooterPreview()"/>
+                    </div>
+
+                    <!-- Live Preview (above Save) -->
+                    <div class="footer-preview-box mb-3">
+                        <div class="footer-preview-label">👁️ FOOTER PREVIEW</div>
+                        <div id="footerPreview" class="footer-preview-content">
+                            <span class="text-muted">—</span>
+                        </div>
+                        <small class="text-muted d-block mt-2">Preview updates in real-time as you edit</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="nav-button">Save Footer Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/invoice-footer.js}"></script>
+</body>
+</html>

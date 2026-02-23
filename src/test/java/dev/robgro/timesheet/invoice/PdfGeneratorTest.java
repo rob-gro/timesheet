@@ -3,6 +3,9 @@ package dev.robgro.timesheet.invoice;
 import dev.robgro.timesheet.client.Client;
 import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.exception.ServiceOperationException;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +26,7 @@ class PdfGeneratorTest {
     private Invoice testInvoice;
     private InvoiceSeller testSeller;
     private Client testClient;
+    private dev.robgro.timesheet.seller.Seller seller;
 
     @BeforeEach
     void setUp() {
@@ -39,7 +43,7 @@ class PdfGeneratorTest {
         testClient = new Client();
         testClient.setId(1L);
         testClient.setClientName("Test Client Ltd");
-        testClient.setHouseNo(456L);
+        testClient.setHouseNo("456");
         testClient.setStreetName("Client Avenue");
         testClient.setCity("Clientown");
         testClient.setPostCode("CL3 4NT");
@@ -47,12 +51,19 @@ class PdfGeneratorTest {
         testClient.setHourlyRate(50.0);
 
         // Create seller entity
-        dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
+        seller = new dev.robgro.timesheet.seller.Seller();
         seller.setId(1L);
         seller.setName("Test Company Ltd");
         seller.setStreet("123 Test Street");
         seller.setPostcode("TE1 2ST");
         seller.setCity("Testville");
+        seller.setServiceDescription("Cleaning services on");
+        seller.setBankName("Test Bank");
+        seller.setSortCode("12-34-56");
+        seller.setAccountNumber("12345678");
+        seller.setEmail("test@company.com");
+        seller.setPhone("+44 111 222 333");
+        seller.setWebsite("https://testcompany.com");
         seller.setActive(true);
 
         // Create test invoice
@@ -80,7 +91,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -115,7 +126,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -129,7 +140,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -155,7 +166,7 @@ class PdfGeneratorTest {
 
         // when & then
         // Note: OpenPDF wraps IOException in ExceptionConverter, so we just verify ServiceOperationException is thrown
-        assertThatThrownBy(() -> pdfGenerator.generateInvoicePdf(testInvoice, failingOutputStream))
+        assertThatThrownBy(() -> pdfGenerator.generateInvoicePdf(testInvoice, failingOutputStream, PrintMode.ORIGINAL))
                 .isInstanceOf(ServiceOperationException.class)
                 .hasMessageContaining("Failed to generate PDF");
     }
@@ -175,7 +186,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -198,7 +209,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -219,7 +230,7 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
@@ -242,10 +253,198 @@ class PdfGeneratorTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // when
-        pdfGenerator.generateInvoicePdf(testInvoice, outputStream);
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
 
         // then
         assertThat(outputStream.toByteArray()).isNotEmpty();
+    }
+
+    // --- Multi-page tests ---
+
+    @Test
+    void shouldSpanMultiplePages_whenInvoiceHas40Items() throws IOException {
+        // given
+        for (int i = 0; i < 40; i++) {
+            testInvoice.getItemsList().add(createInvoiceItem(
+                    LocalDate.of(2025, 1, i % 28 + 1),
+                    8.0, 50.0, new BigDecimal("400.00")
+            ));
+        }
+        testInvoice.setTotalAmount(new BigDecimal("16000.00"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        // when
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
+
+        // then
+        assertThat(outputStream.size()).isGreaterThan(0);
+        try (PDDocument doc = Loader.loadPDF(outputStream.toByteArray())) {
+            assertThat(doc.getNumberOfPages()).isGreaterThanOrEqualTo(2);
+        }
+    }
+
+    @Test
+    void shouldFitSinglePage_whenInvoiceHas4Items() throws IOException {
+        // given
+        for (int i = 0; i < 4; i++) {
+            testInvoice.getItemsList().add(createInvoiceItem(
+                    LocalDate.of(2025, 1, i + 1),
+                    8.0, 50.0, new BigDecimal("400.00")
+            ));
+        }
+        testInvoice.setTotalAmount(new BigDecimal("1600.00"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        // when
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
+
+        // then
+        try (PDDocument doc = Loader.loadPDF(outputStream.toByteArray())) {
+            assertThat(doc.getNumberOfPages()).isEqualTo(1);
+        }
+    }
+
+    @Test
+    void shouldPlaceTotalsOnLastPage_whenInvoiceSpansMultiplePages() throws IOException {
+        // given - 40 items forces multi-page
+        for (int i = 0; i < 40; i++) {
+            testInvoice.getItemsList().add(createInvoiceItem(
+                    LocalDate.of(2025, 1, i % 28 + 1),
+                    8.0, 50.0, new BigDecimal("400.00")
+            ));
+        }
+        testInvoice.setTotalAmount(new BigDecimal("16000.00"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        // when
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
+
+        // then
+        byte[] pdfBytes = outputStream.toByteArray();
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
+            int totalPages = doc.getNumberOfPages();
+            assertThat(totalPages).isGreaterThanOrEqualTo(2);
+
+            PDFTextStripper stripper = new PDFTextStripper();
+
+            // "Total Amount" must appear on the last page
+            stripper.setStartPage(totalPages);
+            stripper.setEndPage(totalPages);
+            assertThat(stripper.getText(doc)).contains("Total Amount");
+
+            // "Total Amount" must NOT appear on the first page
+            stripper.setStartPage(1);
+            stripper.setEndPage(1);
+            assertThat(stripper.getText(doc)).doesNotContain("Total Amount");
+        }
+    }
+
+    // --- New regression tests for multi-page pagination ---
+
+    @Test
+    void shouldNeverProduceOrphanPage_when15Items() throws IOException {
+        // 15 items: spans 2 pages; anti-orphan ensures neither page has a single isolated row
+        for (int i = 0; i < 15; i++) {
+            testInvoice.getItemsList().add(createInvoiceItem(
+                    LocalDate.of(2025, 1, (i % 28) + 1), 8.0, 50.0, new BigDecimal("400.00")));
+        }
+        testInvoice.setTotalAmount(new BigDecimal("6000.00"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
+
+        byte[] pdfBytes = outputStream.toByteArray();
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
+            assertThat(doc.getNumberOfPages()).isGreaterThanOrEqualTo(2);
+
+            PDFTextStripper stripper = new PDFTextStripper();
+            // First item page must show "Continued on next page"
+            stripper.setStartPage(1);
+            stripper.setEndPage(1);
+            assertThat(stripper.getText(doc)).contains("Continued on next page");
+
+            // Last page must contain totals
+            int totalPages = doc.getNumberOfPages();
+            stripper.setStartPage(totalPages);
+            stripper.setEndPage(totalPages);
+            assertThat(stripper.getText(doc)).contains("Total Amount");
+        }
+    }
+
+    @Test
+    void shouldPlaceInvoiceSummaryOnSeparatePage_when9Items() throws IOException {
+        // 9 items: all fit on page 1 but totals (160pt) don't fit in remaining space → page 2 with INVOICE SUMMARY
+        for (int i = 0; i < 9; i++) {
+            testInvoice.getItemsList().add(createInvoiceItem(
+                    LocalDate.of(2025, 1, i + 1), 8.0, 50.0, new BigDecimal("400.00")));
+        }
+        testInvoice.setTotalAmount(new BigDecimal("3600.00"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
+
+        byte[] pdfBytes = outputStream.toByteArray();
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
+            assertThat(doc.getNumberOfPages()).isGreaterThanOrEqualTo(2);
+
+            PDFTextStripper stripper = new PDFTextStripper();
+            int totalPages = doc.getNumberOfPages();
+            stripper.setStartPage(totalPages);
+            stripper.setEndPage(totalPages);
+            String lastPageText = stripper.getText(doc);
+            // When totals go to a separate page, INVOICE SUMMARY header is rendered
+            assertThat(lastPageText).contains("INVOICE SUMMARY");
+            assertThat(lastPageText).contains("Total Amount");
+        }
+    }
+
+    @Test
+    void shouldNotShowInvoiceSummaryHeader_whenTotalsFitOnLastItemsPage() throws IOException {
+        // 4 items: single page, totals always fit → no INVOICE SUMMARY header
+        for (int i = 0; i < 4; i++) {
+            testInvoice.getItemsList().add(createInvoiceItem(
+                    LocalDate.of(2025, 1, i + 1), 8.0, 50.0, new BigDecimal("400.00")));
+        }
+        testInvoice.setTotalAmount(new BigDecimal("1600.00"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
+
+        byte[] pdfBytes = outputStream.toByteArray();
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
+            assertThat(doc.getNumberOfPages()).isEqualTo(1);
+
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setStartPage(1);
+            stripper.setEndPage(1);
+            String pageText = stripper.getText(doc);
+            assertThat(pageText).doesNotContain("INVOICE SUMMARY");
+            assertThat(pageText).contains("Total Amount");
+        }
+    }
+
+    @Test
+    void shouldShowContinuedMessage_whenMultipleItemPages() throws IOException {
+        // 40 items: spans multiple pages; "Continued on next page" on all but last item page
+        for (int i = 0; i < 40; i++) {
+            testInvoice.getItemsList().add(createInvoiceItem(
+                    LocalDate.of(2025, 1, (i % 28) + 1), 8.0, 50.0, new BigDecimal("400.00")));
+        }
+        testInvoice.setTotalAmount(new BigDecimal("16000.00"));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        pdfGenerator.generateInvoicePdf(testInvoice, outputStream, PrintMode.ORIGINAL);
+
+        byte[] pdfBytes = outputStream.toByteArray();
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
+            assertThat(doc.getNumberOfPages()).isGreaterThanOrEqualTo(3);
+
+            PDFTextStripper stripper = new PDFTextStripper();
+            // Page 1 must show the continuation message
+            stripper.setStartPage(1);
+            stripper.setEndPage(1);
+            assertThat(stripper.getText(doc)).contains("Continued on next page");
+        }
     }
 
     // Helper method to create invoice items

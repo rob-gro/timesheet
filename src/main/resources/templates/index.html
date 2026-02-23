@@ -61,7 +61,11 @@
                            sec:authorize="hasAnyRole('ADMIN', 'USER')">
                             Invoice Numbering
                         </a>
-                        <!-- Future settings links go here -->
+                        <a th:href="@{/settings/invoice-footer}"
+                           class="nav-button text-center text-decoration-none"
+                           sec:authorize="hasAnyRole('ADMIN', 'USER')">
+                            Footer
+                        </a>
 
                         <a th:href="@{/invoices/archive/pdf}"
                            class="nav-button text-center text-decoration-none">

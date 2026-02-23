@@ -14,4 +14,5 @@ public interface SellerService {
     OperationResult deactivateSeller(Long id);
     OperationResult setActiveStatus(Long id, boolean active);
     SellerDto createEmptySellerDto();
+    void updateFooterSettings(Long sellerId, String website, String email, String phone);
 }

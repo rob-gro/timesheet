@@ -1,19 +1,37 @@
 let invoiceId;
 
 document.addEventListener('DOMContentLoaded', function () {
-    invoiceId = document.getElementById('invoiceId').value;
+    const invoiceIdEl = document.getElementById('invoiceId');
+    if (invoiceIdEl) {
+        invoiceId = invoiceIdEl.value;
+    }
+
+    // Radio → update docTypeLabel + active class on label
+    document.querySelectorAll('input[name="printMode"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            const label = document.getElementById('docTypeLabel');
+            if (label) {
+                label.textContent = this.value === 'NONE' ? '' : this.value;
+                label.style.visibility = this.value === 'NONE' ? 'hidden' : 'visible';
+            }
+            document.querySelectorAll('.print-mode-label').forEach(l => l.classList.remove('active'));
+            this.closest('.print-mode-label').classList.add('active');
+        });
+    });
 });
 
 function savePdfAndSendEmail() {
     const token = document.querySelector('meta[name="_csrf"]').content;
     const header = document.querySelector('meta[name="_csrf_header"]').content;
 
-    const button = document.querySelector('.save-button');
+    const printMode = (document.querySelector('input[name="printMode"]:checked') || {}).value || 'COPY';
+
+    const button = document.getElementById('generateBtn');
     const originalText = button.textContent;
     button.disabled = true;
     button.textContent = 'Processing...';
 
-    fetch(`/invoices/create/${invoiceId}/save-and-send`, {
+    fetch(`/invoices/create/${invoiceId}/save-and-send?printMode=${printMode}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -23,9 +41,9 @@ function savePdfAndSendEmail() {
     })
         .then(response => {
             if (response.ok) {
-                alert('😀 Invoice has been saved and sent to the client 😀');
+                alert('😀 Invoice PDF has been generated and sent 😀');
                 setTimeout(() => {
-                    window.location.href = '/invoices/items';
+                    window.location.href = '/invoices/archive';
                 }, 3000);
             } else {
                 throw new Error(`Status: ${response.status}`);

@@ -45,14 +45,14 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
 
     @Transactional
     @Override
-    public void savePdfAndSendInvoice(Long invoiceId) {
+    public void savePdfAndSendInvoice(Long invoiceId, PrintMode printMode) {
         log.info(" 😁 Processing invoice PDF generation and email for invoice id: {}", invoiceId);
         Invoice invoice = getInvoiceOrThrow(invoiceId);
         Client client = invoice.getClient();
         String fileName = sanitizeFilename(invoice.getInvoiceNumber()) + ".pdf";
 
         ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
-        pdfGenerator.generateInvoicePdf(invoice, pdfOutput);
+        pdfGenerator.generateInvoicePdf(invoice, pdfOutput, printMode);
         byte[] pdfContent = pdfOutput.toByteArray();
 
         ftpService.uploadPdfInvoice(fileName, pdfContent);

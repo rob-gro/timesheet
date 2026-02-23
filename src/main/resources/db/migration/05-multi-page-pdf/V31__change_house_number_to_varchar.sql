@@ -1,0 +1,1 @@
+ALTER TABLE clients MODIFY COLUMN house_number VARCHAR(20) NOT NULL;

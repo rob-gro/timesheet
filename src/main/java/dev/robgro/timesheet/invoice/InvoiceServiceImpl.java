@@ -152,8 +152,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Transactional
     @Override
-    public void savePdfAndSendInvoice(Long id) {
-        invoiceDocumentService.savePdfAndSendInvoice(id);
+    public void savePdfAndSendInvoice(Long id, PrintMode printMode) {
+        invoiceDocumentService.savePdfAndSendInvoice(id, printMode);
     }
 
     @Override

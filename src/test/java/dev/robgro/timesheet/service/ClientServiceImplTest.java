@@ -41,8 +41,8 @@ class ClientServiceImplTest {
         Client client1 = new Client();
         Client client2 = new Client();
         when(clientRepository.findAllActiveOrderByName()).thenReturn(List.of(client1, client2));
-        when(clientDtoMapper.apply(client1)).thenReturn(new ClientDto(1L, "Client 1", 50.0, 1L, "Street", "City", "12345", "email1@test.com", true));
-        when(clientDtoMapper.apply(client2)).thenReturn(new ClientDto(2L, "Client 2", 60.0, 2L, "Street", "City", "54321", "email2@test.com", true));
+        when(clientDtoMapper.apply(client1)).thenReturn(new ClientDto(1L, "Client 1", 50.0, "1", "Street", "City", "12345", "email1@test.com", true));
+        when(clientDtoMapper.apply(client2)).thenReturn(new ClientDto(2L, "Client 2", 60.0, "2", "Street", "City", "54321", "email2@test.com", true));
 
         // when
         List<ClientDto> result = clientService.getAllClients();
@@ -60,7 +60,7 @@ class ClientServiceImplTest {
         Client client = new Client();
         client.setId(clientId);
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
-        when(clientDtoMapper.apply(client)).thenReturn(new ClientDto(clientId, "Client", 50.0, 1L, "Street", "City", "12345", "email@test.com", true));
+        when(clientDtoMapper.apply(client)).thenReturn(new ClientDto(clientId, "Client", 50.0, "1", "Street", "City", "12345", "email@test.com", true));
 
         // when
         ClientDto result = clientService.getClientById(clientId);
@@ -89,10 +89,10 @@ class ClientServiceImplTest {
     @Test
     void shouldSaveNewClient() {
         // given
-        ClientDto clientDto = new ClientDto(null, "New Client", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
+        ClientDto clientDto = new ClientDto(null, "New Client", 50.0, "1", "Street", "City", "12345", "email@test.com", true);
         Client client = new Client();
         when(clientRepository.save(any(Client.class))).thenReturn(client);
-        when(clientDtoMapper.apply(client)).thenReturn(new ClientDto(1L, "New Client", 50.0, 1L, "Street", "City", "12345", "email@test.com", true));
+        when(clientDtoMapper.apply(client)).thenReturn(new ClientDto(1L, "New Client", 50.0, "1", "Street", "City", "12345", "email@test.com", true));
 
         // when
         ClientDto result = clientService.saveClient(clientDto);
@@ -105,14 +105,14 @@ class ClientServiceImplTest {
     @Test
     void shouldCreateClient() {
         // given
-        ClientDto clientDto = new ClientDto(null, "New Client", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
+        ClientDto clientDto = new ClientDto(null, "New Client", 50.0, "1", "Street", "City", "12345", "email@test.com", true);
         Client savedClient = new Client();
         savedClient.setId(1L);
         savedClient.setClientName("New Client");
         savedClient.setActive(true);
 
         when(clientRepository.save(any(Client.class))).thenReturn(savedClient);
-        when(clientDtoMapper.apply(savedClient)).thenReturn(new ClientDto(1L, "New Client", 50.0, 1L, "Street", "City", "12345", "email@test.com", true));
+        when(clientDtoMapper.apply(savedClient)).thenReturn(new ClientDto(1L, "New Client", 50.0, "1", "Street", "City", "12345", "email@test.com", true));
 
         // when
         ClientDto result = clientService.createClient(clientDto);
@@ -129,7 +129,7 @@ class ClientServiceImplTest {
     void shouldUpdateExistingClient() {
         // given
         Long clientId = 1L;
-        ClientDto clientDto = new ClientDto(clientId, "Updated Client", 60.0, 1L, "Street", "City", "12345", "email@test.com", true);
+        ClientDto clientDto = new ClientDto(clientId, "Updated Client", 60.0, "1", "Street", "City", "12345", "email@test.com", true);
         Client client = new Client();
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(clientRepository.save(client)).thenReturn(client);
@@ -149,7 +149,7 @@ class ClientServiceImplTest {
     void shouldUpdateExistingClientWhenSavingWithId() {
         // given
         Long clientId = 1L;
-        ClientDto clientDto = new ClientDto(clientId, "Updated Client", 50.0, 1L, "Street", "City", "12345", "email@test.com", true);
+        ClientDto clientDto = new ClientDto(clientId, "Updated Client", 50.0, "1", "Street", "City", "12345", "email@test.com", true);
         Client existingClient = new Client();
         existingClient.setId(clientId);
 
@@ -171,7 +171,7 @@ class ClientServiceImplTest {
     void shouldUpdateClientFields() {
         // given
         Long clientId = 1L;
-        ClientDto clientDto = new ClientDto(clientId, "Updated Client", 60.0, 2L, "New Street", "New City", "54321", "new@test.com", true);
+        ClientDto clientDto = new ClientDto(clientId, "Updated Client", 60.0, "2", "New Street", "New City", "54321", "new@test.com", true);
         Client client = new Client();
         client.setId(clientId);
 
@@ -186,7 +186,7 @@ class ClientServiceImplTest {
         verify(clientRepository).save(argThat(updatedClient ->
                 updatedClient.getClientName().equals("Updated Client") &&
                         updatedClient.getHourlyRate() == 60.0 &&
-                        updatedClient.getHouseNo() == 2L &&
+                        "2".equals(updatedClient.getHouseNo()) &&
                         updatedClient.getStreetName().equals("New Street") &&
                         updatedClient.getCity().equals("New City") &&
                         updatedClient.getPostCode().equals("54321") &&
@@ -312,8 +312,8 @@ class ClientServiceImplTest {
         Client client2 = new Client();
 
         when(clientRepository.findActiveClientsByName(searchName)).thenReturn(List.of(client1, client2));
-        when(clientDtoMapper.apply(client1)).thenReturn(new ClientDto(1L, "Test Client 1", 50.0, 1L, "Street", "City", "12345", "email1@test.com", true));
-        when(clientDtoMapper.apply(client2)).thenReturn(new ClientDto(2L, "Test Client 2", 60.0, 2L, "Street", "City", "54321", "email2@test.com", true));
+        when(clientDtoMapper.apply(client1)).thenReturn(new ClientDto(1L, "Test Client 1", 50.0, "1", "Street", "City", "12345", "email1@test.com", true));
+        when(clientDtoMapper.apply(client2)).thenReturn(new ClientDto(2L, "Test Client 2", 60.0, "2", "Street", "City", "54321", "email2@test.com", true));
 
         // when
         List<ClientDto> result = clientService.searchClientsByName(searchName);
@@ -336,7 +336,7 @@ class ClientServiceImplTest {
         assertThat(result.id()).isNull();
         assertThat(result.clientName()).isEmpty();
         assertThat(result.hourlyRate()).isEqualTo(0.0);
-        assertThat(result.houseNo()).isEqualTo(0L);
+        assertThat(result.houseNo()).isEqualTo("");
         assertThat(result.streetName()).isEmpty();
         assertThat(result.city()).isEmpty();
         assertThat(result.postCode()).isEmpty();

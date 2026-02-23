@@ -4,7 +4,7 @@ public record ClientDto(
         Long id,
         String clientName,
         double hourlyRate,
-        long houseNo,
+        String houseNo,
         String streetName,
         String city,
         String postCode,

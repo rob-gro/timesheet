@@ -28,7 +28,7 @@ public class Client {
     private double hourlyRate;
 
     @Column(name = "house_number", nullable = false)
-    private long houseNo;
+    private String houseNo;
 
     @Column(name = "street_name", nullable = false)
     private String streetName;
@@ -70,7 +70,7 @@ public class Client {
         if (o == null || getClass() != o.getClass()) return false;
 
         Client client = (Client) o;
-        return Double.compare(hourlyRate, client.hourlyRate) == 0 && houseNo == client.houseNo && Objects.equals(id, client.id) && Objects.equals(clientName, client.clientName) && Objects.equals(streetName, client.streetName) && Objects.equals(city, client.city) && Objects.equals(postCode, client.postCode) && Objects.equals(email, client.email);
+        return Double.compare(hourlyRate, client.hourlyRate) == 0 && Objects.equals(houseNo, client.houseNo) && Objects.equals(id, client.id) && Objects.equals(clientName, client.clientName) && Objects.equals(streetName, client.streetName) && Objects.equals(city, client.city) && Objects.equals(postCode, client.postCode) && Objects.equals(email, client.email);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class Client {
         int result = Objects.hashCode(id);
         result = 31 * result + Objects.hashCode(clientName);
         result = 31 * result + Double.hashCode(hourlyRate);
-        result = 31 * result + Long.hashCode(houseNo);
+        result = 31 * result + Objects.hashCode(houseNo);
         result = 31 * result + Objects.hashCode(streetName);
         result = 31 * result + Objects.hashCode(city);
         result = 31 * result + Objects.hashCode(postCode);
