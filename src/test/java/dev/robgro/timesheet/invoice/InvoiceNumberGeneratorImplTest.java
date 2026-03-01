@@ -3,15 +3,12 @@ package dev.robgro.timesheet.invoice;
 import dev.robgro.timesheet.exception.BusinessRuleViolationException;
 import dev.robgro.timesheet.exception.NoSchemeConfiguredException;
 import dev.robgro.timesheet.exception.ValidationException;
-import dev.robgro.timesheet.security.SecurityUtils;
 import dev.robgro.timesheet.seller.Seller;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
@@ -25,8 +22,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class InvoiceNumberGeneratorImplTest {
-
-    private MockedStatic<SecurityUtils> securityUtilsMock;
 
     @Mock
     private InvoiceNumberingSchemeRepository schemeRepository;
@@ -48,10 +43,6 @@ class InvoiceNumberGeneratorImplTest {
 
     @BeforeEach
     void setUp() {
-        // Mock SecurityUtils static method
-        securityUtilsMock = mockStatic(SecurityUtils.class);
-        securityUtilsMock.when(SecurityUtils::getCurrentSellerId).thenReturn(1L);
-
         // Create test seller
         testSeller = new Seller();
         testSeller.setId(1L);
@@ -68,11 +59,6 @@ class InvoiceNumberGeneratorImplTest {
         );
     }
 
-    @AfterEach
-    void tearDown() {
-        securityUtilsMock.close();
-    }
-
     @Test
     void shouldGenerateInvoiceNumberForMonthlyReset() {
         // Given
@@ -85,7 +71,7 @@ class InvoiceNumberGeneratorImplTest {
             .thenReturn("001-02-2026");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(1);
@@ -108,7 +94,7 @@ class InvoiceNumberGeneratorImplTest {
             .thenReturn("006-02-2026");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(6);
@@ -133,7 +119,7 @@ class InvoiceNumberGeneratorImplTest {
             .thenReturn("INV-001-2026");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(1);
@@ -160,7 +146,7 @@ class InvoiceNumberGeneratorImplTest {
             .thenReturn("INV-0042");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(42);
@@ -177,7 +163,7 @@ class InvoiceNumberGeneratorImplTest {
         when(schemeRepository.findEffectiveScheme(1L, issueDate)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> generator.generateInvoiceNumber(issueDate, null))
+        assertThatThrownBy(() -> generator.generateInvoiceNumber(1L, issueDate, null))
             .isInstanceOf(NoSchemeConfiguredException.class)
             .hasMessageContaining("No numbering scheme configured");
     }
@@ -193,7 +179,7 @@ class InvoiceNumberGeneratorImplTest {
         when(templateParser.apply(any(), any())).thenReturn("011-12-2025");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(backdatedIssueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, backdatedIssueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(11);
@@ -216,7 +202,7 @@ class InvoiceNumberGeneratorImplTest {
         when(templateParser.apply(any(), any())).thenReturn("001-02-2026");
 
         // When - generate for February
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(februaryDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, februaryDate, null);
 
         // Then - should be sequence 1 (new month)
         assertThat(result.getSequenceNumber()).isEqualTo(1);
@@ -226,20 +212,17 @@ class InvoiceNumberGeneratorImplTest {
     @Test
     void shouldThrowExceptionWhenIssueDateIsNull() {
         // When & Then
-        assertThatThrownBy(() -> generator.generateInvoiceNumber(null, null))
+        assertThatThrownBy(() -> generator.generateInvoiceNumber(1L, null, null))
             .isInstanceOf(ValidationException.class)
             .hasMessageContaining("Issue date is required");
     }
 
     @Test
-    void shouldThrowExceptionWhenNoSellerInSecurityContext() {
-        // Given - no seller ID in security context
-        securityUtilsMock.when(SecurityUtils::getCurrentSellerId).thenReturn(null);
-
+    void shouldThrowExceptionWhenSellerIdIsNull() {
         // When & Then
-        assertThatThrownBy(() -> generator.generateInvoiceNumber(LocalDate.now(), null))
+        assertThatThrownBy(() -> generator.generateInvoiceNumber(null, LocalDate.now(), null))
             .isInstanceOf(BusinessRuleViolationException.class)
-            .hasMessageContaining("Current user has no seller assigned");
+            .hasMessageContaining("sellerId is required");
     }
 
     // ===== schemeId audit trail tests =====
@@ -260,8 +243,8 @@ class InvoiceNumberGeneratorImplTest {
         when(templateParser.apply(any(), any())).thenReturn("001-02-2026");
 
         // When
-        GeneratedInvoiceNumber generated = generator.generateInvoiceNumber(issueDate, null);
-        GeneratedInvoiceNumber peeked = generator.peekNextInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber generated = generator.generateInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber peeked = generator.peekNextInvoiceNumber(1L, issueDate, null);
 
         // Then
         assertThat(generated.getSchemeId()).isEqualTo(42L);
@@ -294,8 +277,8 @@ class InvoiceNumberGeneratorImplTest {
         when(templateParser.apply(any(), any())).thenReturn("001-02-2026", "INV-0001-2026");
 
         // When
-        GeneratedInvoiceNumber first = generator.generateInvoiceNumber(issueDate, null);
-        GeneratedInvoiceNumber second = generator.generateInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber first = generator.generateInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber second = generator.generateInvoiceNumber(1L, issueDate, null);
 
         // Then - each invoice records the scheme that was active at generation time
         assertThat(first.getSchemeId()).isEqualTo(100L);
@@ -329,7 +312,7 @@ class InvoiceNumberGeneratorImplTest {
         when(templateParser.apply(eq(template), any())).thenReturn(expectedDisplay);
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
 
         // Then: period sentinel stored as 0 (counter key), schemeId set
         assertThat(result.getPeriodMonth()).isEqualTo(0);

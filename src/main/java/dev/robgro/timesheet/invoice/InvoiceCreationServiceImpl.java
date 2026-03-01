@@ -45,7 +45,7 @@ public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
         invoice.setIssueDate(issueDate);
 
         // Generate invoice number using new configurable system
-        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.generateInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.generateInvoiceNumber(seller.getId(), issueDate, null);
         invoice.setInvoiceNumberComponents(
             generatedNumber.getSequenceNumber(),
             generatedNumber.getPeriodYear(),
@@ -181,7 +181,7 @@ public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
         // HOTFIX: Peek invoice number for preview WITHOUT reserving it
         // CRITICAL: Must use peekNextInvoiceNumber() not generateInvoiceNumber()
         // to avoid incrementing counter twice (preview + actual creation)
-        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.peekNextInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.peekNextInvoiceNumber(sellerId, issueDate, null);
         String invoiceNumber = generatedNumber.getDisplayNumber();
 
         // Build invoice items without persisting

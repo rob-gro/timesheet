@@ -118,7 +118,7 @@ class  InvoiceCreationServiceImplTest {
         );
 
         when(clientRepository.getReferenceById(clientId)).thenReturn(client);
-        when(invoiceNumberGenerator.generateInvoiceNumber(issueDate, null)).thenReturn(generatedNumber);
+        when(invoiceNumberGenerator.generateInvoiceNumber(1L, issueDate, null)).thenReturn(generatedNumber);
         when(invoiceRepository.save(any(Invoice.class))).thenReturn(savedInvoice);
         when(timesheetRepository.findById(1L)).thenReturn(Optional.of(timesheet1));
         when(timesheetRepository.findById(2L)).thenReturn(Optional.of(timesheet2));
@@ -331,7 +331,7 @@ class  InvoiceCreationServiceImplTest {
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
         when(sellerRepository.findById(1L)).thenReturn(java.util.Optional.of(seller));
-        when(invoiceNumberGenerator.peekNextInvoiceNumber(issueDate, null)).thenReturn(generatedNumber);
+        when(invoiceNumberGenerator.peekNextInvoiceNumber(1L, issueDate, null)).thenReturn(generatedNumber);
 
         // when
         InvoiceDto result = invoiceCreationService.buildInvoicePreview(clientId, 1L, issueDate, timesheetIds);
@@ -351,7 +351,7 @@ class  InvoiceCreationServiceImplTest {
 
         verify(clientService).getClientById(clientId);
         verify(timesheetService, times(2)).getTimesheetById(anyLong());
-        verify(invoiceNumberGenerator).peekNextInvoiceNumber(issueDate, null);
+        verify(invoiceNumberGenerator).peekNextInvoiceNumber(1L, issueDate, null);
         verifyNoInteractions(invoiceRepository); // Preview should not save to DB
         verifyNoInteractions(timesheetRepository); // Preview should not modify timesheets
     }

@@ -53,7 +53,7 @@ public class SellerViewController {
         model.addAttribute("seller", sellerService.getSellerById(id));
         try {
             String preview = invoiceNumberGenerator
-                .peekNextInvoiceNumber(LocalDate.now(), null)
+                .peekNextInvoiceNumber(id, LocalDate.now(), null)
                 .getDisplayNumber();
             model.addAttribute("nextInvoicePreview", preview);
         } catch (Exception e) {
