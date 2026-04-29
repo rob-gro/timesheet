@@ -88,6 +88,63 @@ document.addEventListener('DOMContentLoaded', function () {
 
         window.location.href = newUrl.toString();
     };
+    window.cancelInvoice = function (id) {
+        Swal.fire({
+            title: 'Cancel Invoice?',
+            text: 'The invoice will be marked as cancelled.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, cancel it',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Delete associated timesheets?',
+                    text: 'Do you also want to delete the timesheets associated with this invoice?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No'
+                }).then((innerResult) => {
+                    const deleteTimesheets = innerResult.isConfirmed;
+
+                    Swal.fire({
+                        title: 'Cancelling...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    fetch(`/api/v1/invoices/${id}/cancel?deleteTimesheets=${deleteTimesheets}`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            [header]: token
+                        }
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                const msg = deleteTimesheets
+                                    ? 'Invoice cancelled. Timesheets deleted.'
+                                    : 'Invoice cancelled. Timesheets returned to pool.';
+                                Swal.fire({
+                                    title: 'Cancelled',
+                                    text: msg,
+                                    icon: 'success'
+                                }).then(() => location.reload());
+                            } else {
+                                return response.text().then(text => {
+                                    throw new Error(text || `Server returned ${response.status}`);
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Error!', `Failed to cancel invoice: ${error.message}`, 'error');
+                        });
+                });
+            }
+        });
+    };
+
     window.deleteInvoice = function (id) {
         Swal.fire({
             title: 'Delete Invoice?',

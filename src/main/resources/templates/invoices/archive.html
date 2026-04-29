@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{head :: head}">
     <!-- Fallback content -->
 </head>
@@ -40,7 +41,7 @@
                                     <div class="d-flex gap-2">
                                         <select name="fromYear" class="form-select" id="fromYear" style="width: 100px">
                                             <option value="">Year</option>
-                                            <option th:each="year : ${#numbers.sequence(2025, 2020)}"
+                                            <option th:each="year : ${#numbers.sequence(currentYear, 2020)}"
                                                     th:value="${year}"
                                                     th:text="${year}"
                                                     th:selected="${param.fromYear != null && year.toString() == param.fromYear[0]}">
@@ -63,7 +64,7 @@
                                     <div class="d-flex gap-2">
                                         <select name="toYear" class="form-select" id="toYear" style="width: 100px">
                                             <option value="">Year</option>
-                                            <option th:each="year : ${#numbers.sequence(2025, 2020)}"
+                                            <option th:each="year : ${#numbers.sequence(currentYear, 2020)}"
                                                     th:value="${year}"
                                                     th:text="${year}"
                                                     th:selected="${param.toYear != null && year.toString() == param.toYear[0]}">
@@ -140,7 +141,7 @@
                                       onclick="sortTable('clientName', 'desc')">▼</span>
                             </div>
                         </th>
-                        <th class="text-end">
+                        <th>
                             Amount
                             <div>
                                 <span class="sort-icon" data-column="totalAmount" data-direction="asc"
@@ -155,9 +156,14 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="invoice : ${invoices}">
+                    <tr th:each="invoice : ${invoices}"
+                        th:classappend="${invoice.cancelled} ? 'text-muted' : ''">
                         <td data-label="Invoice #">
-                            <span class="cell-value" th:text="${invoice.invoiceNumber}"></span>
+                            <span class="cell-value"
+                                  th:text="${invoice.invoiceNumber}"
+                                  th:style="${invoice.cancelled} ? 'text-decoration: line-through' : ''"></span>
+                            <span th:if="${invoice.cancelled}"
+                                  class="badge bg-warning text-dark ms-1">CANCELLED</span>
                         </td>
                         <td data-label="Date">
                             <span class="cell-value" th:text="${#temporals.format(invoice.issueDate, 'yyyy-MM-dd')}"></span>
@@ -177,7 +183,15 @@
                                         th:onclick="'window.location.href=\'/invoices/items/edit/' + ${invoice.id} + '\''">Edit
                                 </button>
                                 <button class="del-button"
-                                        th:onclick="'deleteInvoice(' + ${invoice.id} + ')'">Delete
+                                        th:onclick="'cancelInvoice(' + ${invoice.id} + ')'"
+                                        th:disabled="${invoice.cancelled}"
+                                        th:title="${invoice.cancelled} ? 'Already cancelled' : 'Cancel invoice'">Cancel
+                                </button>
+                                <button class="del-button"
+                                        sec:authorize="hasRole('ADMIN')"
+                                        th:onclick="'deleteInvoice(' + ${invoice.id} + ')'"
+                                        th:disabled="${!invoice.cancelled}"
+                                        th:title="${!invoice.cancelled} ? 'Cancel invoice first' : 'Permanently delete'">Delete
                                 </button>
                             </div>
                         </td>

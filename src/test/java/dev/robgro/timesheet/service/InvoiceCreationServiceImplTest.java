@@ -6,6 +6,7 @@ import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.exception.ValidationException;
 import dev.robgro.timesheet.client.ClientDto;
 import dev.robgro.timesheet.invoice.*;
+import dev.robgro.timesheet.invoice.delivery.InvoiceDeliveryJobRepository;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
 import dev.robgro.timesheet.client.Client;
 import dev.robgro.timesheet.timesheet.Timesheet;
@@ -58,6 +59,12 @@ class  InvoiceCreationServiceImplTest {
 
     @Mock
     private dev.robgro.timesheet.seller.SellerRepository sellerRepository;
+
+    @Mock
+    private InvoiceDeliveryJobRepository deliveryJobRepository;
+
+    @Mock
+    private InvoiceNumberCounterService counterService;
 
     @InjectMocks
     private InvoiceCreationServiceImpl invoiceCreationService;
@@ -114,11 +121,11 @@ class  InvoiceCreationServiceImplTest {
                 null,
                 0,
                 null,
-                "NOT_SENT"
+                "NOT_SENT", null, null, null, false
         );
 
         when(clientRepository.getReferenceById(clientId)).thenReturn(client);
-        when(invoiceNumberGenerator.generateInvoiceNumber(issueDate, null)).thenReturn(generatedNumber);
+        when(invoiceNumberGenerator.generateInvoiceNumber(1L, issueDate, null)).thenReturn(generatedNumber);
         when(invoiceRepository.save(any(Invoice.class))).thenReturn(savedInvoice);
         when(timesheetRepository.findById(1L)).thenReturn(Optional.of(timesheet1));
         when(timesheetRepository.findById(2L)).thenReturn(Optional.of(timesheet2));
@@ -162,7 +169,7 @@ class  InvoiceCreationServiceImplTest {
 
         InvoiceDto expectedDto = new InvoiceDto(
                 1L, clientId, "Test Client", 1L, "Test Seller", "001-01-2023", issueDate,
-                BigDecimal.valueOf(250.0), LocalDateTime.now().toString(), List.of(), null, null, null, 0, null, "NOT_SENT"
+                BigDecimal.valueOf(250.0), LocalDateTime.now().toString(), List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false
         );
 
         dev.robgro.timesheet.seller.Seller seller = new dev.robgro.timesheet.seller.Seller();
@@ -331,7 +338,7 @@ class  InvoiceCreationServiceImplTest {
         when(timesheetService.getTimesheetById(1L)).thenReturn(timesheet1);
         when(timesheetService.getTimesheetById(2L)).thenReturn(timesheet2);
         when(sellerRepository.findById(1L)).thenReturn(java.util.Optional.of(seller));
-        when(invoiceNumberGenerator.peekNextInvoiceNumber(issueDate, null)).thenReturn(generatedNumber);
+        when(invoiceNumberGenerator.peekNextInvoiceNumber(1L, issueDate, null)).thenReturn(generatedNumber);
 
         // when
         InvoiceDto result = invoiceCreationService.buildInvoicePreview(clientId, 1L, issueDate, timesheetIds);
@@ -351,7 +358,7 @@ class  InvoiceCreationServiceImplTest {
 
         verify(clientService).getClientById(clientId);
         verify(timesheetService, times(2)).getTimesheetById(anyLong());
-        verify(invoiceNumberGenerator).peekNextInvoiceNumber(issueDate, null);
+        verify(invoiceNumberGenerator).peekNextInvoiceNumber(1L, issueDate, null);
         verifyNoInteractions(invoiceRepository); // Preview should not save to DB
         verifyNoInteractions(timesheetRepository); // Preview should not modify timesheets
     }

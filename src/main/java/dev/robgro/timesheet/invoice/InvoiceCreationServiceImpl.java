@@ -4,6 +4,8 @@ import dev.robgro.timesheet.client.ClientService;
 import dev.robgro.timesheet.exception.BusinessRuleViolationException;
 import dev.robgro.timesheet.exception.ValidationException;
 import dev.robgro.timesheet.client.ClientDto;
+import dev.robgro.timesheet.invoice.delivery.InvoiceDeliveryJob;
+import dev.robgro.timesheet.invoice.delivery.InvoiceDeliveryJobRepository;
 import dev.robgro.timesheet.seller.Seller;
 import dev.robgro.timesheet.seller.SellerRepository;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
@@ -12,6 +14,7 @@ import dev.robgro.timesheet.client.ClientRepository;
 import dev.robgro.timesheet.timesheet.TimesheetRepository;
 import dev.robgro.timesheet.timesheet.TimesheetService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +28,8 @@ import java.util.stream.Collectors;
 
 @Service("dedicatedInvoiceCreationService")
 @RequiredArgsConstructor
-public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
+@Slf4j
+public class InvoiceCreationServiceImpl implements InvoiceCreationService {
 
     private final ClientService clientService;
     private final TimesheetService timesheetService;
@@ -35,6 +39,8 @@ public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
     private final ClientRepository clientRepository;
     private final SellerRepository sellerRepository;
     private final InvoiceNumberGenerator invoiceNumberGenerator;
+    private final InvoiceDeliveryJobRepository deliveryJobRepository;
+    private final InvoiceNumberCounterService counterService;
 
     @Transactional
     @Override
@@ -44,8 +50,16 @@ public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
         invoice.setSeller(seller);
         invoice.setIssueDate(issueDate);
 
+        // Fail-fast anomaly guard: if this is the first invoice for seller+period but a counter
+        // already exists, something went wrong (e.g., stale counter from failed UPSERT / auto_increment drift).
+        // Abort early to prevent issuing wrong sequence numbers.
+        int periodYear = issueDate.getYear();
+        int periodMonth = issueDate.getMonthValue();
+        String periodKey = String.format("%04d-%02d", periodYear, periodMonth);
+        assertFreshPeriodHasNoCounter(seller.getId(), periodKey, periodYear, periodMonth);
+
         // Generate invoice number using new configurable system
-        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.generateInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.generateInvoiceNumber(seller.getId(), issueDate, null);
         invoice.setInvoiceNumberComponents(
             generatedNumber.getSequenceNumber(),
             generatedNumber.getPeriodYear(),
@@ -75,6 +89,10 @@ public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
                 .collect(Collectors.toList());
 
         timesheetRepository.saveAll(updatedTimesheets);
+
+        // Enqueue async delivery job (PDF + email) — processed by InvoiceDeliveryWorkerService
+        InvoiceDeliveryJob deliveryJob = InvoiceDeliveryJob.createPending(savedInvoice);
+        deliveryJobRepository.save(deliveryJob);
 
         Invoice refreshedInvoice = invoiceRepository.findById(savedInvoice.getId()).orElseThrow();
         return invoiceDtoMapper.apply(refreshedInvoice);
@@ -114,6 +132,30 @@ public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
         }
 
         return createInvoiceFromTimesheets(client, seller, selectedTimesheets, issueDate);
+    }
+
+    /**
+     * Fail-fast guard: if it's the first invoice of a fresh period for this seller
+     * but a counter already exists, abort to prevent issuing wrong sequence numbers.
+     *
+     * <p>Protects against the February 2026 incident pattern: stale/corrupt counter
+     * from previous failed runs causing first invoice to get a wrong sequence number.
+     *
+     * <p>When invoiceCount > 0 (retry / rerun with existing invoices) → guard passes without check.
+     */
+    private void assertFreshPeriodHasNoCounter(Long sellerId, String periodKey,
+                                                int periodYear, int periodMonth) {
+        long invoiceCount = invoiceRepository.countBySellerIdAndPeriodYearAndPeriodMonth(
+            sellerId, periodYear, periodMonth);
+
+        if (invoiceCount == 0) {
+            if (counterService.counterExistsForPeriod(sellerId, ResetPeriod.MONTHLY, periodKey)) {
+                throw new IllegalStateException(
+                    "Invoice numbering anomaly: fresh period " + periodKey +
+                    " but counter already exists. Aborting generation for sellerId=" + sellerId);
+            }
+            log.info("Starting invoice numbering for seller={}, periodKey={}", sellerId, periodKey);
+        }
     }
 
     private InvoiceItem createInvoiceItem(TimesheetDto timesheet, Invoice invoice) {
@@ -181,7 +223,7 @@ public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
         // HOTFIX: Peek invoice number for preview WITHOUT reserving it
         // CRITICAL: Must use peekNextInvoiceNumber() not generateInvoiceNumber()
         // to avoid incrementing counter twice (preview + actual creation)
-        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.peekNextInvoiceNumber(issueDate, null);
+        GeneratedInvoiceNumber generatedNumber = invoiceNumberGenerator.peekNextInvoiceNumber(seller.getId(), issueDate, null);
         String invoiceNumber = generatedNumber.getDisplayNumber();
 
         // Build invoice items without persisting
@@ -222,7 +264,11 @@ public class    InvoiceCreationServiceImpl implements InvoiceCreationService {
                 null, // no email opened timestamp yet
                 0,    // no email open count yet
                 null, // no last email opened timestamp yet
-                "NOT_SENT" // email status
+                "NOT_SENT", // email status
+                null, // no delivery job yet (preview)
+                null, // no delivery attempts yet
+                null, // not cancelled
+                false // cancelled
         );
     }
 }

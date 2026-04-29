@@ -69,6 +69,12 @@ public class Invoice {
     @Column(name = "last_email_opened_at")
     private LocalDateTime lastEmailOpenedAt;
 
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
+    @Column(name = "cancelled_by")
+    private String cancelledBy;
+
     @OneToMany(mappedBy = "invoice")
     private List<Timesheet> timesheets = new ArrayList<>();
 
@@ -121,6 +127,18 @@ public class Invoice {
     private String invoiceNumberDisplay;
 
     // ===== Business Methods =====
+
+    public boolean isCancelled() {
+        return cancelledAt != null;
+    }
+
+    public void cancel(String cancelledBy) {
+        if (this.cancelledAt != null) {
+            throw new IllegalStateException("Invoice already cancelled");
+        }
+        this.cancelledAt = LocalDateTime.now();
+        this.cancelledBy = cancelledBy;
+    }
 
     /**
      * Updates email tracking status from EmailTracking entity

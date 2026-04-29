@@ -72,11 +72,7 @@ function renderCounters(data) {
         return;
     }
 
-    // Sort: drift first, then periodKey descending
-    const sorted = [...data.counters].sort((a, b) => {
-        if (a.hasDrift !== b.hasDrift) return a.hasDrift ? -1 : 1;
-        return b.periodKey.localeCompare(a.periodKey);
-    });
+    const sorted = [...data.counters].sort((a, b) => b.periodKey.localeCompare(a.periodKey));
 
     countersTableBody.innerHTML = sorted.map(c => {
         const delta = c.expectedValue - c.lastValue;

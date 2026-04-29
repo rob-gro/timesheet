@@ -70,7 +70,7 @@ public class InvoiceCounterObservabilityController {
 
         // Get all counters for seller (ordered by reset period, newest first)
         List<InvoiceNumberCounter> counters = counterRepository
-            .findBySellerIdOrderByResetPeriodAscPeriodKeyDesc(sellerId);
+            .findBySellerIdOrderByPeriodKeyDesc(sellerId);
 
         // Build status for each counter with drift detection
         List<CounterStatusDto> counterStatus = counters.stream()

@@ -127,7 +127,11 @@ public class InvoiceTestDataBuilder {
             null,  // emailOpenedAt - not set in tests
             0,     // emailOpenCount - default 0
             null,  // lastEmailOpenedAt - not set in tests
-            "NOT_SENT"  // emailStatus - default
+            "NOT_SENT",  // emailStatus - default
+            null,  // deliveryStatus - not set in tests
+            null,  // deliveryAttempts - not set in tests
+            null,  // cancelledAt
+            false  // cancelled
         );
     }
 }

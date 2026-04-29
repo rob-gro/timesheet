@@ -5,6 +5,7 @@ import dev.robgro.timesheet.exception.IntegrationException;
 import dev.robgro.timesheet.exception.ResourceAlreadyExistsException;
 import dev.robgro.timesheet.exception.ValidationException;
 import dev.robgro.timesheet.invoice.*;
+import dev.robgro.timesheet.invoice.delivery.InvoiceDeliveryJobRepository;
 import dev.robgro.timesheet.client.Client;
 import dev.robgro.timesheet.invoice.Invoice;
 import dev.robgro.timesheet.invoice.InvoiceItem;
@@ -72,8 +73,18 @@ class InvoiceServiceImplTest {
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private InvoiceDeliveryJobRepository deliveryJobRepository;
+
     @InjectMocks
     private InvoiceServiceImpl invoiceService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void injectJdbcTemplate() {
+        // jdbcTemplate is @Autowired (non-final) — Mockito constructor injection skips it.
+        // Force-inject via ReflectionTestUtils so calls to jdbcTemplate.update() don't NPE.
+        ReflectionTestUtils.setField(invoiceService, "jdbcTemplate", jdbcTemplate);
+    }
 
     // ----- Basic Invoice Retrieval -----
 
@@ -85,8 +96,8 @@ class InvoiceServiceImplTest {
         Invoice invoice2 = new Invoice();
         invoice2.setId(2L);
 
-        InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
-        InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
+        InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc()).thenReturn(List.of(invoice1, invoice2));
         when(invoiceDtoMapper.apply(invoice1)).thenReturn(dto1);
@@ -109,8 +120,8 @@ class InvoiceServiceImplTest {
         Invoice invoice2 = new Invoice();
         invoice2.setId(2L);
 
-        InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
-        InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
+        InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findAllByOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc()).thenReturn(List.of(invoice1, invoice2));
         when(invoiceDtoMapper.apply(invoice1)).thenReturn(dto1);
@@ -136,8 +147,8 @@ class InvoiceServiceImplTest {
         Invoice invoice2 = new Invoice();
         invoice2.setId(2L);
 
-        InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
-        InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
+        InvoiceDto dto2 = new InvoiceDto(2L, 2L, "Client 2", 1L, "Test Seller", "002-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findByIssueDateBetweenOrderByPeriodYearDescPeriodMonthDescSequenceNumberDesc(startDate, endDate))
                 .thenReturn(List.of(invoice1, invoice2));
@@ -160,7 +171,7 @@ class InvoiceServiceImplTest {
         Invoice invoice = new Invoice();
         invoice.setId(invoiceId);
 
-        InvoiceDto dto = new InvoiceDto(invoiceId, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto = new InvoiceDto(invoiceId, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(invoiceDtoMapper.apply(invoice)).thenReturn(dto);
@@ -194,7 +205,7 @@ class InvoiceServiceImplTest {
         invoice.setId(1L);
         invoice.setInvoiceNumber(invoiceNumber);
 
-        InvoiceDto dto = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", invoiceNumber, LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", invoiceNumber, LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findByInvoiceNumber(invoiceNumber)).thenReturn(Optional.of(invoice));
         when(invoiceDtoMapper.apply(invoice)).thenReturn(dto);
@@ -226,8 +237,8 @@ class InvoiceServiceImplTest {
         invoice2.setId(2L);
         invoice2.setInvoiceNumber("002-02-2023");
 
-        InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.of(2023, 1, 15), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
-        InvoiceDto dto2 = new InvoiceDto(2L, 1L, "Client 1", 1L, "Test Seller", "002-02-2023", LocalDate.of(2023, 2, 15), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto1 = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.of(2023, 1, 15), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
+        InvoiceDto dto2 = new InvoiceDto(2L, 1L, "Client 1", 1L, "Test Seller", "002-02-2023", LocalDate.of(2023, 2, 15), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findFilteredInvoices(clientId, year, month)).thenReturn(List.of(invoice1, invoice2));
         when(invoiceDtoMapper.apply(invoice1)).thenReturn(dto1);
@@ -255,7 +266,7 @@ class InvoiceServiceImplTest {
         Invoice invoice = new Invoice();
         invoice.setId(1L);
 
-        InvoiceDto dto = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", startDate, null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", startDate, null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findByClientIdAndIssueDateBetween(clientId, startDate, endDate))
                 .thenReturn(List.of(invoice));
@@ -282,7 +293,7 @@ class InvoiceServiceImplTest {
         Invoice invoice = new Invoice();
         invoice.setId(1L);
 
-        InvoiceDto dto = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", startDate, null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", startDate, null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findByClientIdAndIssueDateBetween(clientId, startDate, endDate))
                 .thenReturn(List.of(invoice));
@@ -314,8 +325,8 @@ class InvoiceServiceImplTest {
         invoice2.setId(2L);
         invoice2.setIssueDate(date2);
 
-        InvoiceDto dto1 = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", date1, BigDecimal.valueOf(100), null, List.of(), null, null, null, 0, null, "NOT_SENT");
-        InvoiceDto dto2 = new InvoiceDto(2L, clientId, "Client 1", 1L, "Test Seller", "002-02-2023", date2, BigDecimal.valueOf(200), null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto1 = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", date1, BigDecimal.valueOf(100), null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
+        InvoiceDto dto2 = new InvoiceDto(2L, clientId, "Client 1", 1L, "Test Seller", "002-02-2023", date2, BigDecimal.valueOf(200), null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findFilteredInvoices(eq(clientId), isNull(), isNull())).thenReturn(List.of(invoice2, invoice1));
         when(invoiceDtoMapper.apply(invoice1)).thenReturn(dto1);
@@ -341,8 +352,8 @@ class InvoiceServiceImplTest {
         Invoice inv2 = new Invoice();
         inv2.setId(2L);
 
-        InvoiceDto invoice1 = new InvoiceDto(1L, 1L, "B Client", 1L, "Test Seller", "001-01-2023", LocalDate.now(), BigDecimal.valueOf(100), null, List.of(), null, null, null, 0, null, "NOT_SENT");
-        InvoiceDto invoice2 = new InvoiceDto(2L, 2L, "A Client", 1L, "Test Seller", "002-01-2023", LocalDate.now(), BigDecimal.valueOf(200), null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoice1 = new InvoiceDto(1L, 1L, "B Client", 1L, "Test Seller", "001-01-2023", LocalDate.now(), BigDecimal.valueOf(100), null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
+        InvoiceDto invoice2 = new InvoiceDto(2L, 2L, "A Client", 1L, "Test Seller", "002-01-2023", LocalDate.now(), BigDecimal.valueOf(200), null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findFilteredInvoices(isNull(), isNull(), isNull())).thenReturn(List.of(inv1, inv2));
         when(invoiceDtoMapper.apply(inv1)).thenReturn(invoice1);
@@ -362,8 +373,8 @@ class InvoiceServiceImplTest {
     @Test
     void shouldSortInvoicesByTotalAmount() {
         // given
-        InvoiceDto invoice1 = new InvoiceDto(1L, 1L, "Client", 1L, "Test Seller", "001-01-2023", LocalDate.now(), BigDecimal.valueOf(100), null, List.of(), null, null, null, 0, null, "NOT_SENT");
-        InvoiceDto invoice2 = new InvoiceDto(2L, 1L, "Client", 1L, "Test Seller", "002-01-2023", LocalDate.now(), BigDecimal.valueOf(200), null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoice1 = new InvoiceDto(1L, 1L, "Client", 1L, "Test Seller", "001-01-2023", LocalDate.now(), BigDecimal.valueOf(100), null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
+        InvoiceDto invoice2 = new InvoiceDto(2L, 1L, "Client", 1L, "Test Seller", "002-01-2023", LocalDate.now(), BigDecimal.valueOf(200), null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         List<Invoice> invoices = new ArrayList<>();
         Invoice inv1 = new Invoice(); inv1.setId(1L);
@@ -400,7 +411,7 @@ class InvoiceServiceImplTest {
         );
 
         InvoiceDto invoiceDto = new InvoiceDto(
-                1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", issueDate, null, null, List.of(), null, null, null, 0, null, "NOT_SENT"
+                1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", issueDate, null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false
         );
 
         when(invoiceCreationService.createInvoice(clientId, 1L, issueDate, timesheetIds)).thenReturn(invoiceDto);
@@ -453,7 +464,7 @@ class InvoiceServiceImplTest {
 
         InvoiceDto updatedDto = new InvoiceDto(
                 invoiceId, clientId, "Client 2", 1L, "Test Seller", invoiceNumber, issueDate,
-                BigDecimal.valueOf(100.0), null, List.of(), null, null, null, 0, null, "NOT_SENT"
+                BigDecimal.valueOf(100.0), null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false
         );
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
@@ -593,6 +604,7 @@ class InvoiceServiceImplTest {
         invoice.setId(invoiceId);
         invoice.setInvoiceNumber("001-01-2023");
         invoice.setTimesheets(new ArrayList<>());
+        invoice.cancel("test-user"); // cancel-first guard requires this
 
         Timesheet timesheet = new Timesheet();
         timesheet.setId(1L);
@@ -618,6 +630,7 @@ class InvoiceServiceImplTest {
         invoice.setId(invoiceId);
         invoice.setInvoiceNumber("001-01-2023");
         invoice.setTimesheets(new ArrayList<>());
+        invoice.cancel("test-user"); // cancel-first guard requires this
 
         Timesheet timesheet = new Timesheet();
         timesheet.setId(1L);
@@ -658,8 +671,8 @@ class InvoiceServiceImplTest {
         client.setId(clientId);
         client.setClientName("Test Client");
 
-        InvoiceDto dto1 = new InvoiceDto(1L, clientId, "Test Client", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
-        InvoiceDto dto2 = new InvoiceDto(2L, clientId, "Test Client", 1L, "Test Seller", "002-02-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto dto1 = new InvoiceDto(1L, clientId, "Test Client", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
+        InvoiceDto dto2 = new InvoiceDto(2L, clientId, "Test Client", 1L, "Test Seller", "002-02-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findForReporting(eq(clientId), any(), any(), any()))
                 .thenReturn(List.of(invoice1, invoice2));
@@ -692,18 +705,18 @@ class InvoiceServiceImplTest {
         invoice.setId(1L);
 
         Page<Invoice> invoicePage = new PageImpl<>(List.of(invoice));
-        InvoiceDto invoiceDto = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoiceDto = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
-        when(invoiceRepository.findFilteredInvoices(clientId, year, month, pageable)).thenReturn(invoicePage);
+        when(invoiceRepository.findFilteredInvoices(clientId, year, month, false, pageable)).thenReturn(invoicePage);
         when(invoiceDtoMapper.apply(invoice)).thenReturn(invoiceDto);
 
         // when
-        Page<InvoiceDto> result = invoiceService.getAllInvoicesPageable(clientId, year, month, pageable);
+        Page<InvoiceDto> result = invoiceService.getAllInvoicesPageable(clientId, year, month, false, pageable);
 
         // then
         assertThat(result).isNotNull();
         assertThat(result.getTotalElements()).isEqualTo(1);
-        verify(invoiceRepository).findFilteredInvoices(clientId, year, month, pageable);
+        verify(invoiceRepository).findFilteredInvoices(clientId, year, month, false, pageable);
     }
 
     @Test
@@ -717,7 +730,7 @@ class InvoiceServiceImplTest {
         invoice.setId(1L);
 
         Page<Invoice> invoicePage = new PageImpl<>(List.of(invoice));
-        InvoiceDto invoiceDto = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoiceDto = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "001-01-2023", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceRepository.findByDateRangeAndClient(any(), any(), eq(clientId), eq(pageable))).thenReturn(invoicePage);
         when(invoiceDtoMapper.apply(invoice)).thenReturn(invoiceDto);

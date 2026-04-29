@@ -65,17 +65,20 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     @Query("SELECT i FROM Invoice i WHERE " +
             "(:clientId IS NULL OR i.client.id = :clientId) AND " +
             "(:year IS NULL OR YEAR(i.issueDate) = :year) AND " +
-            "(:month IS NULL OR MONTH(i.issueDate) = :month)")
+            "(:month IS NULL OR MONTH(i.issueDate) = :month) AND " +
+            "(:showCancelled = true OR i.cancelledAt IS NULL)")
     Page<Invoice> findFilteredInvoices(
             @Param("clientId") Long clientId,
             @Param("year") Integer year,
             @Param("month") Integer month,
+            @Param("showCancelled") boolean showCancelled,
             Pageable pageable);
 
     @Query("SELECT i FROM Invoice i WHERE " +
             "(:clientId IS NULL OR i.client.id = :clientId) AND " +
             "(:fromDate IS NULL OR i.issueDate >= :fromDate) AND " +
-            "(:toDate IS NULL OR i.issueDate <= :toDate)")
+            "(:toDate IS NULL OR i.issueDate <= :toDate) AND " +
+            "i.cancelledAt IS NULL")
     List<Invoice> findForReporting(
             @Param("clientId") Long clientId,
             @Param("fromDate") LocalDate fromDate,

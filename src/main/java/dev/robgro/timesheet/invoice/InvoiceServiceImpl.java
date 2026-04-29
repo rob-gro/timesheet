@@ -2,10 +2,12 @@ package dev.robgro.timesheet.invoice;
 
 import dev.robgro.timesheet.client.Client;
 import dev.robgro.timesheet.client.ClientRepository;
+import dev.robgro.timesheet.exception.BusinessRuleViolationException;
 import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.exception.IntegrationException;
 import dev.robgro.timesheet.exception.ResourceAlreadyExistsException;
 import dev.robgro.timesheet.exception.ValidationException;
+import dev.robgro.timesheet.invoice.delivery.InvoiceDeliveryJobRepository;
 import dev.robgro.timesheet.timesheet.Timesheet;
 import dev.robgro.timesheet.timesheet.TimesheetRepository;
 import dev.robgro.timesheet.timesheet.TimesheetService;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import dev.robgro.timesheet.annotation.IoBoundary;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -60,6 +63,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final FtpService ftpService;
     private final TimesheetService timesheetService;
     private final InvoiceDocumentService invoiceDocumentService;
+    private final InvoiceDeliveryJobRepository deliveryJobRepository;
 
     @Qualifier("dedicatedInvoiceCreationService")
     private final InvoiceCreationService invoiceCreationService;
@@ -150,7 +154,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
     }
 
-    @Transactional
+    @IoBoundary
     @Override
     public void savePdfAndSendInvoice(Long id, PrintMode printMode) {
         invoiceDocumentService.savePdfAndSendInvoice(id, printMode);
@@ -321,11 +325,39 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Transactional
     @Override
+    public void cancelInvoice(Long id, String cancelledBy, boolean deleteTimesheets) {
+        Invoice invoice = getInvoiceOrThrow(id);
+        invoice.cancel(cancelledBy);
+
+        if (deleteTimesheets) {
+            log.info("Deleting {} timesheets on cancel", invoice.getTimesheets().size());
+            List<Timesheet> timesheetsToDelete = new ArrayList<>(invoice.getTimesheets());
+            timesheetsToDelete.forEach(ts -> {
+                removeTimesheetFromInvoice(invoice, ts);
+                timesheetRepository.delete(ts);
+            });
+        } else {
+            detachAllTimesheets(invoice);
+        }
+
+        int cancelled = deliveryJobRepository.cancelJobsForInvoice(id);
+        invoiceRepository.save(invoice);
+        log.info("Invoice {} cancelled by {} (deleteTimesheets={}, {} delivery jobs terminated)",
+                invoice.getInvoiceNumber(), cancelledBy, deleteTimesheets, cancelled);
+    }
+
+    @Transactional
+    @Override
     public void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient) {
         log.info("Starting deletion of invoice ID: {}", id);
 
         Invoice invoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Invoice", id));
+
+        if (!invoice.isCancelled()) {
+            throw new BusinessRuleViolationException(
+                    "Invoice must be cancelled before deletion. Call POST /api/v1/invoices/" + id + "/cancel first.");
+        }
 
         log.info("Found invoice: {}, associated timesheets: {}",
                 invoice.getInvoiceNumber(), invoice.getTimesheets().size());
@@ -350,6 +382,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         log.info("Deleting invoice items using JPA repository");
         invoiceRepository.deleteInvoiceItemsByInvoiceId(id);
+
+        // Remove delivery jobs to satisfy FK constraint (already CANCELLED by cancelInvoice)
+        jdbcTemplate.update("DELETE FROM invoice_delivery_job WHERE invoice_id = ?", id);
 
         log.info("Deleting invoice");
         invoiceRepository.delete(invoice);
@@ -378,8 +413,8 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
-    public Page<InvoiceDto> getAllInvoicesPageable(Long clientId, Integer year, Integer month, Pageable pageable) {
-        return invoiceRepository.findFilteredInvoices(clientId, year, month, pageable)
+    public Page<InvoiceDto> getAllInvoicesPageable(Long clientId, Integer year, Integer month, boolean showCancelled, Pageable pageable) {
+        return invoiceRepository.findFilteredInvoices(clientId, year, month, showCancelled, pageable)
                 .map(invoiceDtoMapper);
     }
 

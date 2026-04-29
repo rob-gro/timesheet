@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service for atomic invoice number sequence generation.
  *
- * <p>Uses MySQL UPSERT pattern to atomically increment counters without race conditions.
+ * <p>Uses MySQL/MariaDB UPSERT pattern to atomically increment counters without race conditions.
  * Thread-safe: Multiple concurrent requests for same scope will get unique sequence numbers.
  *
  * <p>Self-healing: Before each increment, checks MAX(sequence_number) in invoices table.
@@ -18,11 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
  * - Race conditions with transaction rollbacks
  * - Manual database edits
  *
- * <p>Contract:
- * - Input: sellerId, resetPeriod, periodKey, fyStartYear, periodYear, periodMonth
- * - Output: next sequence number (1, 2, 3, ...)
- * - Thread-safe: atomic increment via UPSERT
- * - Self-healing: counter drift corrected automatically before increment
+ * <p>Fix 2026-03: Replaced LAST_INSERT_ID() retrieval with direct last_value read.
+ * Root cause of February 2026 incident: on fresh INSERT, LAST_INSERT_ID() returned the
+ * auto_increment row ID (64) instead of the sequence value (1), because MariaDB sets
+ * LAST_INSERT_ID to the generated PK when no LAST_INSERT_ID() expression is used in INSERT.
  */
 @Service
 @RequiredArgsConstructor
@@ -41,15 +40,8 @@ public class InvoiceNumberCounterService {
      *   <li>Query current counter value</li>
      *   <li>If counter is behind MAX(seq) → heal via GREATEST() UPSERT</li>
      *   <li>Increment counter atomically</li>
+     *   <li>Read back last_value directly from table (no LAST_INSERT_ID)</li>
      * </ol>
-     *
-     * <p>Example — drift scenario:
-     * <pre>
-     * invoices: seq 1, 2 (counter somehow lost update for seq=2)
-     * counter.lastValue = 1
-     * → self-healing bumps counter to 2
-     * → nextSequence returns 3 (no collision)
-     * </pre>
      *
      * @param sellerId Tenant ID (multi-tenant isolation)
      * @param resetPeriod Reset strategy (MONTHLY, YEARLY, NEVER)
@@ -64,17 +56,20 @@ public class InvoiceNumberCounterService {
                             Integer fyStartYear, int periodYear, int periodMonth) {
         log.debug("Generating next sequence: sellerId={}, resetPeriod={}, periodKey={}", sellerId, resetPeriod, periodKey);
 
-        // Self-healing: detect and correct counter drift before issuing next number
+        enforceMonthlyPeriodConsistency(resetPeriod, periodKey, periodYear, periodMonth);
+
         healIfDrifted(sellerId, resetPeriod, periodKey, fyStartYear, periodYear, periodMonth);
 
-        // Atomic UPSERT: INSERT or UPDATE + set LAST_INSERT_ID
-        repository.bumpAndSetLastInsertId(sellerId, resetPeriod.name(), periodKey, fyStartYear);
+        repository.bumpCounter(sellerId, resetPeriod.name(), periodKey, fyStartYear);
 
-        // Retrieve the value set by LAST_INSERT_ID() in same transaction
-        long sequence = repository.lastInsertId();
+        Integer seq = repository.findLastValue(sellerId, resetPeriod.name(), periodKey);
+        if (seq == null) {
+            throw new IllegalStateException(
+                "Counter not found after bump for periodKey=" + periodKey + ", sellerId=" + sellerId);
+        }
 
-        log.debug("Generated sequence: {} for sellerId={}, periodKey={}", sequence, sellerId, periodKey);
-        return (int) sequence;
+        log.debug("Generated sequence: {} for sellerId={}, periodKey={}", seq, sellerId, periodKey);
+        return seq;
     }
 
     /**
@@ -93,9 +88,46 @@ public class InvoiceNumberCounterService {
         log.debug("Peeking next sequence (read-only): sellerId={}, resetPeriod={}, periodKey={}",
             sellerId, resetPeriod, periodKey);
 
-        return repository.findBySellerIdAndResetPeriodAndPeriodKey(sellerId, resetPeriod, periodKey)
-            .map(counter -> counter.getLastValue() + 1)
-            .orElse(1);
+        Integer last = repository.findLastValue(sellerId, resetPeriod.name(), periodKey);
+        return (last == null) ? 1 : last + 1;
+    }
+
+    /**
+     * Check whether a counter row already exists for the given scope.
+     *
+     * <p>Used by {@code InvoiceCreationServiceImpl} for the fail-fast anomaly guard:
+     * if it's the first invoice of a fresh period but a counter already exists,
+     * something went wrong (e.g., stale counter from failed UPSERT).
+     *
+     * @param sellerId Tenant ID
+     * @param resetPeriod Reset strategy
+     * @param periodKey Period identifier
+     * @return true if counter row exists, false otherwise
+     */
+    @Transactional(readOnly = true)
+    public boolean counterExistsForPeriod(Long sellerId, ResetPeriod resetPeriod, String periodKey) {
+        return repository.findLastValue(sellerId, resetPeriod.name(), periodKey) != null;
+    }
+
+    /**
+     * Validate that periodKey, periodYear, and periodMonth are mutually consistent for MONTHLY reset.
+     *
+     * <p>Prevents silent data corruption if caller passes mismatched parameters
+     * (e.g., periodKey="2026-02" but periodMonth=3).
+     */
+    private void enforceMonthlyPeriodConsistency(ResetPeriod resetPeriod, String periodKey,
+                                                  int periodYear, int periodMonth) {
+        if (resetPeriod != ResetPeriod.MONTHLY) return;
+        if (periodKey == null || periodKey.length() != 7 || periodKey.charAt(4) != '-') return;
+        try {
+            int y = Integer.parseInt(periodKey.substring(0, 4));
+            int m = Integer.parseInt(periodKey.substring(5, 7));
+            if (y != periodYear || m != periodMonth) {
+                throw new IllegalStateException(
+                    "Period mismatch: periodKey=" + periodKey +
+                    " but periodYear=" + periodYear + " periodMonth=" + periodMonth);
+            }
+        } catch (NumberFormatException ignored) { }
     }
 
     /**
@@ -108,7 +140,18 @@ public class InvoiceNumberCounterService {
                                Integer fyStartYear, int periodYear, int periodMonth) {
         Integer maxSeq = invoiceRepository.findMaxSequenceNumber(sellerId, periodYear, periodMonth);
         if (maxSeq == null || maxSeq <= 0) {
-            return; // No invoices yet — nothing to heal
+            return; // No active (non-cancelled) invoices yet — nothing to heal
+        }
+
+        // Sanity check: if MAX > 0 but actual invoice count is 0, we have a phantom MAX
+        // (data inconsistency or ORM bug). Skipping heal prevents sequence corruption.
+        Long invoiceCount = invoiceRepository.countBySellerIdAndPeriodYearAndPeriodMonth(
+                sellerId, periodYear, periodMonth);
+        if (invoiceCount == null || invoiceCount == 0) {
+            log.error("CRITICAL phantom-MAX detected: findMaxSequenceNumber={} but invoiceCount=0 " +
+                      "for sellerId={}, period={}/{}. Skipping heal to prevent sequence corruption.",
+                      maxSeq, sellerId, periodYear, periodMonth);
+            return;
         }
 
         int currentLastValue = repository

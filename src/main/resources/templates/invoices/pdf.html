@@ -33,7 +33,7 @@
                             </select>
                             <select name="year" class="form-select" style="width: 120px;">
                                 <option value="">All Years</option>
-                                <option th:each="year : ${#numbers.sequence(2025, 2018)}"
+                                <option th:each="year : ${#numbers.sequence(currentYear, 2018)}"
                                         th:value="${year}"
                                         th:text="${year}"
                                         th:selected="${param.year != null && year.toString() == param.year[0]}">
@@ -48,6 +48,13 @@
                                 </option>
                             </select>
                             <button type="submit" class="save-button">Filter</button>
+                            <div class="form-check form-switch d-flex align-items-center ms-3 mb-0">
+                                <input class="form-check-input me-2" type="checkbox" id="showCancelled"
+                                       name="showCancelled" value="true"
+                                       th:checked="${showCancelled}"
+                                       onchange="document.getElementById('filterForm').submit()" style="width: 2.5em; height: 1.3em;">
+                                <label class="form-check-label" for="showCancelled">Show cancelled</label>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -116,9 +123,14 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="invoice : ${invoices}" th:if="${invoice.pdfPath != null}">
+                    <tr th:each="invoice : ${invoices}" th:if="${invoice.pdfPath != null}"
+                        th:classappend="${invoice.cancelled} ? 'text-muted'">
                         <td data-label="Invoice #">
-                            <span class="cell-value" th:text="${invoice.invoiceNumber}"></span>
+                            <span class="cell-value"
+                                  th:text="${invoice.invoiceNumber}"
+                                  th:style="${invoice.cancelled} ? 'text-decoration: line-through'"></span>
+                            <span th:if="${invoice.cancelled}"
+                                  class="badge bg-warning text-dark ms-1">CANCELLED</span>
                         </td>
                         <td data-label="Client">
                             <span class="cell-value" th:text="${invoice.clientName}"></span>
@@ -147,12 +159,12 @@
                         <ul class="pagination" th:if="${totalPages > 1}">
                             <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
                                 <a class="page-link"
-                                   th:href="@{/invoices/archive/pdf(page=${currentPage - 1},size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},sortBy=${sortBy},sortDir=${sortDir})}">&laquo;</a>
+                                   th:href="@{/invoices/archive/pdf(page=${currentPage - 1},size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},showCancelled=${showCancelled},sortBy=${sortBy},sortDir=${sortDir})}">&laquo;</a>
                             </li>
 
                             <li class="page-item" th:if="${currentPage > 3}">
                                 <a class="page-link"
-                                   th:href="@{/invoices/archive/pdf(page=0,size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},sortBy=${sortBy},sortDir=${sortDir})}">1</a>
+                                   th:href="@{/invoices/archive/pdf(page=0,size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},showCancelled=${showCancelled},sortBy=${sortBy},sortDir=${sortDir})}">1</a>
                             </li>
 
                             <li class="page-item disabled" th:if="${currentPage > 3}">
@@ -163,7 +175,7 @@
                                 th:each="i : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 0, currentPage + 2 < totalPages - 1 ? currentPage + 2 : totalPages - 1)}"
                                 th:classappend="${currentPage == i} ? active">
                                 <a class="page-link"
-                                   th:href="@{/invoices/archive/pdf(page=${i},size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},sortBy=${sortBy},sortDir=${sortDir})}"
+                                   th:href="@{/invoices/archive/pdf(page=${i},size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},showCancelled=${showCancelled},sortBy=${sortBy},sortDir=${sortDir})}"
                                    th:text="${i + 1}"></a>
                             </li>
 
@@ -173,13 +185,13 @@
 
                             <li class="page-item" th:if="${currentPage < totalPages - 3}">
                                 <a class="page-link"
-                                   th:href="@{/invoices/archive/pdf(page=${totalPages - 1},size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},sortBy=${sortBy},sortDir=${sortDir})}"
+                                   th:href="@{/invoices/archive/pdf(page=${totalPages - 1},size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},showCancelled=${showCancelled},sortBy=${sortBy},sortDir=${sortDir})}"
                                    th:text="${totalPages}"></a>
                             </li>
 
                             <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? disabled">
                                 <a class="page-link"
-                                   th:href="@{/invoices/archive/pdf(page=${currentPage + 1},size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},sortBy=${sortBy},sortDir=${sortDir})}">&raquo;</a>
+                                   th:href="@{/invoices/archive/pdf(page=${currentPage + 1},size=${size},clientId=${param.clientId},year=${param.year},month=${param.month},showCancelled=${showCancelled},sortBy=${sortBy},sortDir=${sortDir})}">&raquo;</a>
                             </li>
                         </ul>
                     </nav>

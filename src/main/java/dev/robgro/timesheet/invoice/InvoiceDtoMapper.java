@@ -34,7 +34,11 @@ public class InvoiceDtoMapper implements Function<Invoice, InvoiceDto> {
                 invoice.getEmailOpenedAt(),
                 invoice.getEmailOpenCount(),
                 invoice.getLastEmailOpenedAt(),
-                invoice.getEmailStatus()
+                invoice.getEmailStatus(),
+                null,   // deliveryStatus — populated on demand via GET /invoices/{id}/delivery-status
+                null,   // deliveryAttempts
+                invoice.getCancelledAt(),
+                invoice.isCancelled()
         );
     }
 }

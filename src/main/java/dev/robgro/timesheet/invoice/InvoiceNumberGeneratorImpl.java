@@ -3,7 +3,6 @@ package dev.robgro.timesheet.invoice;
 import dev.robgro.timesheet.exception.BusinessRuleViolationException;
 import dev.robgro.timesheet.exception.NoSchemeConfiguredException;
 import dev.robgro.timesheet.exception.ValidationException;
-import dev.robgro.timesheet.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,15 +34,12 @@ public class InvoiceNumberGeneratorImpl implements InvoiceNumberGenerator {
 
     @Override
     @Transactional
-    public GeneratedInvoiceNumber generateInvoiceNumber(LocalDate issueDate, Department department) {
+    public GeneratedInvoiceNumber generateInvoiceNumber(Long sellerId, LocalDate issueDate, Department department) {
         if (issueDate == null) {
             throw new ValidationException("Issue date is required");
         }
-
-        // 1. Get seller from SecurityContext (no DB query)
-        Long sellerId = SecurityUtils.getCurrentSellerId();
         if (sellerId == null) {
-            throw new BusinessRuleViolationException("Current user has no seller assigned");
+            throw new BusinessRuleViolationException("sellerId is required for invoice number generation");
         }
 
         // 2. Load scheme effective on issueDate
@@ -82,15 +78,12 @@ public class InvoiceNumberGeneratorImpl implements InvoiceNumberGenerator {
     }
 
     @Override
-    public GeneratedInvoiceNumber peekNextInvoiceNumber(LocalDate issueDate, Department department) {
+    public GeneratedInvoiceNumber peekNextInvoiceNumber(Long sellerId, LocalDate issueDate, Department department) {
         if (issueDate == null) {
             throw new ValidationException("Issue date is required");
         }
-
-        // 1. Get seller from SecurityContext (no DB query)
-        Long sellerId = SecurityUtils.getCurrentSellerId();
         if (sellerId == null) {
-            throw new BusinessRuleViolationException("Current user has no seller assigned");
+            throw new BusinessRuleViolationException("sellerId is required for invoice number generation");
         }
 
         // 2. Load scheme effective on issueDate
