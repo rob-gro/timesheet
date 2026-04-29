@@ -15,6 +15,7 @@ import org.thymeleaf.context.Context;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 
 /**
@@ -53,9 +54,10 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             context.setVariable("subject", subject);
             context.setVariable("details", details);
             context.setVariable("exception", e);
-            context.setVariable("errorType", e.getClass().getSimpleName());
+            context.setVariable("errorMessage", e != null ? e.getMessage() : "N/A");
+            context.setVariable("errorType", e != null ? e.getClass().getSimpleName() : "N/A");
             context.setVariable("timestamp", LocalDateTime.now());
-            context.setVariable("stackTrace", getStackTrace(e));
+            context.setVariable("stackTrace", e != null ? getStackTrace(e) : "");
 
             // Process template and return HTML
             String htmlContent = templateEngine.process("email/admin-error-notification", context);
@@ -140,6 +142,42 @@ public class AdminNotificationServiceImpl implements AdminNotificationService {
             log.info("Empty client warning sent successfully");
         } catch (MessagingException e) {
             log.error("Failed to send empty client warning email", e);
+        }
+    }
+
+    /**
+     * Sends a simple error notification to the tenant owner (Seller.email).
+     * Called only on first failure for a period (not on retry) to prevent notification spam.
+     */
+    @Override
+    public void sendTenantScheduleErrorNotification(
+            String tenantEmail, YearMonth month, ScheduleRunStatus status,
+            int success, int total, String runId) {
+        try {
+            log.info("Sending tenant schedule error notification to {} for period={}", tenantEmail, month);
+
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(tenantEmail);
+            helper.setSubject(String.format("[Invoicing] Issue with automated invoicing for %s", month));
+
+            Context context = new Context();
+            context.setVariable("month", month.toString());
+            context.setVariable("status", status.name());
+            context.setVariable("successCount", success);
+            context.setVariable("totalCount", total);
+            context.setVariable("runId", runId);
+
+            String htmlContent = templateEngine.process("email/tenant-schedule-error", context);
+
+            helper.setFrom(emailFrom);
+            helper.setText(htmlContent, true);
+            emailSender.send(message);
+
+            log.info("Tenant schedule error notification sent to {}", tenantEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send tenant schedule error notification to {}: {}", tenantEmail, e.getMessage(), e);
         }
     }
 

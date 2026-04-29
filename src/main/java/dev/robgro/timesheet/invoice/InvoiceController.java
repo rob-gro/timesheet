@@ -1,5 +1,7 @@
 package dev.robgro.timesheet.invoice;
 
+import dev.robgro.timesheet.invoice.delivery.InvoiceDeliveryJobDto;
+import dev.robgro.timesheet.invoice.delivery.InvoiceDeliveryJobService;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
 import dev.robgro.timesheet.timesheet.TimesheetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+import java.security.Principal;
 import java.util.List;
 
 @Slf4j
@@ -26,6 +30,7 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
     private final TimesheetService timesheetService;
     private final BillingService billingService;
+    private final InvoiceDeliveryJobService deliveryJobService;
 
     @Operation(summary = "Create invoice for selected timesheets")
     @ApiResponses(value = {
@@ -126,11 +131,51 @@ public class InvoiceController {
         return ResponseEntity.ok(invoiceService.getYearlyInvoices(clientId, year));
     }
 
+    @Operation(summary = "Get delivery status for an invoice")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Delivery status retrieved"),
+            @ApiResponse(responseCode = "404", description = "Invoice not found")
+    })
+    @GetMapping("/{id}/delivery-status")
+    public ResponseEntity<InvoiceDeliveryJobDto> getDeliveryStatus(@PathVariable Long id) {
+        InvoiceDeliveryJobDto status = deliveryJobService.getDeliveryStatus(id);
+        return status != null ? ResponseEntity.ok(status) : ResponseEntity.notFound().build();
+    }
+
+    @Operation(summary = "Request async delivery (resend) for an invoice")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "202", description = "Delivery job enqueued"),
+            @ApiResponse(responseCode = "404", description = "Invoice not found")
+    })
+    @PostMapping("/{id}/delivery-jobs")
+    public ResponseEntity<InvoiceDeliveryJobDto> requestDelivery(@PathVariable Long id) {
+        InvoiceDeliveryJobDto job = deliveryJobService.requestDelivery(id);
+        return ResponseEntity.accepted().body(job);
+    }
+
+    @Operation(summary = "Cancel invoice (soft delete): detaches timesheets, terminates delivery jobs")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Invoice cancelled successfully"),
+            @ApiResponse(responseCode = "404", description = "Invoice not found"),
+            @ApiResponse(responseCode = "409", description = "Invoice already cancelled")
+    })
+    @PostMapping("/{id}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelInvoice(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean deleteTimesheets,
+            Principal principal) {
+        String cancelledBy = principal != null ? principal.getName() : "unknown";
+        log.info("Received request to cancel invoice ID: {} by {} (deleteTimesheets={})", id, cancelledBy, deleteTimesheets);
+        invoiceService.cancelInvoice(id, cancelledBy, deleteTimesheets);
+    }
+
     @Operation(summary = "Delete invoice and optionally its timesheets")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Invoice deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Invoice not found")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}/delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInvoice(

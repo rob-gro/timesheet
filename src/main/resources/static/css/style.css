@@ -58,6 +58,15 @@ body {
     white-space: nowrap;
 }
 
+/* Invoices table: keep action buttons in one row on desktop */
+.invoices-table .cell-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+}
+
 /* ZEBRA STRIPING – WŁASNY, PEWNY */
 .table tbody tr:nth-child(odd) td {
     background-color: #161b22;

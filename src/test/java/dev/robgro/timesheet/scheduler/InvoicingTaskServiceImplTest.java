@@ -3,10 +3,9 @@ package dev.robgro.timesheet.scheduler;
 import dev.robgro.timesheet.client.ClientDto;
 import dev.robgro.timesheet.client.ClientService;
 import dev.robgro.timesheet.config.InvoicingSchedulerProperties;
-import dev.robgro.timesheet.invoice.BillingService;
+import dev.robgro.timesheet.invoice.InvoiceCreationService;
 import dev.robgro.timesheet.invoice.InvoiceDto;
-import dev.robgro.timesheet.invoice.InvoiceService;
-import dev.robgro.timesheet.invoice.PrintMode;
+import dev.robgro.timesheet.invoice.delivery.InvoiceDeliveryJobRepository;
 import dev.robgro.timesheet.timesheet.TimesheetDto;
 import dev.robgro.timesheet.timesheet.TimesheetService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,142 +22,69 @@ import java.time.YearMonth;
 import java.util.Collections;
 import java.util.List;
 
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for InvoicingTaskServiceImpl
+ * Tests for InvoicingTaskServiceImpl — per-seller invoicing with explicit (sellerId, period).
  *
- * CRITICAL: Tests edge case of year boundary (January → December of previous year)
- * when calculating previous month for invoice generation.
+ * CRITICAL notes:
+ * - Constructor injection with @Qualifier means @InjectMocks doesn't work → manual construction.
+ * - The service receives period from caller (scheduler), does NOT compute it internally.
+ * - issueDate = period.atEndOfMonth() (e.g. 2026-01 → 2026-01-31).
+ * - LENIENT strictness: uninvoicedTimesheet stubs in setUp are intentionally shared but not
+ *   used in all tests (e.g. shouldSkipInactiveClients, shouldHandleNoActiveClients).
+ * - Delivery is now async — InvoicingTaskServiceImpl only queues jobs, no sync PDF/send.
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("InvoicingTaskService - Automated Monthly Invoicing")
+@MockitoSettings(strictness = Strictness.LENIENT)
+@DisplayName("InvoicingTaskService - Per-Seller Monthly Invoicing")
 class InvoicingTaskServiceImplTest {
 
-    @Mock
-    private BillingService billingService;
+    @Mock private InvoiceCreationService invoiceCreationService;
+    @Mock private InvoiceDeliveryJobRepository deliveryJobRepository;
+    @Mock private ClientService clientService;
+    @Mock private TimesheetService timesheetService;
+    @Mock private AdminNotificationService notificationService;
+    @Mock private InvoicingSchedulerProperties properties;
 
-    @Mock
-    private InvoiceService invoiceService;
-
-    @Mock
-    private ClientService clientService;
-
-    @Mock
-    private TimesheetService timesheetService;
-
-    @Mock
-    private AdminNotificationService notificationService;
-
-    @Mock
-    private InvoicingSchedulerProperties properties;
-
-    @InjectMocks
     private InvoicingTaskServiceImpl invoicingTaskService;
+
+    private static final Long SELLER_ID = 1L;
+    private static final YearMonth PERIOD = YearMonth.of(2026, 1);
 
     private ClientDto activeClient;
     private InvoiceDto testInvoice;
+    private TimesheetDto uninvoicedTimesheet;
 
     @BeforeEach
     void setUp() {
-        // Setup common test data
+        // Manual construction because constructor uses @Qualifier — @InjectMocks can't inject it
+        invoicingTaskService = new InvoicingTaskServiceImpl(
+                invoiceCreationService, deliveryJobRepository, clientService,
+                timesheetService, notificationService, properties);
+
         activeClient = new ClientDto(
-                1L,
-                "Test Client",
-                50.00,
-                "123",
-                "Test Street",
-                "Test City",
-                "12-345",
-                "test@client.com",
-                true
-        );
+                1L, "Test Client", 50.00, "123",
+                "Test Street", "Test City", "12-345",
+                "test@client.com", true);
 
         testInvoice = new InvoiceDto(
-                1L,
-                1L,
-                "Test Client",
-                1L,
-                "Test Seller",
-                "INV-2025-001",
-                LocalDate.now(),
-                new BigDecimal("1000.00"),
-                "/path/to/invoice.pdf",
-                Collections.emptyList(),
-                null, null, null, 0, null, "NOT_SENT"
-        );
+                1L, 1L, "Test Client", SELLER_ID, "Test Seller",
+                "INV-2026-001", LocalDate.now(),
+                new BigDecimal("1000.00"), "/path/to/invoice.pdf",
+                Collections.emptyList(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
-        // Default properties behavior (lenient - not all tests need these)
+        uninvoicedTimesheet = mock(TimesheetDto.class);
+        when(uninvoicedTimesheet.invoiced()).thenReturn(false);
+        when(uninvoicedTimesheet.id()).thenReturn(10L);
+
         lenient().when(properties.isSendSummaryEmail()).thenReturn(false);
         lenient().when(properties.isSendEmptyClientWarning()).thenReturn(false);
-    }
-
-    @Nested
-    @DisplayName("CRITICAL: Year Boundary Handling (January → December)")
-    class YearBoundaryTests {
-
-        @Test
-        @DisplayName("CRITICAL: YearMonth.minusMonths(1) must handle year boundaries correctly")
-        void yearMonthMinusMonthsMustHandleYearBoundaries() {
-            // This test verifies the CRITICAL year boundary logic used by CRON
-            // When CRON runs on January 1st, it MUST look back to December of PREVIOUS year
-
-            // CRITICAL CASE: January → December (year change!)
-            YearMonth january = YearMonth.of(2026, 1);
-            YearMonth previousMonth = january.minusMonths(1);
-
-            assertThat(previousMonth.getYear())
-                    .as("CRITICAL: January 2026 minus 1 month MUST be year 2025, NOT 2026!")
-                    .isEqualTo(2025);
-
-            assertThat(previousMonth.getMonthValue())
-                    .as("CRITICAL: Month MUST be 12 (December), NOT 0 or 13!")
-                    .isEqualTo(12);
-
-            assertThat(previousMonth)
-                    .as("January 2026 - 1 month = December 2025")
-                    .isEqualTo(YearMonth.of(2025, 12));
-
-            // Verify other months work correctly (no year change)
-            assertThat(YearMonth.of(2026, 2).minusMonths(1))
-                    .as("February → January (same year)")
-                    .isEqualTo(YearMonth.of(2026, 1));
-
-            assertThat(YearMonth.of(2026, 3).minusMonths(1))
-                    .as("March → February (same year)")
-                    .isEqualTo(YearMonth.of(2026, 2));
-
-            assertThat(YearMonth.of(2025, 12).minusMonths(1))
-                    .as("December → November (same year)")
-                    .isEqualTo(YearMonth.of(2025, 11));
-        }
-
-        @Test
-        @DisplayName("Service should calculate previous month correctly")
-        void serviceShouldCalculatePreviousMonthCorrectly() {
-            // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(Collections.emptyList());
-            when(clientService.getAllClients()).thenReturn(Collections.emptyList());
-
-            // when
-            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
-
-            // then
-            YearMonth expectedPreviousMonth = YearMonth.now().minusMonths(1);
-            assertThat(summary.previousMonth())
-                    .as("Summary should contain correct previous month")
-                    .isEqualTo(expectedPreviousMonth);
-
-            verify(billingService).generateMonthlyInvoices(
-                    expectedPreviousMonth.getYear(),
-                    expectedPreviousMonth.getMonthValue()
-            );
-        }
     }
 
     @Nested
@@ -168,62 +92,90 @@ class InvoicingTaskServiceImplTest {
     class NormalOperationTests {
 
         @Test
-        @DisplayName("Should successfully generate and process invoices")
-        void shouldSuccessfullyGenerateAndProcessInvoices() {
+        @DisplayName("Should create invoice and queue for async delivery")
+        void shouldCreateAndQueueInvoice_whenClientHasUninvoicedTimesheets() {
             // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(List.of(testInvoice));
-            when(clientService.getAllClients()).thenReturn(Collections.emptyList());
-            doNothing().when(invoiceService).savePdfAndSendInvoice(anyLong(), any());
+            when(clientService.getAllClients()).thenReturn(List.of(activeClient));
+            when(timesheetService.getMonthlyTimesheets(1L, 2026, 1))
+                    .thenReturn(List.of(uninvoicedTimesheet));
+            when(invoiceCreationService.createInvoice(eq(1L), eq(SELLER_ID), any(LocalDate.class), anyList()))
+                    .thenReturn(testInvoice);
 
             // when
-            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
-            // then
-            assertThat(summary.totalInvoices()).isEqualTo(1);
+            // then — delivery is async, invoice creation counts as success
             assertThat(summary.successfulInvoices()).isEqualTo(1);
             assertThat(summary.failedInvoices()).isEqualTo(0);
-
-            verify(billingService).generateMonthlyInvoices(anyInt(), anyInt());
-            verify(invoiceService).savePdfAndSendInvoice(eq(1L), eq(PrintMode.ORIGINAL));
+            assertThat(summary.totalInvoices()).isEqualTo(1);
+            verify(invoiceCreationService).createInvoice(
+                    eq(1L), eq(SELLER_ID), any(LocalDate.class), eq(List.of(10L)));
+            // runId=null via default method → deliveryJobRepository NOT called
+            verifyNoInteractions(deliveryJobRepository);
         }
 
         @Test
-        @DisplayName("Should handle invoice processing failure gracefully")
-        void shouldHandleInvoiceProcessingFailure() {
+        @DisplayName("Should skip client when all timesheets are already invoiced")
+        void shouldSkipClient_whenAllTimesheetsAlreadyInvoiced() {
             // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(List.of(testInvoice));
-            when(clientService.getAllClients()).thenReturn(Collections.emptyList());
-
-            doThrow(new RuntimeException("PDF generation failed"))
-                    .when(invoiceService).savePdfAndSendInvoice(anyLong(), any());
+            TimesheetDto invoicedTs = mock(TimesheetDto.class);
+            when(invoicedTs.invoiced()).thenReturn(true);
+            when(clientService.getAllClients()).thenReturn(List.of(activeClient));
+            when(timesheetService.getMonthlyTimesheets(1L, 2026, 1))
+                    .thenReturn(List.of(invoicedTs));
 
             // when
-            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
             // then
-            assertThat(summary.totalInvoices()).isEqualTo(1);
-            assertThat(summary.successfulInvoices()).isEqualTo(0);
-            assertThat(summary.failedInvoices()).isEqualTo(1);
-
-            verify(notificationService).sendErrorNotification(
-                    contains("Invoice Processing Error"),
-                    anyString(),
-                    any(Exception.class)
-            );
+            assertThat(summary.totalInvoices()).isEqualTo(0);
+            verifyNoInteractions(invoiceCreationService);
         }
 
         @Test
-        @DisplayName("Should handle no invoices to generate")
-        void shouldHandleNoInvoicesToGenerate() {
+        @DisplayName("Should skip inactive clients entirely")
+        void shouldSkipInactiveClients() {
             // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(Collections.emptyList());
+            ClientDto inactiveClient = new ClientDto(
+                    2L, "Inactive", 50.00, "456",
+                    "Street", "City", "00-000", "x@test.com", false);
+            when(clientService.getAllClients()).thenReturn(List.of(inactiveClient));
+
+            // when
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
+
+            // then
+            assertThat(summary.totalInvoices()).isEqualTo(0);
+            verifyNoInteractions(invoiceCreationService);
+            verifyNoInteractions(timesheetService);
+        }
+
+        @Test
+        @DisplayName("Should use period.atEndOfMonth() as issueDate")
+        void shouldUsePeriodAtEndOfMonthAsIssueDate() {
+            // given
+            when(clientService.getAllClients()).thenReturn(List.of(activeClient));
+            when(timesheetService.getMonthlyTimesheets(1L, 2026, 1))
+                    .thenReturn(List.of(uninvoicedTimesheet));
+            when(invoiceCreationService.createInvoice(any(), any(), any(), any()))
+                    .thenReturn(testInvoice);
+
+            // when
+            invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, YearMonth.of(2026, 1));
+
+            // then - January 2026 → issueDate = 2026-01-31
+            verify(invoiceCreationService).createInvoice(
+                    any(), any(), eq(LocalDate.of(2026, 1, 31)), any());
+        }
+
+        @Test
+        @DisplayName("Should handle no active clients gracefully")
+        void shouldHandleNoActiveClients() {
+            // given
             when(clientService.getAllClients()).thenReturn(Collections.emptyList());
 
             // when
-            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
             // then
             assertThat(summary.totalInvoices()).isEqualTo(0);
@@ -233,70 +185,59 @@ class InvoicingTaskServiceImplTest {
     }
 
     @Nested
-    @DisplayName("Empty Client Detection")
-    class EmptyClientDetectionTests {
+    @DisplayName("Error Handling")
+    class ErrorHandlingTests {
 
         @Test
-        @DisplayName("Should detect active clients without timesheets")
-        void shouldDetectActiveClientsWithoutTimesheets() {
+        @DisplayName("Should continue processing remaining clients when one fails")
+        void shouldContinueProcessing_whenOneClientFails() {
             // given
-            ClientDto clientWithoutTimesheets = new ClientDto(
-                    2L, "Empty Client", 50.00, "456",
-                    "Empty Street", "Empty City", "67-890",
-                    "empty@client.com", true
-            );
+            ClientDto secondClient = new ClientDto(
+                    2L, "Second Client", 50.00, "456",
+                    "Street", "City", "00-000", "second@test.com", true);
+            TimesheetDto ts2 = mock(TimesheetDto.class);
+            when(ts2.invoiced()).thenReturn(false);
+            when(ts2.id()).thenReturn(20L);
+            InvoiceDto invoice2 = new InvoiceDto(
+                    2L, 2L, "Second Client", SELLER_ID, "Seller",
+                    "INV-2026-002", LocalDate.now(), BigDecimal.TEN, "/path2",
+                    Collections.emptyList(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(Collections.emptyList());
-            when(clientService.getAllClients())
-                    .thenReturn(List.of(activeClient, clientWithoutTimesheets));
-
-            // Client 1 has timesheets
-            when(timesheetService.getMonthlyTimesheets(eq(1L), anyInt(), anyInt()))
-                    .thenReturn(List.of(mock(TimesheetDto.class)));
-
-            // Client 2 has NO timesheets
-            when(timesheetService.getMonthlyTimesheets(eq(2L), anyInt(), anyInt()))
-                    .thenReturn(Collections.emptyList());
-
-            when(properties.isSendEmptyClientWarning()).thenReturn(true);
+            when(clientService.getAllClients()).thenReturn(List.of(activeClient, secondClient));
+            when(timesheetService.getMonthlyTimesheets(1L, 2026, 1)).thenReturn(List.of(uninvoicedTimesheet));
+            when(timesheetService.getMonthlyTimesheets(2L, 2026, 1)).thenReturn(List.of(ts2));
+            when(invoiceCreationService.createInvoice(eq(1L), any(), any(), any()))
+                    .thenThrow(new RuntimeException("DB error for client 1"));
+            when(invoiceCreationService.createInvoice(eq(2L), any(), any(), any()))
+                    .thenReturn(invoice2);
 
             // when
-            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
-            // then
-            assertThat(summary.clientsWithoutTimesheets())
-                    .hasSize(1)
-                    .contains("Empty Client");
-
-            verify(notificationService).sendEmptyClientWarning(
-                    argThat(list -> list.contains("Empty Client"))
-            );
+            // then — client 1 fails (creation), client 2 succeeds
+            assertThat(summary.totalInvoices()).isEqualTo(1);
+            assertThat(summary.successfulInvoices()).isEqualTo(1);
+            assertThat(summary.failedInvoices()).isEqualTo(1);
         }
 
         @Test
-        @DisplayName("Should not check inactive clients for timesheets")
-        void shouldNotCheckInactiveClientsForTimesheets() {
+        @DisplayName("Should notify admin when invoice creation fails")
+        void shouldNotifyAdmin_whenInvoiceCreationFails() {
             // given
-            ClientDto inactiveClient = new ClientDto(
-                    3L, "Inactive Client", 50.00, "789",
-                    "Inactive Street", "Inactive City", "11-222",
-                    "inactive@client.com", false  // inactive
-            );
-
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(Collections.emptyList());
-            when(clientService.getAllClients())
-                    .thenReturn(List.of(inactiveClient));
+            when(clientService.getAllClients()).thenReturn(List.of(activeClient));
+            when(timesheetService.getMonthlyTimesheets(1L, 2026, 1))
+                    .thenReturn(List.of(uninvoicedTimesheet));
+            when(invoiceCreationService.createInvoice(any(), any(), any(), any()))
+                    .thenThrow(new RuntimeException("Creation failed"));
 
             // when
-            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
+            invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
             // then
-            assertThat(summary.clientsWithoutTimesheets()).isEmpty();
-
-            // Inactive client should not be checked for timesheets
-            verify(timesheetService, never()).getMonthlyTimesheets(eq(3L), anyInt(), anyInt());
+            verify(notificationService).sendErrorNotification(
+                    contains("Invoice Creation Error"),
+                    anyString(),
+                    any(RuntimeException.class));
         }
     }
 
@@ -306,15 +247,13 @@ class InvoicingTaskServiceImplTest {
 
         @Test
         @DisplayName("Should send summary email when enabled")
-        void shouldSendSummaryEmailWhenEnabled() {
+        void shouldSendSummaryEmail_whenEnabled() {
             // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(List.of(testInvoice));
             when(clientService.getAllClients()).thenReturn(Collections.emptyList());
             when(properties.isSendSummaryEmail()).thenReturn(true);
 
             // when
-            invoicingTaskService.executeMonthlyInvoicing();
+            invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
             // then
             verify(notificationService).sendSummaryNotification(any(InvoicingSummary.class));
@@ -322,36 +261,49 @@ class InvoicingTaskServiceImplTest {
 
         @Test
         @DisplayName("Should not send summary email when disabled")
-        void shouldNotSendSummaryEmailWhenDisabled() {
+        void shouldNotSendSummaryEmail_whenDisabled() {
             // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(List.of(testInvoice));
             when(clientService.getAllClients()).thenReturn(Collections.emptyList());
             when(properties.isSendSummaryEmail()).thenReturn(false);
 
             // when
-            invoicingTaskService.executeMonthlyInvoicing();
+            invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
             // then
             verify(notificationService, never()).sendSummaryNotification(any());
         }
 
         @Test
-        @DisplayName("Should send empty client warning when enabled and clients found")
-        void shouldSendEmptyClientWarningWhenEnabledAndClientsFound() {
+        @DisplayName("Should warn admin about active client with no timesheets")
+        void shouldWarnAdmin_whenActiveClientHasNoTimesheets() {
             // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(Collections.emptyList());
             when(clientService.getAllClients()).thenReturn(List.of(activeClient));
-            when(timesheetService.getMonthlyTimesheets(anyLong(), anyInt(), anyInt()))
+            when(timesheetService.getMonthlyTimesheets(1L, 2026, 1))
                     .thenReturn(Collections.emptyList());
             when(properties.isSendEmptyClientWarning()).thenReturn(true);
 
             // when
-            invoicingTaskService.executeMonthlyInvoicing();
+            invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
             // then
-            verify(notificationService).sendEmptyClientWarning(anyList());
+            verify(notificationService).sendEmptyClientWarning(
+                    argThat(list -> list.contains("Test Client")));
+        }
+
+        @Test
+        @DisplayName("Should not warn when empty client warning is disabled")
+        void shouldNotWarn_whenEmptyClientWarningDisabled() {
+            // given
+            when(clientService.getAllClients()).thenReturn(List.of(activeClient));
+            when(timesheetService.getMonthlyTimesheets(1L, 2026, 1))
+                    .thenReturn(Collections.emptyList());
+            when(properties.isSendEmptyClientWarning()).thenReturn(false);
+
+            // when
+            invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
+
+            // then
+            verify(notificationService, never()).sendEmptyClientWarning(any());
         }
     }
 
@@ -360,39 +312,57 @@ class InvoicingTaskServiceImplTest {
     class SummaryConstructionTests {
 
         @Test
-        @DisplayName("Should build correct summary with execution details")
-        void shouldBuildCorrectSummaryWithExecutionDetails() {
+        @DisplayName("Summary should reflect the period passed by caller")
+        void summaryShouldReflectCallerPeriod() {
             // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(List.of(testInvoice));
+            YearMonth customPeriod = YearMonth.of(2025, 6);
             when(clientService.getAllClients()).thenReturn(Collections.emptyList());
 
             // when
-            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, customPeriod);
 
-            // then
-            assertThat(summary.executionTime()).isNotNull();
-            assertThat(summary.previousMonth()).isNotNull();
-            assertThat(summary.totalInvoices()).isEqualTo(1);
-            assertThat(summary.processingResults()).hasSize(1);
+            // then — period is caller-provided, not computed internally
+            assertThat(summary.previousMonth()).isEqualTo(customPeriod);
         }
 
         @Test
-        @DisplayName("Summary should contain correct previous month calculation")
-        void summaryShouldContainCorrectPreviousMonthCalculation() {
+        @DisplayName("Summary should have non-null execution time")
+        void summaryShouldHaveNonNullExecutionTime() {
             // given
-            when(billingService.generateMonthlyInvoices(anyInt(), anyInt()))
-                    .thenReturn(Collections.emptyList());
             when(clientService.getAllClients()).thenReturn(Collections.emptyList());
 
             // when
-            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing();
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
 
             // then
-            YearMonth expectedPreviousMonth = YearMonth.now().minusMonths(1);
-            assertThat(summary.previousMonth())
-                    .as("Summary should contain correct previous month")
-                    .isEqualTo(expectedPreviousMonth);
+            assertThat(summary.executionTime()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Summary should carry runId when provided")
+        void summaryShouldCarryRunId_whenProvided() {
+            // given
+            when(clientService.getAllClients()).thenReturn(Collections.emptyList());
+            String runId = "test-run-id-123";
+
+            // when
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD, runId);
+
+            // then
+            assertThat(summary.runId()).isEqualTo(runId);
+        }
+
+        @Test
+        @DisplayName("Summary runId should be null when called via default method")
+        void summaryShouldHaveNullRunId_whenCalledViaDefaultMethod() {
+            // given
+            when(clientService.getAllClients()).thenReturn(Collections.emptyList());
+
+            // when
+            InvoicingSummary summary = invoicingTaskService.executeMonthlyInvoicing(SELLER_ID, PERIOD);
+
+            // then
+            assertThat(summary.runId()).isNull();
         }
     }
 }

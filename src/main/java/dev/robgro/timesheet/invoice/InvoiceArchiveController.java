@@ -5,6 +5,7 @@ import dev.robgro.timesheet.utils.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import java.time.LocalDate;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -70,6 +71,7 @@ public class InvoiceArchiveController {
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
+            @RequestParam(defaultValue = "false") boolean showCancelled,
             @RequestParam(required = false, defaultValue = "issueDate") String sortBy,
             @RequestParam(required = false, defaultValue = "desc") String sortDir,
             @RequestParam(defaultValue = "0") int page,
@@ -92,12 +94,13 @@ public class InvoiceArchiveController {
         } else {
             pageable = PaginationUtils.createPageable(sortBy, sortDir, page, size);
         }
-        Page<InvoiceDto> invoicesPage = invoiceService.getAllInvoicesPageable(clientId, year, month, pageable);
+        Page<InvoiceDto> invoicesPage = invoiceService.getAllInvoicesPageable(clientId, year, month, showCancelled, pageable);
 
         populateModel(model, invoicesPage, page, size, sortBy, sortDir);
         model.addAttribute("clientId", clientId);
         model.addAttribute("year", year);
         model.addAttribute("month", month);
+        model.addAttribute("showCancelled", showCancelled);
 
         return "invoices/pdf";
     }
@@ -106,5 +109,6 @@ public class InvoiceArchiveController {
         model.addAttribute("invoices", invoicesPage.getContent());
         PaginationUtils.setPaginationAttributesWithSort(model, invoicesPage, page, size, sortBy, sortDir);
         model.addAttribute("clients", clientService.getAllClients());
+        model.addAttribute("currentYear", LocalDate.now().getYear());
     }
 }

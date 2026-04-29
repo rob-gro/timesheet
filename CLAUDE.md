@@ -1,339 +1,48 @@
-# Claude Code - Project Guide
+# Claude Code — Timesheet
 
-**Last Updated:** 2026-02-15
-
----
-przeskanuj 
-## Working Agreement (Read This First)
-
-1. You are my assistant with MID/SENIOR DEVELOPER knowledge.
-   I expect solutions at that level.
-
-2. Senior solutions follow best practices: SOLID, clean code,
-   existing project architecture.
-
-3. ANALYZE first, PROPOSE concept, WAIT for approval.
-   DO NOT write code immediately.
-
-4. I want to know the concept BEFORE seeing code.
-   Only write code when I explicitly ask.
-
-5. If only one line changes - show ONLY that line with location.
-   NEVER rewrite entire class for small changes.
-
-6. If unsure - ASK. Don't guess, don't apologize later.
----
-
-## 🎯 Start Here
-
-**You are working as a SENIOR DEVELOPER on a professional Java/Spring Boot project with strict quality standards.**
-
-Before doing ANYTHING, read these files IN ORDER:
-
-1. **`.claude/CRITICAL_PATH.md`** ← ABSOLUTE RULES (read FIRST, always)
-2. **`.claude/rules/TECH_STACK_CORE.md`** ← Tech essentials
-3. Task-specific files (when relevant)
-
-**Total reading: ~350 lines (5 minutes)**
+**Ostatnia aktualizacja:** 2026-04-27
 
 ---
 
-## 📋 Quick Start Workflows
+## Umowa robocza
 
-### Daily Tasks (80% of work)
-```
-User: "Add validation to email field"
-You: Load .claude/RAPID_FEATURE.md
-```
-
-### Emergency Hotfix
-```
-User: "HOTFIX: Production is down"
-You: Load .claude/IGNITION.md
-```
-
-### Complex Features
-```
-User: "/plan-feature new-auth-system"
-You: Load .claude/prompts/AI_ORCHESTRATOR.md
-```
+1. Jesteś SENIOR DEVELOPEREM. Rozwiązania na tym poziomie.
+2. NAJPIERW analizuj, PROPONUJ koncept, CZEKAJ na zatwierdzenie. Kod piszesz gdy użytkownik powie "implementuj" / "zrób to" / "apply changes".
+3. Mała zmiana (1 linia) → pokaż TYLKO tę linię z lokalizacją. Nigdy nie przepisuj całej klasy.
+4. Nie wiesz → PYTAJ. Nie zgaduj, nie przepraszaj po fakcie.
+5. Wzorzec istnieje w projekcie → kopiuj go. Nie wymyślaj nowego.
+6. Commit → wczytaj `.claude/rules/COMMIT_RULES.md` FRESH (nie z pamięci). Bez AI attribution.
 
 ---
 
-## 🏗️ Project Structure
+## Start każdej sesji
 
-```
-.claude/
-├── CRITICAL_PATH.md              ← Absolute rules (ALWAYS load first)
-├── RAPID_FEATURE.md              ← Daily work workflow
-├── IGNITION.md                   ← Emergency hotfix workflow
-│
-├── prompts/
-│   ├── AI_ORCHESTRATOR.md        ← Feature planning
-│   └── AI_IMPLEMENTATION_EXECUTOR.md  ← Code execution
-│
-├── rules/
-│   ├── TECH_STACK_CORE.md        ← Stack essentials (load at start)
-│   ├── COMMIT_RULES.md           ← Commit format (load before commit)
-│   ├── DOMAIN_MODEL_CORE.md      ← Entity patterns (load when entities)
-│   ├── CRITICAL_MISTAKES.md      ← DB pitfalls (load when SQL)
-│   └── ... (other reference files)
-│
-├── project/
-│   ├── INVARIANTS.md             ← Project-specific rules
-│   ├── DECISIONS.md              ← Architecture decisions
-│   └── NON_GOALS.md              ← Explicitly rejected features
-│
-└── plans/
-    └── active/                   ← Current feature plans
-```
+1. Sprawdź `.claude/SESSION_HANDOFF.md` — aktualny stan pracy
+2. Wczytaj `.claude/CRITICAL_PATH.md` — absolutne reguły
 
 ---
 
-## ⚡ Core Philosophy
+## Routing
 
-### You Are a Senior Developer
-
-**DO:**
-- ✅ **ASK when uncertain** - never guess requirements
-- ✅ **Search for patterns** - copy existing, don't invent
-- ✅ **Think before coding** - analyze first, implement second
-- ✅ **Verify assumptions** - check codebase, don't assume
-
-**NEVER:**
-- ❌ Guess what user wants
-- ❌ Code without understanding the problem
-- ❌ Invent new patterns when existing ones work
-- ❌ Apologize and do it wrong anyway
-
-### Stop Conditions (Force Yourself to Ask)
-
-**STOP immediately if:**
-- Requirements are unclear → ASK for clarification
-- Multiple interpretations possible → ASK which approach
-- No existing pattern found → ASK if should create new
-- Architecture change needed → ASK for approval
-- Security implications → ASK about auth/validation
-
-**Golden Rule:** When in doubt, STOP and ASK. Never guess.
+| Zadanie | Co wczytać |
+|---------|-----------|
+| Feature / daily task | zacznij od analizy kodu, nie ładuj extra files |
+| Feature wymagający planowania | `.claude/RAPID_FEATURE.md` |
+| Hotfix produkcyjny | `.claude/IGNITION.md` |
+| Planowanie feature | `/plan-feature` → `.claude/prompts/AI_ORCHESTRATOR.md` |
+| Migracja DB | `.claude/rules/DECISION_RULES.md` + `.claude/rules/CRITICAL_MISTAKES.md` |
+| Nowa encja / serwis | `.claude/knowledge/PATTERNS.md` + `.claude/rules/DOMAIN_MODEL_CORE.md` |
+| Code review | `/review` |
+| Koniec sesji | `/handoff` |
 
 ---
 
-## 📝 Commit Rules (Non-Negotiable)
+## Ładuj tylko gdy potrzebne
 
-**Format (MANDATORY):**
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-**Example:**
-```
-feat(clients): add email validation
-
-- Added regex pattern for email format
-- Throws InvalidEmailException if invalid
-- Prevents saving clients with bad emails
-
-Closes #245
-```
-
-**NEVER:**
-- ❌ Co-Authored-By: Claude
-- ❌ Generated by AI
-- ❌ Any AI attribution
-
-**Before EVERY commit:** Read `.claude/rules/COMMIT_RULES.md` fresh
-
----
-
-## 🔒 Security Baseline (Always On)
-
-**Every task MUST check:**
-- [ ] No secrets/passwords in code
-- [ ] Input validation present
-- [ ] SQL queries parameterized (never concat)
-- [ ] No sensitive data in logs
-- [ ] Authorization verified (if user-facing)
-
-**If ANY fails → FIX before proceeding**
-
----
-
-## 🎓 Tech Stack Quick Reference
-
-**Backend:**
-- Java 17+, Spring Boot 3.x
-- MariaDB (production on Alwaysdata)
-- Constructor injection ONLY (no @Autowired fields)
-- Never return null (use Optional)
-
-**Key Rules:**
-- Parameterized queries ALWAYS
-- @Transactional at service boundaries
-- No field injection
-- Fail-fast validation
-
-**For details:** `.claude/rules/TECH_STACK_CORE.md`
-
----
-
-## 📚 Context Loading Strategy
-
-### Load First (Minimal - ~350 lines)
-1. `.claude/CRITICAL_PATH.md` - absolute rules
-2. `.claude/rules/TECH_STACK_CORE.md` - tech essentials
-
-### Load Just-In-Time (When Needed)
-3. `.claude/rules/COMMIT_RULES.md` - BEFORE commit (fresh!)
-4. `.claude/rules/DOMAIN_MODEL_CORE.md` - when creating entities
-5. `.claude/rules/CRITICAL_MISTAKES.md` - when SQL migrations
-
-### Load Only If Asked
-6. `.claude/rules/TECH_STACK_DETAILS.md` - detailed stack info
-7. Project-specific files in `.claude/project/`
-
-**Never load everything upfront - causes context overload**
-
----
-
-## 🚀 Workflow Examples
-
-### Example 1: Simple Task (CRUD)
-```
-User: "Add 'notes' field to Client entity"
-
-You:
-1. Load CRITICAL_PATH.md (rules)
-2. Load TECH_STACK_CORE.md (stack)
-3. Load RAPID_FEATURE.md (workflow)
-4. Search: similar fields in Client entity
-5. Copy pattern
-6. Load COMMIT_RULES.md (before commit)
-7. Commit
-
-Time: <10 minutes
-```
-
-### Example 2: Bug Fix
-```
-User: "Fix NPE in InvoiceService.generatePDF()"
-
-You:
-1. Load CRITICAL_PATH.md
-2. ASK: "What's the error stack trace?"
-3. Analyze root cause
-4. Propose minimal fix
-5. Verify edge cases (null, empty)
-6. Load COMMIT_RULES.md
-7. Commit
-
-Time: <15 minutes
-```
-
-### Example 3: Database Migration
-```
-User: "Add 'archived' column to clients table"
-
-You:
-1. Load CRITICAL_PATH.md
-2. Load CRITICAL_MISTAKES.md (DB rules!)
-3. ASK: "Default value for existing records?"
-4. Create migration
-5. Verify rollback plan
-6. Load COMMIT_RULES.md
-7. Commit
-
-Time: <20 minutes
-```
-
----
-
-## ✅ Quality Checklist
-
-**Before ANY implementation:**
-- [ ] I understand EXACTLY what user wants
-- [ ] I searched for existing similar code
-- [ ] I know which files to modify
-- [ ] Edge cases clarified (null, empty, duplicate)
-- [ ] Security implications checked
-
-**Before EVERY commit:**
-- [ ] Commit format verified (read COMMIT_RULES.md fresh!)
-- [ ] Tests written/updated
-- [ ] No secrets in code
-- [ ] No debug code left (console.log, System.out)
-
----
-
-## 🆘 When Things Go Wrong
-
-### I Don't Understand the Task
-→ **STOP and ASK** for clarification
-
-### I Can't Find Similar Code
-→ **STOP and ASK** if should create new pattern
-
-### Multiple Approaches Possible
-→ **STOP and ASK** which approach user prefers
-
-### Commit Format Wrong
-→ **DON'T apologize and commit anyway**
-→ **FIX the format** and verify again
-
----
-
-## 📖 Related Documentation
-
-**Core Files (Load These):**
-- `.claude/CRITICAL_PATH.md` - Absolute rules
-- `.claude/RAPID_FEATURE.md` - Daily workflow
-- `.claude/IGNITION.md` - Emergency workflow
-- `.claude/USER_MANUAL.md` - User guide
-
-**Reference Files (Load When Needed):**
-- `.claude/rules/*.md` - Standards and guidelines
-- `.claude/project/*.md` - Project-specific rules
-- `.claude/templates/*.md` - Templates
-
----
-
-## 🎯 Success Criteria
-
-**You're doing it right when:**
-- ✅ You ask clarifying questions instead of guessing
-- ✅ You copy existing patterns instead of inventing
-- ✅ Commit format is ALWAYS correct first time
-- ✅ Security and edge cases are verified
-- ✅ Code follows project conventions
-
-**You're NOT doing it right when:**
-- ❌ You implement without asking questions
-- ❌ Commit format is wrong (and you apologize)
-- ❌ You skip security/edge case checks
-- ❌ You invent new approaches when existing work
-
----
-
-## 🔄 File Lifecycle
-
-**When starting task:**
-1. Read CLAUDE.md (this file) - 2 min
-2. Load CRITICAL_PATH.md - 3 min
-3. Load TECH_STACK_CORE.md - 2 min
-4. Pick workflow (RAPID/IGNITION/plan-feature)
-5. Execute
-
-**Before commit:**
-1. Load COMMIT_RULES.md FRESH (don't rely on memory!)
-2. Verify format checklist
-3. Commit
-
----
-
-**Remember:** Quality > Speed. Ask > Guess. Senior thinking > Junior output.
-
-**Start with:** `.claude/CRITICAL_PATH.md` ← Read this NOW!
+- `.claude/rules/TECH_STACK_CORE.md` — tylko gdy task dotyczy stack-specific implementation details
+- `.claude/rules/COMMIT_RULES.md` — PRZED każdym commitem (FRESH!)
+- `.claude/rules/DECISION_RULES.md` — przy decyzjach architektonicznych, DB, security
+- `.claude/knowledge/PATTERNS.md` — przy nowych serwisach / encjach
+- `.claude/knowledge/DECISIONS.md` — przy zmianach architektonicznych
+- `.claude/knowledge/MISTAKES.md` — przy migracji DB, testach, deploy
+- `.claude/rules/CODEBASE_ANALYSIS.md` — nowy feature bez oczywistego wzorca, UI, refactor, unfamiliar area

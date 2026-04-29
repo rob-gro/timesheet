@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{head :: head}"></head>
+<body>
+
+<link rel="stylesheet" th:href="@{/css/invoicing-schedule-style.css}">
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="container my-auto mx-auto">
+
+            <!-- Header -->
+            <h2 class="text-center mb-2">Invoicing Schedule Settings</h2>
+            <p class="page-subtitle text-center mb-4">Configure automated monthly invoicing for your company</p>
+
+            <!-- Navigation -->
+            <div class="mb-3">
+                <button type="button" class="nav-button" onclick="window.location.href='/';">Back to Main</button>
+                <button type="button" class="nav-button ms-2"
+                        th:if="${currentUser != null and currentUser.defaultSeller != null}"
+                        th:onclick="'window.location.href=\'/sellers/edit/' + ${currentUser.defaultSeller.id} + '\';'">
+                    Back to Seller
+                </button>
+            </div>
+
+            <!-- Flash messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                &#10003; <span th:text="${success}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                &#10007; <span th:text="${error}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Compact info bar: Company + Last Run Status -->
+            <div class="info-bar">
+                <span>
+                    <strong>Company:</strong>
+                    <span th:text="${currentUser != null and currentUser.defaultSeller != null}
+                        ? ${currentUser.defaultSeller.name}
+                        : 'No seller assigned'"></span>
+                </span>
+
+                <span class="info-separator" th:if="${config != null}">|</span>
+
+                <span th:if="${config != null and config.lastRunStatus() == null}"
+                      class="text-muted">No runs yet</span>
+
+                <span th:if="${config != null and config.lastRunStatus() != null}">
+                    Last run:
+                    <span th:class="'status-badge status-' + ${#strings.toLowerCase(#strings.replace(config.lastRunStatus().name(), '_', '-'))}"
+                          th:text="${config.lastRunStatus().name()}"
+                          th:title="${config.lastRunPeriod() != null ? 'period: ' + config.lastRunPeriod() : ''} + ${config.lastRunSuccessCount() != null ? ' | ' + config.lastRunSuccessCount() + ' ok / ' + config.lastRunFailCount() + ' failed' : ''}"></span>
+                    <span class="ms-1 info-text small" th:if="${config.lastRunAt() != null}"
+                          th:text="${#temporals.format(config.lastRunAt(), 'd MMM yyyy')} + ' at ' + ${#temporals.format(config.lastRunAt(), 'HH:mm')}"></span>
+                    <span class="ms-1 info-text small" th:if="${config.lastErrorSummary() != null}">
+                        — <span th:text="${config.lastErrorSummary()}"></span>
+                    </span>
+                </span>
+            </div>
+
+            <!-- No seller: stop here -->
+            <div th:if="${config == null}" class="alert alert-warning">
+                Cannot load schedule configuration without an assigned seller.
+                <a href="/sellers" class="alert-link">Go to Sellers</a>
+            </div>
+
+            <!-- Main content: only when config available -->
+            <div th:if="${config != null}">
+
+                <div class="schedule-section">
+
+                    <!-- Save form -->
+                    <form th:action="@{/settings/invoicing-schedule/save}" method="post" id="saveForm">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <!-- Enable toggle -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch schedule-toggle">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="enabledToggle" name="enabled" value="true"
+                                       th:checked="${config.enabled()}">
+                                <label class="form-check-label" for="enabledToggle">Enable automated invoicing</label>
+                            </div>
+                        </div>
+
+                        <!-- Day / Hour / Timezone in one row -->
+                        <div id="scheduleFields" class="schedule-fields-row">
+
+                            <!-- Day of Month -->
+                            <div class="schedule-field">
+                                <label for="scheduledDay">Day of Month</label>
+                                <select id="scheduledDay" name="scheduledDay" class="form-select">
+                                    <option th:each="d : ${#numbers.sequence(1, 31)}"
+                                            th:value="${d}"
+                                            th:text="${d}"
+                                            th:selected="${d == config.scheduledDay()}"></option>
+                                </select>
+                                <small class="field-hint">Day 29–31 clamped to last day of shorter months</small>
+                            </div>
+
+                            <!-- Hour -->
+                            <div class="schedule-field">
+                                <label for="scheduledHour">Run time (selected timezone)</label>
+                                <select id="scheduledHour" name="scheduledHour" class="form-select">
+                                    <option th:each="h : ${#numbers.sequence(0, 23)}"
+                                            th:value="${h}"
+                                            th:text="${(h < 10 ? '0' : '') + h + ':00'}"
+                                            th:selected="${h == config.scheduledHour()}"></option>
+                                </select>
+                            </div>
+
+                            <!-- Timezone -->
+                            <div class="schedule-field schedule-field-tz">
+                                <label>Timezone</label>
+                                <select id="timezone" name="timezone" class="form-select"
+                                        th:attr="data-current=${config.timezone()}">
+                                    <option th:each="tz : ${timezones}"
+                                            th:value="${tz}"
+                                            th:text="${tz}"></option>
+                                </select>
+                            </div>
+
+                        </div><!-- end scheduleFields -->
+
+                        <!-- Next run preview -->
+                        <p class="next-run-preview mt-3 mb-0">
+                            Next run: <span id="jsNextRunPreview">—</span>
+                        </p>
+
+                    </form>
+
+                    <!-- Action row: Save + Run now -->
+                    <div class="action-row mt-3">
+                        <button type="submit" form="saveForm" class="save-button btn-schedule-action">Save Schedule</button>
+
+                        <form th:action="@{/settings/invoicing-schedule/trigger}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="nav-button btn-trigger-secondary">&#9889; Run now</button>
+                        </form>
+                        <span class="admin-badge">Admin</span>
+                    </div>
+                    <p class="trigger-hint mt-1">Generate invoices now for the previous period.</p>
+
+                </div>
+
+            </div><!-- end config != null -->
+
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/invoicing-schedule.js}"></script>
+</body>
+</html>

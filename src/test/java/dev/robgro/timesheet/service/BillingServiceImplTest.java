@@ -72,7 +72,7 @@ class BillingServiceImplTest {
 
         ClientDto client = new ClientDto(1L, "Client 1", 50.0, "11", "Street", "City", "12345", "email@test.com", true);
         TimesheetDto timesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
-        InvoiceDto invoice = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "INV-001", lastDayOfMonth, null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoice = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "INV-001", lastDayOfMonth, null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(clientService.getAllClients()).thenReturn(List.of(client));
         when(timesheetService.getMonthlyTimesheets(client.id(), year, month)).thenReturn(List.of(timesheet));
@@ -99,7 +99,7 @@ class BillingServiceImplTest {
         ClientDto client = new ClientDto(1L, "Client 1", 50.0, "1", "Street", "City", "12345", "email@test.com", true);
         TimesheetDto invoicedTimesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, true, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
         TimesheetDto uninvoicedTimesheet = new TimesheetDto(2L, "Client 1", LocalDate.of(2024, 1, 16), 3.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(150.0));
-        InvoiceDto invoice = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "INV-001", lastDayOfMonth, null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoice = new InvoiceDto(1L, 1L, "Client 1", 1L, "Test Seller", "INV-001", lastDayOfMonth, null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(clientService.getAllClients()).thenReturn(List.of(client));
         when(timesheetService.getMonthlyTimesheets(client.id(), year, month)).thenReturn(List.of(invoicedTimesheet, uninvoicedTimesheet));
@@ -187,7 +187,7 @@ class BillingServiceImplTest {
         LocalDate lastDayOfMonth = YearMonth.of(year, month).atEndOfMonth();
 
         TimesheetDto timesheet = new TimesheetDto(1L, "Client 1", LocalDate.of(2024, 1, 15), 2.0, false, 1L, 50.0, null, null, BigDecimal.valueOf(100.0));
-        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "INV-001", lastDayOfMonth, null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "INV-001", lastDayOfMonth, null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(timesheetService.getMonthlyTimesheets(clientId, year, month)).thenReturn(List.of(timesheet));
         when(invoiceCreationService.createInvoice(clientId, testSeller.getId(), lastDayOfMonth, List.of(timesheet.id()))).thenReturn(invoice);
@@ -245,7 +245,7 @@ class BillingServiceImplTest {
         Long clientId = 1L;
         LocalDate issueDate = LocalDate.now();
         List<Long> timesheetIds = List.of(1L, 2L);
-        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "INV-001", issueDate, null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "INV-001", issueDate, null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceCreationService.createInvoice(clientId, testSeller.getId(), issueDate, timesheetIds)).thenReturn(invoice);
 
@@ -266,7 +266,7 @@ class BillingServiceImplTest {
         Long clientId = 1L;
         int year = 2024;
         int month = 1;
-        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "INV-001", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "INV-001", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceService.getMonthlyInvoices(clientId, year, month)).thenReturn(List.of(invoice));
 
@@ -284,7 +284,7 @@ class BillingServiceImplTest {
         // given
         Long clientId = 1L;
         int year = 2024;
-        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "INV-001", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT");
+        InvoiceDto invoice = new InvoiceDto(1L, clientId, "Client 1", 1L, "Test Seller", "INV-001", LocalDate.now(), null, null, List.of(), null, null, null, 0, null, "NOT_SENT", null, null, null, false);
 
         when(invoiceService.getYearlyInvoices(clientId, year)).thenReturn(List.of(invoice));
 

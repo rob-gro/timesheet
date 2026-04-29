@@ -115,8 +115,12 @@ public class SecurityConfig {
 
                         // API endpoints - access levels
                         .requestMatchers("/api/v1/clients/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/invoices/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/invoices/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/timesheets/**").hasAnyRole("ADMIN", "USER", "GUEST")
+
+                        // Settings - invoicing schedule: ADMIN only
+                        .requestMatchers("/settings/invoicing-schedule/**").hasRole("ADMIN")
 
                         // Web UI endpoints
                         .requestMatchers("/clients/**").hasAnyRole("ADMIN", "USER")

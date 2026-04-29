@@ -1,0 +1,20 @@
+CREATE TABLE seller_schedule_config (
+    id                     BIGINT AUTO_INCREMENT PRIMARY KEY,
+    seller_id              BIGINT NOT NULL,
+    scheduled_day          INT NOT NULL DEFAULT 1,
+    scheduled_hour         INT NOT NULL DEFAULT 12,
+    enabled                TINYINT(1) NOT NULL DEFAULT 1,
+    last_run_at            DATETIME NULL    COMMENT 'UTC timestamp, telemetria',
+    run_started_at         DATETIME NULL    COMMENT 'UTC - kiedy zaczal sie biezacy/ostatni run',
+    last_run_period        VARCHAR(7) NULL  COMMENT 'YYYY-MM. Glowna blokada idempotencji, niezalezna od timezone/DST',
+    last_run_status        VARCHAR(20) NULL,
+    last_run_success_count INT NULL,
+    last_run_fail_count    INT NULL,
+    last_error_summary     TEXT NULL,
+    run_retry_count        INT NOT NULL DEFAULT 0     COMMENT '0 = no retry yet; 1 = already retried once (FAIL retry cap)',
+    created_at             DATETIME NOT NULL,
+    updated_at             DATETIME NULL,
+    CONSTRAINT fk_ssc_seller FOREIGN KEY (seller_id) REFERENCES sellers(id),
+    CONSTRAINT unique_seller_schedule UNIQUE (seller_id),
+    INDEX idx_ssc_seller_period (seller_id, last_run_period)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

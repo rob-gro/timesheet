@@ -41,15 +41,15 @@ class InvoiceNumberGeneratorImplTest {
     private Seller testSeller;
     private InvoiceNumberingScheme testScheme;
 
+    private static final Long SELLER_ID = 1L;
+
     @BeforeEach
     void setUp() {
-        // Create test seller
         testSeller = new Seller();
-        testSeller.setId(1L);
+        testSeller.setId(SELLER_ID);
         testSeller.setName("Test Company");
         testSeller.setActive(true);
 
-        // Create test scheme
         testScheme = InvoiceNumberingScheme.create(
             testSeller,
             "{SEQ:3}-{MM}-{YYYY}",
@@ -64,14 +64,14 @@ class InvoiceNumberGeneratorImplTest {
         // Given
         LocalDate issueDate = LocalDate.of(2026, 2, 15);
 
-        when(schemeRepository.findEffectiveScheme(1L, issueDate)).thenReturn(Optional.of(testScheme));
+        when(schemeRepository.findEffectiveScheme(SELLER_ID, issueDate)).thenReturn(Optional.of(testScheme));
         when(periodKeyFactory.build(ResetPeriod.MONTHLY, 2026, 2)).thenReturn("2026-02");
-        when(counterService.nextSequence(1L, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2)).thenReturn(1);
+        when(counterService.nextSequence(SELLER_ID, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2)).thenReturn(1);
         when(templateParser.apply(eq("{SEQ:3}-{MM}-{YYYY}"), any()))
             .thenReturn("001-02-2026");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(SELLER_ID, issueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(1);
@@ -79,7 +79,7 @@ class InvoiceNumberGeneratorImplTest {
         assertThat(result.getPeriodMonth()).isEqualTo(2);
         assertThat(result.getDisplayNumber()).isEqualTo("001-02-2026");
 
-        verify(counterService).nextSequence(1L, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2);
+        verify(counterService).nextSequence(SELLER_ID, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2);
     }
 
     @Test
@@ -87,14 +87,14 @@ class InvoiceNumberGeneratorImplTest {
         // Given
         LocalDate issueDate = LocalDate.of(2026, 2, 15);
 
-        when(schemeRepository.findEffectiveScheme(1L, issueDate)).thenReturn(Optional.of(testScheme));
+        when(schemeRepository.findEffectiveScheme(SELLER_ID, issueDate)).thenReturn(Optional.of(testScheme));
         when(periodKeyFactory.build(ResetPeriod.MONTHLY, 2026, 2)).thenReturn("2026-02");
-        when(counterService.nextSequence(1L, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2)).thenReturn(6); // Counter returns 6
+        when(counterService.nextSequence(SELLER_ID, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2)).thenReturn(6);
         when(templateParser.apply(eq("{SEQ:3}-{MM}-{YYYY}"), any()))
             .thenReturn("006-02-2026");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(SELLER_ID, issueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(6);
@@ -112,14 +112,14 @@ class InvoiceNumberGeneratorImplTest {
             1
         );
 
-        when(schemeRepository.findEffectiveScheme(1L, issueDate)).thenReturn(Optional.of(yearlyScheme));
+        when(schemeRepository.findEffectiveScheme(SELLER_ID, issueDate)).thenReturn(Optional.of(yearlyScheme));
         when(periodKeyFactory.build(ResetPeriod.YEARLY, 2026, 0)).thenReturn("2026");
-        when(counterService.nextSequence(1L, ResetPeriod.YEARLY, "2026", null, 2026, 0)).thenReturn(1);
+        when(counterService.nextSequence(SELLER_ID, ResetPeriod.YEARLY, "2026", null, 2026, 0)).thenReturn(1);
         when(templateParser.apply(eq("INV-{SEQ:3}-{YYYY}"), any()))
             .thenReturn("INV-001-2026");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(SELLER_ID, issueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(1);
@@ -139,14 +139,14 @@ class InvoiceNumberGeneratorImplTest {
             1
         );
 
-        when(schemeRepository.findEffectiveScheme(1L, issueDate)).thenReturn(Optional.of(neverScheme));
+        when(schemeRepository.findEffectiveScheme(SELLER_ID, issueDate)).thenReturn(Optional.of(neverScheme));
         when(periodKeyFactory.build(ResetPeriod.NEVER, 0, 0)).thenReturn("NEVER");
-        when(counterService.nextSequence(1L, ResetPeriod.NEVER, "NEVER", null, 0, 0)).thenReturn(42);
+        when(counterService.nextSequence(SELLER_ID, ResetPeriod.NEVER, "NEVER", null, 0, 0)).thenReturn(42);
         when(templateParser.apply(eq("INV-{SEQ:4}"), any()))
             .thenReturn("INV-0042");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(SELLER_ID, issueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(42);
@@ -160,10 +160,10 @@ class InvoiceNumberGeneratorImplTest {
         // Given
         LocalDate issueDate = LocalDate.of(2026, 2, 15);
 
-        when(schemeRepository.findEffectiveScheme(1L, issueDate)).thenReturn(Optional.empty());
+        when(schemeRepository.findEffectiveScheme(SELLER_ID, issueDate)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> generator.generateInvoiceNumber(1L, issueDate, null))
+        assertThatThrownBy(() -> generator.generateInvoiceNumber(SELLER_ID, issueDate, null))
             .isInstanceOf(NoSchemeConfiguredException.class)
             .hasMessageContaining("No numbering scheme configured");
     }
@@ -173,13 +173,13 @@ class InvoiceNumberGeneratorImplTest {
         // Given - invoice issued in the past
         LocalDate backdatedIssueDate = LocalDate.of(2025, 12, 15);
 
-        when(schemeRepository.findEffectiveScheme(1L, backdatedIssueDate)).thenReturn(Optional.of(testScheme));
+        when(schemeRepository.findEffectiveScheme(SELLER_ID, backdatedIssueDate)).thenReturn(Optional.of(testScheme));
         when(periodKeyFactory.build(ResetPeriod.MONTHLY, 2025, 12)).thenReturn("2025-12");
-        when(counterService.nextSequence(1L, ResetPeriod.MONTHLY, "2025-12", null, 2025, 12)).thenReturn(11);
+        when(counterService.nextSequence(SELLER_ID, ResetPeriod.MONTHLY, "2025-12", null, 2025, 12)).thenReturn(11);
         when(templateParser.apply(any(), any())).thenReturn("011-12-2025");
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, backdatedIssueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(SELLER_ID, backdatedIssueDate, null);
 
         // Then
         assertThat(result.getSequenceNumber()).isEqualTo(11);
@@ -187,7 +187,7 @@ class InvoiceNumberGeneratorImplTest {
         assertThat(result.getPeriodMonth()).isEqualTo(12);
 
         // Verify it used the backdated issue date, not current date
-        verify(schemeRepository).findEffectiveScheme(1L, backdatedIssueDate);
+        verify(schemeRepository).findEffectiveScheme(SELLER_ID, backdatedIssueDate);
         verify(periodKeyFactory).build(ResetPeriod.MONTHLY, 2025, 12);
     }
 
@@ -198,11 +198,11 @@ class InvoiceNumberGeneratorImplTest {
 
         when(schemeRepository.findEffectiveScheme(any(), any())).thenReturn(Optional.of(testScheme));
         when(periodKeyFactory.build(ResetPeriod.MONTHLY, 2026, 2)).thenReturn("2026-02");
-        when(counterService.nextSequence(1L, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2)).thenReturn(1); // New month, starts at 1
+        when(counterService.nextSequence(SELLER_ID, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2)).thenReturn(1);
         when(templateParser.apply(any(), any())).thenReturn("001-02-2026");
 
         // When - generate for February
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, februaryDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(SELLER_ID, februaryDate, null);
 
         // Then - should be sequence 1 (new month)
         assertThat(result.getSequenceNumber()).isEqualTo(1);
@@ -212,7 +212,7 @@ class InvoiceNumberGeneratorImplTest {
     @Test
     void shouldThrowExceptionWhenIssueDateIsNull() {
         // When & Then
-        assertThatThrownBy(() -> generator.generateInvoiceNumber(1L, null, null))
+        assertThatThrownBy(() -> generator.generateInvoiceNumber(SELLER_ID, null, null))
             .isInstanceOf(ValidationException.class)
             .hasMessageContaining("Issue date is required");
     }
@@ -236,15 +236,15 @@ class InvoiceNumberGeneratorImplTest {
         when(schemeA.getTemplate()).thenReturn("{SEQ:3}-{MM}-{YYYY}");
         when(schemeA.getResetPeriod()).thenReturn(ResetPeriod.MONTHLY);
 
-        when(schemeRepository.findEffectiveScheme(1L, issueDate)).thenReturn(Optional.of(schemeA));
+        when(schemeRepository.findEffectiveScheme(SELLER_ID, issueDate)).thenReturn(Optional.of(schemeA));
         when(periodKeyFactory.build(ResetPeriod.MONTHLY, 2026, 2)).thenReturn("2026-02");
-        when(counterService.nextSequence(1L, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2)).thenReturn(1);
-        when(counterService.peekNextSequence(1L, ResetPeriod.MONTHLY, "2026-02")).thenReturn(1);
+        when(counterService.nextSequence(SELLER_ID, ResetPeriod.MONTHLY, "2026-02", null, 2026, 2)).thenReturn(1);
+        when(counterService.peekNextSequence(SELLER_ID, ResetPeriod.MONTHLY, "2026-02")).thenReturn(1);
         when(templateParser.apply(any(), any())).thenReturn("001-02-2026");
 
         // When
-        GeneratedInvoiceNumber generated = generator.generateInvoiceNumber(1L, issueDate, null);
-        GeneratedInvoiceNumber peeked = generator.peekNextInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber generated = generator.generateInvoiceNumber(SELLER_ID, issueDate, null);
+        GeneratedInvoiceNumber peeked = generator.peekNextInvoiceNumber(SELLER_ID, issueDate, null);
 
         // Then
         assertThat(generated.getSchemeId()).isEqualTo(42L);
@@ -267,18 +267,18 @@ class InvoiceNumberGeneratorImplTest {
         when(schemeB.getTemplate()).thenReturn("INV-{SEQ:4}-{YYYY}");
         when(schemeB.getResetPeriod()).thenReturn(ResetPeriod.YEARLY);
 
-        when(schemeRepository.findEffectiveScheme(eq(1L), any()))
+        when(schemeRepository.findEffectiveScheme(eq(SELLER_ID), any()))
             .thenReturn(Optional.of(schemeA))
             .thenReturn(Optional.of(schemeB));
         when(periodKeyFactory.build(ResetPeriod.MONTHLY, 2026, 2)).thenReturn("2026-02");
         when(periodKeyFactory.build(ResetPeriod.YEARLY, 2026, 0)).thenReturn("2026");
-        when(counterService.nextSequence(eq(1L), eq(ResetPeriod.MONTHLY), eq("2026-02"), any(), eq(2026), eq(2))).thenReturn(1);
-        when(counterService.nextSequence(eq(1L), eq(ResetPeriod.YEARLY), eq("2026"), any(), eq(2026), eq(0))).thenReturn(1);
+        when(counterService.nextSequence(eq(SELLER_ID), eq(ResetPeriod.MONTHLY), eq("2026-02"), any(), eq(2026), eq(2))).thenReturn(1);
+        when(counterService.nextSequence(eq(SELLER_ID), eq(ResetPeriod.YEARLY), eq("2026"), any(), eq(2026), eq(0))).thenReturn(1);
         when(templateParser.apply(any(), any())).thenReturn("001-02-2026", "INV-0001-2026");
 
         // When
-        GeneratedInvoiceNumber first = generator.generateInvoiceNumber(1L, issueDate, null);
-        GeneratedInvoiceNumber second = generator.generateInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber first = generator.generateInvoiceNumber(SELLER_ID, issueDate, null);
+        GeneratedInvoiceNumber second = generator.generateInvoiceNumber(SELLER_ID, issueDate, null);
 
         // Then - each invoice records the scheme that was active at generation time
         assertThat(first.getSchemeId()).isEqualTo(100L);
@@ -298,9 +298,9 @@ class InvoiceNumberGeneratorImplTest {
         when(scheme.getTemplate()).thenReturn(template);
         when(scheme.getResetPeriod()).thenReturn(ResetPeriod.YEARLY);
 
-        when(schemeRepository.findEffectiveScheme(1L, issueDate)).thenReturn(Optional.of(scheme));
+        when(schemeRepository.findEffectiveScheme(SELLER_ID, issueDate)).thenReturn(Optional.of(scheme));
         when(periodKeyFactory.build(ResetPeriod.YEARLY, 2026, 0)).thenReturn("2026");
-        when(counterService.nextSequence(1L, ResetPeriod.YEARLY, "2026", null, 2026, 0)).thenReturn(5);
+        when(counterService.nextSequence(SELLER_ID, ResetPeriod.YEARLY, "2026", null, 2026, 0)).thenReturn(5);
 
         // Use real TemplateParser to compute expected display — month=3 (actual), NOT 0 (sentinel)
         TemplateParser realParser = new TemplateParser();
@@ -312,7 +312,7 @@ class InvoiceNumberGeneratorImplTest {
         when(templateParser.apply(eq(template), any())).thenReturn(expectedDisplay);
 
         // When
-        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(1L, issueDate, null);
+        GeneratedInvoiceNumber result = generator.generateInvoiceNumber(SELLER_ID, issueDate, null);
 
         // Then: period sentinel stored as 0 (counter key), schemeId set
         assertThat(result.getPeriodMonth()).isEqualTo(0);

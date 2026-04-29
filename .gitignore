@@ -71,3 +71,6 @@ nul
 er.name)*
 *.bak
 /.env
+/.claude/docs/invoice-more-lines/feature.txt
+/.claude/docs/invoice-more-lines/
+/.claude/docs/invoice-number-edition/

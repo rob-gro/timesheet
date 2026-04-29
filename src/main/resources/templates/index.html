@@ -66,6 +66,11 @@
                            sec:authorize="hasAnyRole('ADMIN', 'USER')">
                             Footer
                         </a>
+                        <a th:href="@{/settings/invoicing-schedule}"
+                           class="nav-button text-center text-decoration-none"
+                           sec:authorize="hasRole('ADMIN')">
+                            Invoicing Scheduler
+                        </a>
 
                         <a th:href="@{/invoices/archive/pdf}"
                            class="nav-button text-center text-decoration-none">

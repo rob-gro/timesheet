@@ -6,18 +6,19 @@ import dev.robgro.timesheet.exception.IntegrationException;
 import dev.robgro.timesheet.client.Client;
 import dev.robgro.timesheet.tracking.EmailTrackingService;
 import jakarta.mail.MessagingException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static dev.robgro.timesheet.invoice.EmailMessageService.COPY_EMAIL;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
 
@@ -26,6 +27,22 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
     private final PdfGenerator pdfGenerator;
     private final EmailMessageService emailMessageService;
     private final EmailTrackingService trackingService;
+    private final TransactionTemplate tx;
+
+    public InvoiceDocumentServiceImpl(
+            InvoiceRepository invoiceRepository,
+            FtpService ftpService,
+            PdfGenerator pdfGenerator,
+            EmailMessageService emailMessageService,
+            EmailTrackingService trackingService,
+            PlatformTransactionManager transactionManager) {
+        this.invoiceRepository = invoiceRepository;
+        this.ftpService = ftpService;
+        this.pdfGenerator = pdfGenerator;
+        this.emailMessageService = emailMessageService;
+        this.trackingService = trackingService;
+        this.tx = new TransactionTemplate(transactionManager);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -43,37 +60,40 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
         }
     }
 
-    @Transactional
     @Override
     public void savePdfAndSendInvoice(Long invoiceId, PrintMode printMode) {
-        log.info(" 😁 Processing invoice PDF generation and email for invoice id: {}", invoiceId);
-        Invoice invoice = getInvoiceOrThrow(invoiceId);
-        Client client = invoice.getClient();
-        String fileName = sanitizeFilename(invoice.getInvoiceNumber()) + ".pdf";
+        log.info("Processing invoice PDF generation and email for invoice id: {}", invoiceId);
 
-        ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
-        pdfGenerator.generateInvoicePdf(invoice, pdfOutput, printMode);
-        byte[] pdfContent = pdfOutput.toByteArray();
+        // Phase 1 (short TX): load invoice+client, generate PDF, FTP upload,
+        // save pdfPath + pdfGeneratedAt + tracking token — COMMITS HERE
+        // All lazy-loaded collections accessed while session is open.
+        InvoiceEmailRequest emailRequest = tx.execute(status -> {
+            Invoice invoice = getInvoiceOrThrow(invoiceId);
+            Client client = invoice.getClient();
+            String fileName = sanitizeFilename(invoice.getInvoiceNumber()) + ".pdf";
 
-        ftpService.uploadPdfInvoice(fileName, pdfContent);
+            ByteArrayOutputStream pdfOutput = new ByteArrayOutputStream();
+            pdfGenerator.generateInvoicePdf(invoice, pdfOutput, printMode);
+            byte[] pdfContent = pdfOutput.toByteArray();
 
-        invoice.setPdfPath(ftpService.getInvoicesDirectory() + "/" + fileName);
-        invoice.setPdfGeneratedAt(LocalDateTime.now());
+            ftpService.uploadPdfInvoice(fileName, pdfContent);
 
-        // HOTFIX: Save invoice BEFORE email (so pdf_path is persisted even if email fails)
-        invoiceRepository.save(invoice);
+            invoice.setPdfPath(ftpService.getInvoicesDirectory() + "/" + fileName);
+            invoice.setPdfGeneratedAt(LocalDateTime.now());
+            invoiceRepository.save(invoice);
 
-        // Create tracking token for email open tracking (90-day expiry)
-        String trackingToken = trackingService.createTrackingToken(invoice);
-        log.debug("Created email tracking token: {} for invoice: {}", trackingToken, invoiceId);
+            String trackingToken = trackingService.createTrackingToken(invoice);
+            log.debug("Created email tracking token: {} for invoice: {}", trackingToken, invoiceId);
 
-        try {
+            // Capture all email data while session is still open (lazy-load safe)
             String firstName = client.getClientName().split(" ")[0];
             String invoiceNumber = invoice.getInvoiceNumber();
             String preMonth = invoice.getIssueDate().getMonth().toString();
             String month = preMonth.charAt(0) + preMonth.substring(1).toLowerCase();
+            int numberOfVisits = invoice.getItemsList().size();
+            BigDecimal totalAmount = invoice.getTotalAmount();
 
-            InvoiceEmailRequest emailRequest = InvoiceEmailRequest.builder()
+            return InvoiceEmailRequest.builder()
                     .recipientEmail(client.getEmail())
                     .ccEmail(COPY_EMAIL)
                     .firstName(firstName)
@@ -81,20 +101,27 @@ public class InvoiceDocumentServiceImpl implements InvoiceDocumentService {
                     .month(month)
                     .fileName(fileName)
                     .attachment(pdfContent)
-                    .numberOfVisits(invoice.getItemsList().size())
-                    .totalAmount(invoice.getTotalAmount())
-                    .trackingToken(trackingToken)  // Add tracking token
+                    .numberOfVisits(numberOfVisits)
+                    .totalAmount(totalAmount)
+                    .trackingToken(trackingToken)
                     .build();
+        });
 
+        // Phase 2 (no TX): SMTP — DB connection NOT held during email sending
+        try {
             emailMessageService.sendInvoiceEmail(emailRequest);
-
-            invoice.setEmailSentAt(LocalDateTime.now());
-            invoiceRepository.save(invoice);
-            log.info("Successfully processed invoice id: {}", invoiceId);
         } catch (MessagingException e) {
             log.error("Failed to send invoice email for id: {}", invoiceId, e);
             throw new EmailException("Failed to send invoice email for invoice " + invoiceId, e);
         }
+
+        // Phase 3 (short TX): save emailSentAt — COMMITS HERE
+        tx.executeWithoutResult(status -> {
+            Invoice invoice = getInvoiceOrThrow(invoiceId);
+            invoice.setEmailSentAt(LocalDateTime.now());
+            invoiceRepository.save(invoice);
+            log.info("Successfully processed invoice id: {}", invoiceId);
+        });
     }
 
     private Invoice getInvoiceOrThrow(Long id) {

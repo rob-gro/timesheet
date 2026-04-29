@@ -37,9 +37,11 @@ public interface InvoiceService {
 
     InvoiceDto updateInvoice(Long id, InvoiceUpdateRequest request);
 
+    void cancelInvoice(Long id, String cancelledBy, boolean deleteTimesheets);
+
     void deleteInvoice(Long id, boolean deleteTimesheets, boolean detachFromClient);
 
-    Page<InvoiceDto> getAllInvoicesPageable(Long clientId, Integer year, Integer month, Pageable pageable);
+    Page<InvoiceDto> getAllInvoicesPageable(Long clientId, Integer year, Integer month, boolean showCancelled, Pageable pageable);
 
     Page<InvoiceDto> searchInvoices(DateRangeRequest dateRange, Long clientId, Pageable pageable);
 

@@ -1,17 +1,17 @@
 package dev.robgro.timesheet.service;
 
-import dev.robgro.timesheet.config.InvoiceSeller;
 import dev.robgro.timesheet.exception.EmailException;
 import dev.robgro.timesheet.exception.EntityNotFoundException;
 import dev.robgro.timesheet.exception.IntegrationException;
 import dev.robgro.timesheet.client.Client;
 import dev.robgro.timesheet.invoice.*;
 import jakarta.mail.MessagingException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
@@ -43,10 +43,16 @@ class InvoiceDocumentServiceImplTest {
     private dev.robgro.timesheet.tracking.EmailTrackingService trackingService;
 
     @Mock
-    private InvoiceSeller seller;
+    private PlatformTransactionManager transactionManager;
 
-    @InjectMocks
     private InvoiceDocumentServiceImpl invoiceDocumentService;
+
+    @BeforeEach
+    void setUp() {
+        invoiceDocumentService = new InvoiceDocumentServiceImpl(
+                invoiceRepository, ftpService, pdfGenerator,
+                emailMessageService, trackingService, transactionManager);
+    }
 
     // ----- PDF Content Retrieval -----
 
@@ -173,7 +179,7 @@ class InvoiceDocumentServiceImplTest {
         invoiceDocumentService.savePdfAndSendInvoice(invoiceId, PrintMode.ORIGINAL);
 
         // then
-        verify(invoiceRepository).findById(invoiceId);
+        verify(invoiceRepository, times(2)).findById(invoiceId);
         verify(pdfGenerator).generateInvoicePdf(eq(invoice), any(ByteArrayOutputStream.class), any(PrintMode.class));
         verify(ftpService).uploadPdfInvoice(eq(invoiceNumber + ".pdf"), any(byte[].class));
         verify(ftpService).getInvoicesDirectory();

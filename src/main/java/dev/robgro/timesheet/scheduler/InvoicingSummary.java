@@ -15,7 +15,8 @@ public record InvoicingSummary(
         int successfulInvoices,
         int failedInvoices,
         List<String> clientsWithoutTimesheets,
-        List<InvoiceProcessingResult> processingResults
+        List<InvoiceProcessingResult> processingResults,
+        String runId
 ) {
     /**
      * Canonical constructor with defensive copies for lists
@@ -42,6 +43,7 @@ public record InvoicingSummary(
         private int failedInvoices;
         private List<String> clientsWithoutTimesheets;
         private List<InvoiceProcessingResult> processingResults;
+        private String runId;
 
         public Builder executionTime(LocalDateTime executionTime) {
             this.executionTime = executionTime;
@@ -78,6 +80,11 @@ public record InvoicingSummary(
             return this;
         }
 
+        public Builder runId(String runId) {
+            this.runId = runId;
+            return this;
+        }
+
         public InvoicingSummary build() {
             return new InvoicingSummary(
                 executionTime,
@@ -86,7 +93,8 @@ public record InvoicingSummary(
                 successfulInvoices,
                 failedInvoices,
                 clientsWithoutTimesheets,
-                processingResults
+                processingResults,
+                runId
             );
         }
     }

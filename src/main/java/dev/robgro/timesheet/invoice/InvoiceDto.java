@@ -1,5 +1,7 @@
 package dev.robgro.timesheet.invoice;
 
+import dev.robgro.timesheet.invoice.delivery.DeliveryStatus;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +23,10 @@ public record InvoiceDto(
         LocalDateTime emailOpenedAt,
         Integer emailOpenCount,
         LocalDateTime lastEmailOpenedAt,
-        String emailStatus
+        String emailStatus,
+        DeliveryStatus deliveryStatus,
+        Integer deliveryAttempts,
+        LocalDateTime cancelledAt,
+        boolean cancelled
 ) {
 }
