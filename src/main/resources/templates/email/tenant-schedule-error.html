@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <th:block th:replace="~{email/admin-email-styles :: styles}"></th:block>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div style="background-color: #f57f17; color: white; padding: 20px; margin: -20px -20px 20px -20px; border-radius: 8px 8px 0 0;">
+        <h2 style="color: white; margin: 0;">⚠️ Automated Invoicing Issue</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">
+            Period: <strong th:text="${month}">2026-01</strong>
+        </p>
+    </div>
+
+    <!-- Summary -->
+    <div class="warning-box">
+        <p style="margin: 0;">
+            The automated invoicing run for period <strong th:text="${month}">2026-01</strong>
+            completed with status <strong th:text="${status}">PARTIAL_FAIL</strong>.
+        </p>
+    </div>
+
+    <!-- Stats -->
+    <h3>📋 Run Summary</h3>
+    <table class="detail-table">
+        <tr>
+            <td>Period:</td>
+            <td th:text="${month}">2026-01</td>
+        </tr>
+        <tr>
+            <td>Status:</td>
+            <td><strong th:text="${status}">PARTIAL_FAIL</strong></td>
+        </tr>
+        <tr>
+            <td>Invoices created:</td>
+            <td>
+                <span th:text="${successCount}">3</span>
+                of
+                <span th:text="${totalCount}">5</span>
+            </td>
+        </tr>
+        <tr th:if="${successCount < totalCount}">
+            <td>Failed:</td>
+            <td style="color: #f44336;">
+                <strong th:text="${totalCount - successCount}">2</strong> invoice(s) could not be created
+            </td>
+        </tr>
+    </table>
+
+    <!-- Action required -->
+    <h3>⚙️ What to do</h3>
+    <div class="info-box">
+        Please log in to your account and check the invoicing status for
+        period <strong th:text="${month}">2026-01</strong>.<br/>
+        Missing invoices may need to be created manually.
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>This is an automated notification from the Timesheet Invoicing system.</p>
+        <p style="color: #999; font-size: 11px;">Run ID: <span th:text="${runId}">uuid</span></p>
+    </div>
+
+</div>
+</body>
+</html>

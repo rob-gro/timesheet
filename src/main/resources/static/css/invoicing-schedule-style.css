@@ -1,0 +1,266 @@
+/* Invoicing Schedule Settings */
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.03em;
+}
+
+.status-in-progress { background-color: #1565c0; }
+.status-success      { background-color: #2e7d32; }
+.status-partial-fail { background-color: #f57f17; }
+.status-fail         { background-color: #b71c1c; }
+
+.schedule-section {
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    background-color: #1e1e1e;
+}
+
+.schedule-section h4 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    color: var(--my-yellow, #f0c040);
+}
+
+.form-row-schedule {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.form-row-schedule label {
+    min-width: 160px;
+    color: #ccc;
+}
+
+.schedule-preview-box {
+    background-color: #2a2a2a;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 0.6rem 1rem;
+    color: #ddd;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* ── Page subtitle ─────────────────────────────────────────────────────── */
+
+.page-subtitle {
+    color: #999;
+}
+
+/* ── Toggle Switch ─────────────────────────────────────────────────────── */
+
+.schedule-toggle {
+    padding-left: 0;
+}
+
+.schedule-toggle .form-check-input {
+    width: 2.5rem;
+    height: 1.3rem;
+    background-color: #555;
+    border-color: #666;
+    cursor: pointer;
+    margin-left: 0;
+    flex-shrink: 0;
+}
+
+.schedule-toggle .form-check-input:checked {
+    background-color: #1976d2;
+    border-color: #1976d2;
+}
+
+.schedule-toggle .form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.25);
+    border-color: #1976d2;
+}
+
+.schedule-toggle .form-check-label {
+    color: #e0e0e0;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+}
+
+/* ── One-row fields layout ─────────────────────────────────────────────── */
+
+.schedule-fields-row {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+
+.schedule-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.schedule-field label {
+    color: #ccc;
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+.schedule-field .form-select {
+    min-width: 110px;
+}
+
+.schedule-field-tz {
+    flex: 1;
+    min-width: 240px;
+}
+
+.field-hint {
+    color: #888;
+    font-size: 0.78rem;
+}
+
+/* ── Next Scheduled Run text ───────────────────────────────────────────── */
+
+.schedule-next-info {
+    color: #e0e0e0;
+    font-weight: 600;
+}
+
+.schedule-next-tz {
+    color: #bbb;
+}
+
+/* ── Info bar readable text ────────────────────────────────────────────── */
+
+.info-text {
+    color: #bbb;
+}
+
+/* ── Form controls — gold border theme ─────────────────────────── */
+
+.form-row-schedule .form-select,
+#timezoneSearch {
+    border-color: var(--my-yellow, #f0c040);
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+}
+
+.form-row-schedule .form-select:focus,
+#timezoneSearch:focus {
+    border-color: var(--my-yellow, #f0c040);
+    box-shadow: 0 0 0 0.2rem rgba(240, 192, 64, 0.15);
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    outline: none;
+}
+
+/* Keep Bootstrap's dropdown arrow visible on dark background */
+.form-row-schedule .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23f0c040' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+}
+
+.info-bar {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 1.25rem;
+    background-color: #1e1e1e;
+    color: #ccc;
+}
+
+.info-separator {
+    color: #555;
+}
+
+/* ── Action row (Save + Run now side by side) ──────────────────────────── */
+
+.action-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.action-row form {
+    display: flex;
+    align-items: stretch;
+}
+
+.action-row .admin-badge {
+    align-self: center;
+}
+
+.btn-schedule-action {
+    min-width: 180px;
+}
+
+/* Save = solid gold primary */
+button.save-button.btn-schedule-action {
+    background-color: var(--my-yellow, #f0c040);
+    color: #111;
+    border-color: var(--my-yellow, #f0c040);
+    font-weight: 600;
+}
+
+button.save-button.btn-schedule-action:hover {
+    background-color: #d4a800;
+    border-color: #d4a800;
+    color: #000;
+}
+
+/* Run now = outline secondary */
+.btn-trigger-secondary {
+    opacity: 0.8;
+}
+
+/* Force identical height on both action buttons */
+.action-row > button,
+.action-row > form > button {
+    padding: 10px 20px;
+    line-height: 1.5;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.admin-badge {
+    font-size: 0.72rem;
+    color: var(--my-yellow, #f0c040);
+    border: 1px solid var(--my-yellow, #f0c040);
+    border-radius: 3px;
+    padding: 1px 6px;
+    opacity: 0.7;
+    letter-spacing: 0.04em;
+}
+
+/* ── Next run preview (light inline text) ──────────────────────────────── */
+
+.next-run-preview {
+    color: #bbb;
+    font-size: 0.9rem;
+}
+
+.next-run-preview span {
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+/* ── Trigger hint ──────────────────────────────────────────────────────── */
+
+.trigger-hint {
+    color: #888;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
