@@ -67,6 +67,9 @@ public class  Seller {
     @Column(name = "website")
     private String website;
 
+    @Column(name = "timezone", nullable = false, length = 50)
+    private String timezone = "UTC";
+
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
