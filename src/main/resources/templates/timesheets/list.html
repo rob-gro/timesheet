@@ -214,7 +214,7 @@
                                  th:attr="data-timesheet-id=${timesheet.id},data-is-paid=${timesheet.paymentDate != null}">
                                 <span class="dot"
                                       th:classappend="${timesheet.paymentDate != null} ? 'cyan' : ''"></span>
-                                <span th:text="${timesheet.paymentDate == null} ? 'UNPAID' : 'PAID'">UNPAID</span>
+                                <span th:text="${timesheet.paymentDate == null} ? 'UNPAID' : ${#temporals.format(timesheet.paymentDate, 'yyyy-MM-dd')}">UNPAID</span>
                             </div>
                         </div>
 
