@@ -51,11 +51,11 @@
                         </a>
 
                         <!-- Settings Section -->
-                        <div class="text-center text-muted small mt-3 mb-2"
-                             sec:authorize="hasAnyRole('ADMIN', 'USER')"
-                             style="font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            Settings
-                        </div>
+<!--                        <div class="text-center text-muted small mt-3 mb-2"-->
+<!--                             sec:authorize="hasAnyRole('ADMIN', 'USER')"-->
+<!--                             style="font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">-->
+<!--                            Settings-->
+<!--                        </div>-->
                         <a th:href="@{/settings/invoice-numbering}"
                            class="nav-button text-center text-decoration-none"
                            sec:authorize="hasAnyRole('ADMIN', 'USER')">
